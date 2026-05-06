@@ -10,25 +10,8 @@ export type TransactionRecord = {
 }
 
 const STORAGE_KEY = 'compound-nag-transactions'
-const APP_RESET_MARKER_KEY = 'compound-nag-app-reset-v1'
-const RESET_TARGET_KEYS = [
-  'compound-nag-transactions',
-  'compound-nag-expenses',
-  'compound-nag-intensity',
-  'compound-ban-period',
-  'compound-saving-target-rate',
-  'compound-daily-cat-splash-at',
-] as const
-
-function ensureCleanFirstRun(): void {
-  const alreadyReset = localStorage.getItem(APP_RESET_MARKER_KEY) === 'done'
-  if (alreadyReset) return
-  RESET_TARGET_KEYS.forEach((key) => localStorage.removeItem(key))
-  localStorage.setItem(APP_RESET_MARKER_KEY, 'done')
-}
 
 export function loadTransactions(): TransactionRecord[] {
-  ensureCleanFirstRun()
   const raw = localStorage.getItem(STORAGE_KEY)
   if (!raw) {
     return []

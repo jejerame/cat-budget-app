@@ -697,7 +697,7 @@ function App() {
       const hasIncomeBase = thisMonthIncome > 0
       const hasPrevSavingBase = prevMonthSaving > 0
       const isGoodSavingFeedback =
-        nextSavingAmount >= 50_000
+        nextSavingAmount > 100_000
         || (hasIncomeBase && savingRate >= 0.3)
         || (hasPrevSavingBase && projectedSaving > prevMonthSaving && nextSavingAmount >= 30_000)
       showCatToast(isGoodSavingFeedback ? POPUP_IMAGE_BY_TYPE.savingGood : POPUP_IMAGE_BY_TYPE.savingBad, 'saving')
