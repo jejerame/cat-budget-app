@@ -1610,7 +1610,8 @@ input[type='date']::-webkit-calendar-picker-indicator {
 .floating-actions {
   position: fixed;
   right: 16px;
-  bottom: calc(var(--safe-bottom) + 28px);
+  bottom: calc(var(--safe-bottom) + 86px);
+  z-index: 95;
 }
 
 .floating-actions button {
@@ -1619,6 +1620,7 @@ input[type='date']::-webkit-calendar-picker-indicator {
   padding: 0 12px;
   font-size: 12px;
   border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(8, 13, 34, 0.28);
 }
 
 #go-category {
@@ -3023,5 +3025,29 @@ input[type='date']::-webkit-calendar-picker-indicator {
   .dashboard-list-bubble-cat {
     width: 50px;
     height: 50px;
+  }
+}
+
+/* iOS 홈화면(standalone)에서는 상태바/하단영역 계산이 달라 별도 보정 */
+@media (display-mode: standalone) {
+  #app {
+    padding-top: calc(var(--safe-top) + 8px);
+  }
+
+  .app-shell {
+    padding-top: 8px;
+    padding-bottom: calc(170px + var(--safe-bottom));
+  }
+
+  .floating-actions {
+    bottom: calc(var(--safe-bottom) + 18px);
+  }
+
+  .feedback-link-btn {
+    bottom: calc(var(--safe-bottom) + 78px);
+  }
+
+  .app-disclaimer {
+    margin-bottom: calc(6px + var(--safe-bottom));
   }
 }
