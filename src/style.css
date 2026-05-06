@@ -145,7 +145,7 @@ body {
 .app-disclaimer {
   flex-shrink: 0;
   width: min(360px, calc(100% - 32px));
-  margin: 4px auto calc(8px + var(--safe-bottom));
+  margin: 6px auto 6px;
   padding: 4px 8px 5px;
   font-size: 0.62rem;
   font-weight: 400;
@@ -162,7 +162,7 @@ body {
 .feedback-link-btn {
   position: fixed;
   right: 16px;
-  bottom: calc(var(--safe-bottom) + 88px);
+  bottom: calc(var(--safe-bottom) + 74px);
   z-index: 90;
   padding: 5px 9px;
   border-radius: 999px;
@@ -230,7 +230,7 @@ body {
   z-index: 0;
   width: min(430px, 100%);
   margin: 0 auto;
-  padding: 4px 10px calc(190px + var(--safe-bottom));
+  padding: 4px 10px calc(122px + var(--safe-bottom));
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -1610,7 +1610,7 @@ input[type='date']::-webkit-calendar-picker-indicator {
 .floating-actions {
   position: fixed;
   right: 16px;
-  bottom: calc(var(--safe-bottom) + 86px);
+  bottom: calc(var(--safe-bottom) + 18px);
   z-index: 95;
 }
 
@@ -2977,7 +2977,7 @@ input[type='date']::-webkit-calendar-picker-indicator {
 @media (max-width: 480px) {
   .app-shell {
     width: 100%;
-    padding: 4px 8px calc(206px + var(--safe-bottom));
+    padding: 4px 8px calc(136px + var(--safe-bottom));
   }
 
   .calendar-zone {
@@ -3036,7 +3036,7 @@ input[type='date']::-webkit-calendar-picker-indicator {
 
   .app-shell {
     padding-top: 8px;
-    padding-bottom: calc(170px + var(--safe-bottom));
+    padding-bottom: calc(126px + var(--safe-bottom));
   }
 
   .floating-actions {
@@ -3044,10 +3044,10 @@ input[type='date']::-webkit-calendar-picker-indicator {
   }
 
   .feedback-link-btn {
-    bottom: calc(var(--safe-bottom) + 78px);
+    bottom: calc(var(--safe-bottom) + 66px);
   }
 
-  .app-disclaimer {
-    margin-bottom: calc(6px + var(--safe-bottom));
+  .app-disclaimer--in-home {
+    margin-bottom: 6px;
   }
 }

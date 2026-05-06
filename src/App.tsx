@@ -1074,6 +1074,13 @@ function App() {
                   .join(' ')}
               </div>
           </section>
+          <footer className="app-disclaimer app-disclaimer--in-home" aria-label="투자 면책 조항">
+            <span className="app-disclaimer-icon" aria-hidden="true">ⓘ</span>
+            <span>
+              {INVESTMENT_DISCLAIMER}
+              {screen === 'entry' && ` ${ENTRY_DISCLAIMER_EXTRA}`}
+            </span>
+          </footer>
           <div className="floating-actions">
             <button type="button" onClick={() => openEntryForDate(toDateKey(new Date()))}>+ 입력</button>
           </div>
@@ -1205,14 +1212,6 @@ function App() {
         <span className="feedback-link-btn-icon" aria-hidden="true">💌</span>
         <span>고양이 집사에게 피드백 보내기</span>
       </a>
-
-      <footer className="app-disclaimer" aria-label="투자 면책 조항">
-        <span className="app-disclaimer-icon" aria-hidden="true">ⓘ</span>
-        <span>
-          {INVESTMENT_DISCLAIMER}
-          {screen === 'entry' && ` ${ENTRY_DISCLAIMER_EXTRA}`}
-        </span>
-      </footer>
 
       <div className={`modal ${analysisOpen ? '' : 'hidden'}`}>
         <div className="modal-card analysis-modal-card">
