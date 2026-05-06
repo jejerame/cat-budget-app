@@ -1,5 +1,5 @@
-const CACHE_NAME = 'janso-cat-cache-v1'
-const CORE_ASSETS = ['/', '/manifest.webmanifest', '/favicon.svg']
+const CACHE_NAME = 'janso-cat-cache-v2'
+const CORE_ASSETS = ['/manifest.webmanifest', '/favicon.svg']
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -23,17 +23,33 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const request = event.request
   if (request.method !== 'GET') return
+  const url = new URL(request.url)
+  if (url.origin !== self.location.origin) return
 
-  event.respondWith(
-    caches.match(request).then((cached) => {
-      if (cached) return cached
-      return fetch(request)
+  // 페이지 진입/새로고침은 항상 네트워크 우선 -> 새 배포 반영 지연 최소화
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
         .then((response) => {
           const cloned = response.clone()
           void caches.open(CACHE_NAME).then((cache) => cache.put(request, cloned))
           return response
         })
-        .catch(() => caches.match('/'))
-    }),
+        .catch(() => caches.match(request).then((cached) => cached ?? caches.match('/'))),
+    )
+    return
+  }
+
+  event.respondWith(
+    fetch(request)
+      .then((response) => {
+        // 정적 리소스는 네트워크 성공 시 최신본으로 캐시 갱신
+        if (response.ok && (request.destination === 'script' || request.destination === 'style' || request.destination === 'image' || request.destination === 'font')) {
+          const cloned = response.clone()
+          void caches.open(CACHE_NAME).then((cache) => cache.put(request, cloned))
+        }
+        return response
+      })
+      .catch(() => caches.match(request)),
   )
 })
