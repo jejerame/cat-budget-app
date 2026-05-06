@@ -270,9 +270,8 @@ function App() {
       })
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   }, [transactions, selectedCalendarYear, selectedCalendarMonth])
-  const redGaugeStage = getRedGaugeStage(redTotalThisMonth)
-  const redGaugeActive = isRedOverLimit && redWarningPhase === 'steady'
-  const redGaugePercent = redGaugeActive ? redGaugeStage.percent : 0
+  const redGaugePercent = Math.min((redTotalThisMonth / RED_WARNING_THRESHOLD) * 100, 100)
+  const redGaugeStage = getRedGaugeStage(redGaugePercent)
   const redGaugeCatSrc =
     thisMonthRedRecords.length === 0
       ? happyGaugeUrl
@@ -602,7 +601,7 @@ function App() {
     }
 
     if (selectedType === 'expense' && category === 'red') {
-      alert('RED(오늘의 반성) 지출입니다. 정말 필요한 소비인지 한 번 더 점검하세요.')
+      setTypeNagMessage('RED(오늘의 반성) 지출입니다. 정말 필요한 소비인지 한 번 더 점검하세요.')
     }
 
     const normalizedMemo = memoInput.trim()
@@ -701,7 +700,11 @@ function App() {
       const prevMonthSaving = getMonthSavingTotal(prevMonthDate)
       const hasIncomeBase = thisMonthIncome > 0
       const hasPrevSavingBase = prevMonthSaving > 0
-      const isGoodSavingFeedback = (hasIncomeBase && savingRate >= 0.5) || (hasPrevSavingBase && projectedSaving > prevMonthSaving)
+      const isGoodSavingFeedback =
+        nextSavingAmount >= 100_000
+        || (hasIncomeBase && savingRate >= 0.3)
+        || projectedSaving > thisMonthSaving
+        || (hasPrevSavingBase && projectedSaving > prevMonthSaving)
       showCatToast(isGoodSavingFeedback ? POPUP_IMAGE_BY_TYPE.savingGood : POPUP_IMAGE_BY_TYPE.savingBad, 'saving')
       setSelectedType(type)
       return
@@ -1644,14 +1647,14 @@ function getRedReflectionComment(memo: string): string {
   return '지금 지출도 기록하면 통제할 수 있어요. 다음 결제 전 10초만 더 생각해봐요.'
 }
 
-function getRedGaugeStage(total: number): { label: string; percent: number; tone: 'tone-risk' | 'tone-caution' | 'tone-giveup' } {
-  if (total >= 400_000) {
+function getRedGaugeStage(percent: number): { label: string; percent: number; tone: 'tone-risk' | 'tone-caution' | 'tone-giveup' } {
+  if (percent >= 100) {
     return { label: RED_GAUGE_STAGE_ORDER[2].label, percent: 100, tone: 'tone-giveup' }
   }
-  if (total >= 350_000) {
-    return { label: RED_GAUGE_STAGE_ORDER[1].label, percent: 78, tone: 'tone-caution' }
+  if (percent >= 67) {
+    return { label: RED_GAUGE_STAGE_ORDER[1].label, percent, tone: 'tone-caution' }
   }
-  return { label: RED_GAUGE_STAGE_ORDER[0].label, percent: 58, tone: 'tone-risk' }
+  return { label: RED_GAUGE_STAGE_ORDER[0].label, percent, tone: 'tone-risk' }
 }
 
 function pickRandomCatFaces(): [string, string, string] {
