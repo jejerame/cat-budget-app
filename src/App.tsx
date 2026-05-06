@@ -600,10 +600,6 @@ function App() {
       return
     }
 
-    if (selectedType === 'expense' && category === 'red') {
-      setTypeNagMessage('RED(오늘의 반성) 지출입니다. 정말 필요한 소비인지 한 번 더 점검하세요.')
-    }
-
     const normalizedMemo = memoInput.trim()
 
     if (editingTransactionId) {
@@ -701,10 +697,9 @@ function App() {
       const hasIncomeBase = thisMonthIncome > 0
       const hasPrevSavingBase = prevMonthSaving > 0
       const isGoodSavingFeedback =
-        nextSavingAmount >= 100_000
+        nextSavingAmount >= 50_000
         || (hasIncomeBase && savingRate >= 0.3)
-        || projectedSaving > thisMonthSaving
-        || (hasPrevSavingBase && projectedSaving > prevMonthSaving)
+        || (hasPrevSavingBase && projectedSaving > prevMonthSaving && nextSavingAmount >= 30_000)
       showCatToast(isGoodSavingFeedback ? POPUP_IMAGE_BY_TYPE.savingGood : POPUP_IMAGE_BY_TYPE.savingBad, 'saving')
       setSelectedType(type)
       return
