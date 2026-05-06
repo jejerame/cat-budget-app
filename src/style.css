@@ -3055,11 +3055,11 @@ input[type='date']::-webkit-calendar-picker-indicator {
 /* iOS 홈화면(standalone)에서는 상태바/하단영역 계산이 달라 별도 보정 */
 @media (display-mode: standalone) {
   #app {
-    padding-top: calc(var(--safe-top) + 24px);
+    padding-top: 0;
   }
 
   .app-shell {
-    padding-top: 14px;
+    padding-top: 0;
     padding-bottom: calc(126px + var(--safe-bottom));
   }
 
