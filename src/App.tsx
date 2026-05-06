@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { SplashCatOverlay } from './components/SplashCatOverlay'
 import { getEtfRecommendation } from './data/etfRecommendations'
 import { getBanPeriodLabel, getIntensityCopy, type BanPeriod, type NagIntensity } from './data/nagIntensity'
@@ -137,6 +137,16 @@ type ExpenseAnalysisInput = {
   memo: string
   banPeriod: BanPeriod
 }
+type BackupPayload = {
+  version: number
+  exportedAt: string
+  transactions: TransactionRecord[]
+  settings: {
+    nagIntensity: NagIntensity
+    banPeriod: BanPeriod
+    savingTargetRate: number
+  }
+}
 
 function App() {
   const now = new Date()
@@ -216,6 +226,7 @@ function App() {
   const toastTimeoutRef = useRef<number | null>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
   const expenseSelectStreakRef = useRef(0)
+  const importFileInputRef = useRef<HTMLInputElement | null>(null)
   const monthRecordsByType = useMemo(() => {
     const now = new Date()
     const y = now.getFullYear()
@@ -667,6 +678,70 @@ function App() {
     localStorage.setItem(SAVING_TARGET_RATE_STORAGE_KEY, String(next))
   }
 
+  function exportBackupData(): void {
+    const payload: BackupPayload = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      transactions,
+      settings: {
+        nagIntensity,
+        banPeriod,
+        savingTargetRate,
+      },
+    }
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+    const dateTag = toDateKey(new Date()).replace(/-/g, '')
+    anchor.href = url
+    anchor.download = `janso-cat-backup-${dateTag}.json`
+    anchor.click()
+    URL.revokeObjectURL(url)
+  }
+
+  function openImportFilePicker(): void {
+    importFileInputRef.current?.click()
+  }
+
+  function importBackupData(event: ChangeEvent<HTMLInputElement>): void {
+    const file = event.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(String(reader.result)) as Partial<BackupPayload>
+        if (!Array.isArray(parsed.transactions)) {
+          alert('백업 파일 형식이 올바르지 않습니다.')
+          return
+        }
+
+        const importedTransactions = parsed.transactions as TransactionRecord[]
+        setTransactions(importedTransactions)
+        saveTransactions(importedTransactions)
+
+        if (parsed.settings?.nagIntensity && ['normal', 'hard', 'spartian-lite', 'spartian', 'spartian-max'].includes(parsed.settings.nagIntensity)) {
+          setNagIntensity(parsed.settings.nagIntensity)
+          localStorage.setItem(NAG_INTENSITY_STORAGE_KEY, parsed.settings.nagIntensity)
+        }
+        if (parsed.settings?.banPeriod && ['7days', 'this-month', 'next-month'].includes(parsed.settings.banPeriod)) {
+          setBanPeriod(parsed.settings.banPeriod)
+          localStorage.setItem(BAN_PERIOD_STORAGE_KEY, parsed.settings.banPeriod)
+        }
+        if (parsed.settings && [20, 30, 50, 70].includes(Number(parsed.settings.savingTargetRate))) {
+          const nextRate = Number(parsed.settings.savingTargetRate)
+          setSavingTargetRate(nextRate)
+          localStorage.setItem(SAVING_TARGET_RATE_STORAGE_KEY, String(nextRate))
+        }
+        alert('백업 데이터를 불러왔습니다.')
+      } catch {
+        alert('백업 파일을 읽는 중 오류가 발생했습니다.')
+      } finally {
+        event.target.value = ''
+      }
+    }
+    reader.readAsText(file)
+  }
+
   function handleSelectType(type: TransactionType): void {
     if (type === 'income') {
       expenseSelectStreakRef.current = 0
@@ -975,6 +1050,17 @@ function App() {
                   <option value="next-month">다음 달 전체</option>
                 </select>
               </label>
+              <div className="settings-data-actions" aria-label="데이터 백업 및 복원">
+                <button type="button" className="settings-data-btn" onClick={exportBackupData}>데이터 내보내기</button>
+                <button type="button" className="settings-data-btn" onClick={openImportFilePicker}>데이터 가져오기</button>
+                <input
+                  ref={importFileInputRef}
+                  type="file"
+                  accept="application/json"
+                  className="settings-data-file-input"
+                  onChange={importBackupData}
+                />
+              </div>
             </div>
           )}
 
