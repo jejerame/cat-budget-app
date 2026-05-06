@@ -1,0 +1,23 @@
+{
+  "name": "잔소리하는 고양이 가계부",
+  "short_name": "잔소리 가계부",
+  "description": "지독한 고양이의 잔소리로 지갑을 닫게 만드는 스파르타식 가계부",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0e1025",
+  "theme_color": "#0e1025",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
