@@ -162,7 +162,7 @@ body {
 .feedback-link-btn {
   position: fixed;
   right: 16px;
-  bottom: calc(var(--safe-bottom) + 74px);
+  bottom: calc(var(--safe-bottom) + 128px);
   z-index: 90;
   padding: 5px 9px;
   border-radius: 999px;
@@ -1610,7 +1610,7 @@ input[type='date']::-webkit-calendar-picker-indicator {
 .floating-actions {
   position: fixed;
   right: 16px;
-  bottom: calc(var(--safe-bottom) + 18px);
+  bottom: calc(var(--safe-bottom) + 72px);
   z-index: 95;
 }
 
@@ -3031,20 +3031,20 @@ input[type='date']::-webkit-calendar-picker-indicator {
 /* iOS 홈화면(standalone)에서는 상태바/하단영역 계산이 달라 별도 보정 */
 @media (display-mode: standalone) {
   #app {
-    padding-top: calc(var(--safe-top) + 8px);
+    padding-top: calc(var(--safe-top) + 24px);
   }
 
   .app-shell {
-    padding-top: 8px;
+    padding-top: 14px;
     padding-bottom: calc(126px + var(--safe-bottom));
   }
 
   .floating-actions {
-    bottom: calc(var(--safe-bottom) + 18px);
+    bottom: calc(var(--safe-bottom) + 22px);
   }
 
   .feedback-link-btn {
-    bottom: calc(var(--safe-bottom) + 66px);
+    bottom: calc(var(--safe-bottom) + 78px);
   }
 
   .app-disclaimer--in-home {
