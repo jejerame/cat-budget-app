@@ -293,12 +293,15 @@ body {
   display: block;
 }
 
-/* 홈: 달력은 min-height로 확보, 넘치면 app-shell에서 스크롤 */
+/* 홈: 달력은 min-height로 확보, 넘치면 app-shell에서 스크롤
+   flex-grow 금지 — iOS 홈화면(standalone) WebKit이 flex:1 자식 높이를 뷰포트에 맞추면서
+   스크롤 범위가 잘리는 버그가 있어, 높이는 항상 콘텐츠 기준으로 둠 */
 .screen.home-screen.active {
   display: flex;
   flex-direction: column;
-  flex: 1 1 auto;
-  min-height: min-content;
+  flex: 0 0 auto;
+  width: 100%;
+  min-height: 0;
   overflow: visible;
   padding-bottom: 0;
 }
@@ -3091,8 +3094,22 @@ input[type='date']::-webkit-calendar-picker-indicator {
 
 /* iOS 홈화면(standalone)에서는 상태바/하단영역 계산이 달라 별도 보정 */
 @media (display-mode: standalone) {
+  /* 100dvh만 쓰면 실제 가려진 영역과 어긋나 스크롤이 막히는 기기가 있어 fill-available로 맞춤 */
+  html {
+    height: -webkit-fill-available;
+  }
+
+  body {
+    min-height: 100%;
+    min-height: -webkit-fill-available;
+  }
+
   #app {
     padding-top: 0;
+    min-height: 100%;
+    min-height: -webkit-fill-available;
+    max-height: 100%;
+    max-height: -webkit-fill-available;
   }
 
   .app-shell {
