@@ -848,6 +848,7 @@ function App() {
       <SplashCatOverlay />
       <main className="app-shell">
         <section className={`screen ${screen === 'home' ? 'active' : ''} home-screen`}>
+          <div className="home-main-pane">
           <section className="mid-indicator-zone">
             <header className="home-header compact">
               <div className="calendar-header-controls">
@@ -1054,7 +1055,9 @@ function App() {
               </div>
             </div>
           )}
+          </div>
 
+          <div className="home-lower-scroll" aria-label="월말 코칭·안내 (스크롤)">
           <section className="month-end-card" aria-label="월말 절약 코칭">
               <div className="month-end-card__top">
                 <div className="month-end-card__lead">
@@ -1158,6 +1161,7 @@ function App() {
               {screen === 'entry' && ` ${ENTRY_DISCLAIMER_EXTRA}`}
             </span>
           </footer>
+          </div>
           <div className="floating-actions">
             <button type="button" onClick={() => openEntryForDate(toDateKey(new Date()))}>+ 입력</button>
           </div>
