@@ -848,19 +848,6 @@ function App() {
       <SplashCatOverlay />
       <main className="app-shell">
         <section className={`screen ${screen === 'home' ? 'active' : ''} home-screen`}>
-          <section className="hero-zone">
-            <div className="hero-title-row">
-              <h1 className="hero-app-title">
-                <span className="hero-title-line hero-title-line--top hero-title-extra">잔소리</span>
-                <span className="hero-title-line hero-title-line--bottom">
-                  <span className="hero-title-light">박아주는</span>{' '}
-                  <span className="hero-title-extra">가계부</span>
-                </span>
-              </h1>
-              <img src={janCatUrl} alt="" className="hero-watch-cat" aria-hidden="true" />
-            </div>
-          </section>
-
           <section className="mid-indicator-zone">
             <header className="home-header compact">
               <div className="calendar-header-controls">
@@ -887,6 +874,10 @@ function App() {
                   ))}
                 </select>
               </div>
+              <h1 className="home-title-chip" aria-label="앱 타이틀">
+                <span className="home-title-chip__text">잔소리 가계부</span>
+                <img src={janCatUrl} alt="" className="home-title-chip__cat" aria-hidden="true" />
+              </h1>
               <button className="icon-btn dark" type="button" onClick={() => setChartOpen(true)}>📊</button>
             </header>
 

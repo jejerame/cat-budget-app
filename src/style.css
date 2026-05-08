@@ -427,12 +427,49 @@ body {
 }
 
 .home-header.compact {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 6px;
   margin-bottom: 3px;
+}
+
+.home-title-chip {
+  margin: 0;
+  height: 30px;
+  min-width: 0;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(170, 186, 232, 0.52);
+  background: linear-gradient(180deg, rgba(244, 248, 255, 0.96) 0%, rgba(234, 241, 255, 0.95) 100%);
+  color: #1a2a64;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  box-shadow: 0 1px 4px rgba(10, 18, 44, 0.18);
+}
+
+.home-title-chip__text {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.home-title-chip__cat {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+  flex-shrink: 0;
 }
 
 .calendar-header-controls {
   display: flex;
   gap: 5px;
+  min-width: 0;
 }
 
 .calendar-header-controls select {
