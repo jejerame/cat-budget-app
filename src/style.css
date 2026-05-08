@@ -3128,4 +3128,13 @@ input[type='date']::-webkit-calendar-picker-indicator {
   .app-disclaimer--in-home {
     margin-bottom: 6px;
   }
+
+  /*
+   * 월말 코칭·면책이 뷰포트에 딱 맞으면 스크롤이 생기지 않아, 고정된 입력·피드백 버튼 뒤 글자가 가려짐.
+   * 설정을 펼치면 길이가 늘어 스크롤이 생기는 것과 같이, 짧을 때도 항상 아래로 스크롤 가능하도록 여백 확보.
+   */
+  .screen.home-screen.active {
+    padding-bottom: clamp(100px, 26vh, 240px);
+    padding-bottom: clamp(100px, 26dvh, 240px);
+  }
 }
