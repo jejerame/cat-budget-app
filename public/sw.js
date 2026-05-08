@@ -1,4 +1,4 @@
-const CACHE_NAME = 'janso-cat-cache-v4'
+const CACHE_NAME = 'janso-cat-cache-v5'
 const CORE_ASSETS = ['/manifest.webmanifest', '/favicon.svg']
 
 self.addEventListener('install', (event) => {
@@ -25,6 +25,12 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return
   const url = new URL(request.url)
   if (url.origin !== self.location.origin) return
+
+  // 홈 화면 아이콘: SW·브라우저 캐시를 피해 항상 네트워크에서만 가져옴
+  if (url.pathname === '/apple-touch-icon.png') {
+    event.respondWith(fetch(request, { cache: 'no-store' }))
+    return
+  }
 
   // 페이지 진입/새로고침은 항상 네트워크 우선 -> 새 배포 반영 지연 최소화
   if (request.mode === 'navigate') {
