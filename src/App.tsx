@@ -1913,7 +1913,8 @@ function getBudgetGaugeNagLine(ratioPercent: number): string {
   if (ratioPercent >= 90) return '내일 지구가 멸망하니? 왜 이래!'
   if (ratioPercent >= 70) return '저축은 포기했니? 이러다 거지 될래?'
   if (ratioPercent >= 50) return '벌써 반이나 썼어? 이제부터 손가락만 빨 거야?'
-  return '아직은 먹고 살만하냐?'
+  if (ratioPercent > 30) return '어어? 슬슬 쓰는 게 늘어나는데? 지켜보고 있다.'
+  return '좋아, 잘하고 있어. 이대로만 아껴 쓰자!'
 }
 
 function pickRandomCatFaces(): [string, string, string] {
