@@ -49,12 +49,11 @@ const DEFAULT_ANNUAL_RETURN_RATE = 0.07
 const NAG_INTENSITY_STORAGE_KEY = 'compound-nag-intensity'
 const BAN_PERIOD_STORAGE_KEY = 'compound-ban-period'
 const SAVING_TARGET_RATE_STORAGE_KEY = 'compound-saving-target-rate'
-const RED_WARNING_THRESHOLD = 300_000
-/** 그라데이션(노랑→빨강) 구간에서 red.png로 바꾸는 기준(퍼센트). */
-const RED_GAUGE_CAT_RED_FROM_PERCENT = 66
-/** 반성 지수 3단계 — `getRedGaugeStage` 라벨과 동일한 문구 유지 */
-const RED_GAUGE_STAGE_ORDER: { tone: 'tone-risk' | 'tone-caution' | 'tone-giveup'; label: string }[] = [
-  { tone: 'tone-risk', label: '위험 단계' },
+/** 수입이 0원일 때 지출 비율 게이지 분모로 쓰는 기본값(전월 수입도 없을 때) */
+const INCOME_GAUGE_FALLBACK_WON = 1_000_000
+/** 반성 지수(지출/수입 %) 3단계 — 상단 칩 라벨 */
+const BUDGET_GAUGE_STAGE_ORDER: { tone: 'tone-risk' | 'tone-caution' | 'tone-giveup'; label: string }[] = [
+  { tone: 'tone-risk', label: '평온단계' },
   { tone: 'tone-caution', label: '자제 필요' },
   { tone: 'tone-giveup', label: '포기 단계' },
 ]
@@ -277,19 +276,38 @@ function App() {
     () => new Date(selectedCalendarYear, selectedCalendarMonth, 1),
     [selectedCalendarYear, selectedCalendarMonth],
   )
-  const summary = useMemo(() => getMonthSummary(transactions), [transactions])
+  const summary = useMemo(() => getMonthSummary(transactions, selectedCalendarDate), [transactions, selectedCalendarDate])
+  const prevMonthSummary = useMemo(() => {
+    const d = new Date(selectedCalendarYear, selectedCalendarMonth - 1, 1)
+    return getMonthSummary(transactions, d)
+  }, [transactions, selectedCalendarYear, selectedCalendarMonth])
+  const gaugeIncomeDenominator = useMemo(() => {
+    if (summary.income > 0) return summary.income
+    if (prevMonthSummary.income > 0) return prevMonthSummary.income
+    return INCOME_GAUGE_FALLBACK_WON
+  }, [summary.income, prevMonthSummary.income])
+  /** 수입이 있으면 실제 수입 대비, 없으면 기준액 대비 지출 비율(%) — 단계·잔소리·썸 위치에 공통 사용 */
+  const budgetRatioUncapped = useMemo(() => {
+    if (gaugeIncomeDenominator <= 0) return 0
+    return (summary.expense / gaugeIncomeDenominator) * 100
+  }, [summary.expense, gaugeIncomeDenominator])
+  /** 실제 적자: 수입이 있으면 지출>수입, 수입이 없고 지출만 있으면 적자로 간주 */
+  const isDeficitActual = summary.income > 0 ? summary.expense > summary.income : summary.expense > 0
+  const budgetThumbLeftPercent = Math.min(budgetRatioUncapped, 100)
+  const budgetGaugeStage = getBudgetGaugeStage(budgetRatioUncapped)
+  const budgetGaugeNagLine = getBudgetGaugeNagLine(budgetRatioUncapped)
+  const budgetGaugeCatSrc =
+    isDeficitActual || budgetRatioUncapped >= 90
+      ? redCatUrl
+      : budgetRatioUncapped >= 50
+        ? supGaugeUrl
+        : happyGaugeUrl
   const amountKoreanReading = useMemo(() => {
     const n = parseWonInput(amountInput)
     return !Number.isNaN(n) && n > 0 ? wonAmountToKorean(n) : ''
   }, [amountInput])
   const monthEnd = useMemo(() => getMonthEndSummary(transactions, selectedCalendarDate), [transactions, selectedCalendarDate])
   const categories = selectedType === 'expense' ? expenseCategories : selectedType === 'income' ? incomeCategories : savingCategories
-  const monthExpenseByGroup = useMemo(
-    () => getMonthExpenseByGroup(transactions, selectedCalendarDate),
-    [transactions, selectedCalendarDate],
-  )
-  const redTotalThisMonth = monthExpenseByGroup.red ?? 0
-  const isRedOverLimit = redTotalThisMonth >= RED_WARNING_THRESHOLD
   const redBlinkTimeoutRef = useRef<number | null>(null)
   const toastTimeoutRef = useRef<number | null>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
@@ -349,15 +367,6 @@ function App() {
       })
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   }, [transactions, selectedCalendarYear, selectedCalendarMonth])
-  const redGaugePercent = Math.min((redTotalThisMonth / RED_WARNING_THRESHOLD) * 100, 100)
-  const redGaugeStage = getRedGaugeStage(redGaugePercent)
-  const redGaugeCatSrc =
-    thisMonthRedRecords.length === 0
-      ? happyGaugeUrl
-      : redGaugePercent >= RED_GAUGE_CAT_RED_FROM_PERCENT
-        ? redCatUrl
-        : supGaugeUrl
-
   const calendarYear = selectedCalendarYear
   const calendarMonth = selectedCalendarMonth
   const dailyExpenseByKey = useMemo(() => {
@@ -428,7 +437,7 @@ function App() {
   }, [transactions, currentYear])
 
   useEffect(() => {
-    if (!isRedOverLimit) {
+    if (!isDeficitActual) {
       setRedWarningPhase('idle')
       if (redBlinkTimeoutRef.current) {
         window.clearTimeout(redBlinkTimeoutRef.current)
@@ -446,7 +455,7 @@ function App() {
         setRedWarningPhase('steady')
       }, 3000)
     }
-  }, [isRedOverLimit, redWarningPhase])
+  }, [isDeficitActual, redWarningPhase])
 
   useEffect(() => {
     return () => {
@@ -1000,39 +1009,51 @@ function App() {
                 </button>
               </div>
               <div className="red-indicator-click-zone interactive" onClick={() => setRedReflectionOpen(true)}>
-                <div className="red-indicator-stage-row" aria-label={`반성 지수 ${redGaugeStage.label}`}>
-                <span className="red-indicator-stage-title">
-                  <span className="red-indicator-headline-strong">RED 소비액: {formatWon(redTotalThisMonth)}</span>{' '}
-                  <span className="red-indicator-headline-meta">
-                    {isRedOverLimit
-                      ? `(기준 ${formatWon(RED_WARNING_THRESHOLD)} 대비 초과!)`
-                      : `(기준 ${formatWon(RED_WARNING_THRESHOLD)} 대비 안정)`}
-                  </span>
-                </span>
-                <div className="red-indicator-stage-chips">
-                  {RED_GAUGE_STAGE_ORDER.map(({ tone, label }, idx) => (
-                    <span key={tone} className="red-indicator-stage-chip-wrap">
-                      {idx > 0 ? (
-                        <span className="red-indicator-stage-sep" aria-hidden>
-                          ·
-                        </span>
-                      ) : null}
-                      <span
-                        className={`red-indicator-stage-chip${redGaugeStage.tone === tone ? ` red-indicator-stage-chip--current red-indicator-stage-chip--${tone}` : ''}`}
-                      >
-                        {label}
-                      </span>
+                <div className="red-indicator-stage-row" aria-label={`지출 비율 ${budgetGaugeStage.label}`}>
+                  <span className="red-indicator-stage-title">
+                    <span className="red-indicator-headline-strong">
+                      이번 달 지출 {formatWon(summary.expense)}
+                      {summary.income > 0 ? (
+                        <> · 수입 대비 {Math.round(budgetRatioUncapped)}%</>
+                      ) : (
+                        <>
+                          {' '}
+                          · 기준 {formatWon(gaugeIncomeDenominator)} 대비 {Math.round(budgetRatioUncapped)}%
+                        </>
+                      )}
+                    </span>{' '}
+                    <span className="red-indicator-headline-meta">
+                      {summary.income > 0
+                        ? `(수입 ${formatWon(summary.income)} 기준)`
+                        : prevMonthSummary.income > 0
+                          ? '(수입 미입력 · 전월 수입을 기준으로 표시)'
+                          : '(수입 미입력 · 100만 원 기준으로 표시)'}
                     </span>
-                  ))}
-                </div>
+                  </span>
+                  <div className="red-indicator-stage-chips">
+                    {BUDGET_GAUGE_STAGE_ORDER.map(({ tone, label }, idx) => (
+                      <span key={tone} className="red-indicator-stage-chip-wrap">
+                        {idx > 0 ? (
+                          <span className="red-indicator-stage-sep" aria-hidden>
+                            ·
+                          </span>
+                        ) : null}
+                        <span
+                          className={`red-indicator-stage-chip${budgetGaugeStage.tone === tone ? ` red-indicator-stage-chip--current red-indicator-stage-chip--${tone}` : ''}`}
+                        >
+                          {label}
+                        </span>
+                      </span>
+                    ))}
+                  </div>
                 </div>
                 <div className="red-gauge-stack">
                   <div
                     className={[
                       'red-gauge-track',
-                      isRedOverLimit ? 'red-gauge-track--over' : '',
-                      redWarningPhase === 'blinking' && isRedOverLimit ? 'red-gauge-track--blink' : '',
-                      isRedOverLimit && redWarningPhase === 'steady' ? 'red-gauge-track--steady-warn' : '',
+                      isDeficitActual ? 'red-gauge-track--over' : '',
+                      isDeficitActual && redWarningPhase === 'blinking' ? 'red-gauge-track--blink' : '',
+                      isDeficitActual && redWarningPhase === 'steady' ? 'red-gauge-track--steady-warn' : '',
                     ]
                       .filter(Boolean)
                       .join(' ')}
@@ -1040,18 +1061,19 @@ function App() {
                     <div className="red-gauge-gradient-bar" aria-hidden />
                     <div
                       className="red-gauge-cat-thumb"
-                      style={{ left: `${redGaugePercent}%` }}
+                      style={{ left: `${budgetThumbLeftPercent}%` }}
                     >
                       <img
-                        src={redGaugeCatSrc}
+                        src={budgetGaugeCatSrc}
                         alt=""
-                        className={`red-gauge-cat-face${redGaugeCatSrc === redCatUrl ? ' red-gauge-cat-face--red' : ''}${
-                          isRedOverLimit && redGaugeCatSrc === redCatUrl ? ' red-gauge-cat-face--tremble' : ''
+                        className={`red-gauge-cat-face${budgetGaugeCatSrc === redCatUrl ? ' red-gauge-cat-face--red' : ''}${
+                          isDeficitActual && budgetGaugeCatSrc === redCatUrl ? ' red-gauge-cat-face--tremble' : ''
                         }`}
                         aria-hidden
                       />
                     </div>
                   </div>
+                  <p className="red-indicator-gauge-nag">{budgetGaugeNagLine}</p>
                 </div>
               </div>
             </div>
@@ -1872,14 +1894,26 @@ function getRedReflectionComment(memo: string): string {
   return '지금 지출도 기록하면 통제할 수 있어요. 다음 결제 전 10초만 더 생각해봐요.'
 }
 
-function getRedGaugeStage(percent: number): { label: string; percent: number; tone: 'tone-risk' | 'tone-caution' | 'tone-giveup' } {
-  if (percent >= 100) {
-    return { label: RED_GAUGE_STAGE_ORDER[2].label, percent: 100, tone: 'tone-giveup' }
+function getBudgetGaugeStage(ratioPercent: number): {
+  label: string
+  percent: number
+  tone: 'tone-risk' | 'tone-caution' | 'tone-giveup'
+} {
+  if (ratioPercent >= 90) {
+    return { label: BUDGET_GAUGE_STAGE_ORDER[2].label, percent: Math.min(ratioPercent, 100), tone: 'tone-giveup' }
   }
-  if (percent >= 67) {
-    return { label: RED_GAUGE_STAGE_ORDER[1].label, percent, tone: 'tone-caution' }
+  if (ratioPercent >= 50) {
+    return { label: BUDGET_GAUGE_STAGE_ORDER[1].label, percent: ratioPercent, tone: 'tone-caution' }
   }
-  return { label: RED_GAUGE_STAGE_ORDER[0].label, percent, tone: 'tone-risk' }
+  return { label: BUDGET_GAUGE_STAGE_ORDER[0].label, percent: ratioPercent, tone: 'tone-risk' }
+}
+
+function getBudgetGaugeNagLine(ratioPercent: number): string {
+  if (ratioPercent >= 100) return '적자다! 빌려온 돈으로 사는 인생이냐!'
+  if (ratioPercent >= 90) return '내일 지구가 멸망하니? 왜 이래!'
+  if (ratioPercent >= 70) return '저축은 포기했니? 이러다 거지 될래?'
+  if (ratioPercent >= 50) return '벌써 반이나 썼어? 이제부터 손가락만 빨 거야?'
+  return '아직은 먹고 살만하냐?'
 }
 
 function pickRandomCatFaces(): [string, string, string] {
@@ -2011,15 +2045,6 @@ function getTopCutCategory(transactions: TransactionRecord[], date: Date): { cat
   return { category: sorted[0][0], total: sorted[0][1] }
 }
 
-function getMonthExpenseByGroup(transactions: TransactionRecord[], date = new Date()): Record<string, number> {
-  return getMonthExpenseRecords(transactions, date).reduce<Record<string, number>>((acc, item) => {
-    acc[item.category] = (acc[item.category] ?? 0) + item.amount
-    return acc
-  }, {})
-}
-
-export default App
-
 function buildCalendarCells(year: number, month: number): Array<null | { key: string; day: number }> {
   const first = new Date(year, month, 1)
   const startWeekday = first.getDay() // 0: 일요일 ... 6: 토요일
@@ -2047,3 +2072,4 @@ function dateKeyToLocalDate(dateKey: string): Date {
   return new Date(y, m - 1, d, 12, 0, 0, 0)
 }
 
+export default App

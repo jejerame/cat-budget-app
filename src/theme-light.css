@@ -73,6 +73,14 @@
   color: #c62828;
 }
 
+[data-theme='light'] .red-indicator-headline-meta {
+  color: rgba(0, 0, 0, 0.55);
+}
+
+[data-theme='light'] .red-indicator-gauge-nag {
+  color: #555555;
+}
+
 [data-theme='light'] .pill {
   background: var(--lm-tint);
   color: #333333;

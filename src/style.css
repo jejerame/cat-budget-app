@@ -618,9 +618,18 @@ body {
   line-height: 1.25;
   letter-spacing: -0.03em;
   color: rgba(238, 238, 240, 0.96);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow: visible;
+}
+
+.red-indicator-gauge-nag {
+  margin: 4px 1px 0;
+  padding: 0 2px 1px;
+  font-size: 9.5px;
+  line-height: 1.35;
+  font-weight: 500;
+  color: rgba(200, 200, 208, 0.92);
+  letter-spacing: -0.03em;
 }
 
 .red-indicator-stage-chips {
@@ -813,9 +822,21 @@ body {
   }
 }
 
+@keyframes redGaugeTrackWholeBlink {
+  0%,
+  100% {
+    filter: brightness(1);
+    opacity: 1;
+  }
+  50% {
+    filter: brightness(1.35) saturate(1.35);
+    opacity: 0.88;
+  }
+}
+
 .red-gauge-stack {
   margin: 0;
-  padding: 0;
+  padding: 0 0 1px;
   border: none;
   background: transparent;
   overflow: visible;
@@ -823,8 +844,8 @@ body {
 
 .red-gauge-track {
   position: relative;
-  height: 30px;
-  margin: 2px 0 0;
+  height: 26px;
+  margin: 1px 0 0;
   overflow: visible;
   isolation: isolate;
 }
@@ -848,8 +869,19 @@ body {
     0 1px 2px rgba(24, 24, 28, 0.45);
 }
 
+.red-gauge-track--blink {
+  animation: redGaugeTrackWholeBlink 0.38s ease-in-out infinite;
+}
+
 .red-gauge-track--blink .red-gauge-gradient-bar {
-  animation: redGaugeBarBlink 1s ease-in-out 3;
+  animation: redGaugeBarBlink 0.38s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .red-gauge-track--blink,
+  .red-gauge-track--blink .red-gauge-gradient-bar {
+    animation: none !important;
+  }
 }
 
 .red-gauge-track--steady-warn .red-gauge-gradient-bar {
@@ -867,17 +899,17 @@ body {
 
 .red-gauge-cat-thumb {
   position: absolute;
-  bottom: -2px;
+  bottom: -1px;
   z-index: 2;
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
   transform: translateX(-50%);
   transition: left 0.45s ease;
   pointer-events: none;
-  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.42));
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.38));
 }
 
 .red-gauge-cat-face {
