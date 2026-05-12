@@ -845,7 +845,7 @@ function App() {
   const ratioChartTotal = summary.income + summary.expense + summary.saving
   const ratioPieBackground =
     ratioChartTotal <= 0
-      ? 'conic-gradient(from -90deg, #e8eaf2 0deg 360deg)'
+      ? 'conic-gradient(from -90deg, #e8e8ea 0deg 360deg)'
       : (() => {
           const degIncome = (summary.income / ratioChartTotal) * 360
           const degExpense = (summary.expense / ratioChartTotal) * 360

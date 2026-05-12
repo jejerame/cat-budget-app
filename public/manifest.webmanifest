@@ -4,8 +4,8 @@
   "description": "지독한 고양이의 잔소리로 지갑을 닫게 만드는 스파르타식 가계부",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0e1025",
-  "theme_color": "#0e1025",
+  "background_color": "#161616",
+  "theme_color": "#161616",
   "icons": [
     {
       "src": "/apple-touch-icon.png?v=5",
