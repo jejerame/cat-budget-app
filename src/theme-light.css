@@ -1,0 +1,432 @@
+/* 라이트 모드 — 흰색 베이스 + 아주 연한 그레이만 포인트 */
+
+[data-theme='light'] {
+  --scroll-track: rgba(0, 0, 0, 0.05);
+  --scroll-line: rgba(0, 0, 0, 0.1);
+  --scroll-thumb: rgba(100, 100, 108, 0.4);
+  --scroll-thumb-mid: rgba(120, 120, 128, 0.38);
+  --scroll-thumb-hover: rgba(140, 140, 148, 0.5);
+  --scroll-thumb-hover-top: rgba(160, 160, 168, 0.55);
+  --lm-tint: #f7f7f7;
+  --lm-border: #ebebeb;
+}
+
+[data-theme='light'] body {
+  background: #ffffff;
+  color: #333333;
+}
+
+[data-theme='light'] .home-sticky-through-settings {
+  background: #ffffff;
+  background-image: none;
+}
+
+[data-theme='light'] .mid-indicator-zone {
+  background: #ffffff;
+  border: 1px solid var(--lm-border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme='light'] .red-indicator-brief-item {
+  background: #ffffff;
+  border: 0.6px solid var(--lm-border);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme='light'] .red-indicator-brief-item--income {
+  color: #4a6a8a;
+}
+
+[data-theme='light'] .red-indicator-brief-item--expense {
+  color: #d32f2f;
+}
+
+[data-theme='light'] .red-indicator-brief-item--saving {
+  color: #1e8a5e;
+}
+
+[data-theme='light'] .red-indicator-headline-strong {
+  color: #c62828;
+}
+
+[data-theme='light'] .red-indicator-stage-title {
+  color: rgba(51, 51, 51, 0.92);
+}
+
+[data-theme='light'] .red-indicator-stage-sep {
+  color: rgba(0, 0, 0, 0.22);
+}
+
+[data-theme='light'] .red-indicator-stage-chip {
+  color: rgba(0, 0, 0, 0.35);
+}
+
+[data-theme='light'] .red-indicator-stage-chip--current.red-indicator-stage-chip--tone-risk {
+  color: #b8860b;
+}
+
+[data-theme='light'] .red-indicator-stage-chip--current.red-indicator-stage-chip--tone-caution {
+  color: #e65100;
+}
+
+[data-theme='light'] .red-indicator-stage-chip--current.red-indicator-stage-chip--tone-giveup {
+  color: #c62828;
+}
+
+[data-theme='light'] .pill {
+  background: var(--lm-tint);
+  color: #333333;
+}
+
+[data-theme='light'] .pill.subtle {
+  color: #666666;
+}
+
+[data-theme='light'] .pill.ok {
+  background: rgba(30, 138, 94, 0.1);
+  color: #0d7a52;
+}
+
+[data-theme='light'] .pill.alert {
+  background: rgba(211, 47, 47, 0.08);
+  color: #b71c1c;
+}
+
+[data-theme='light'] .calendar-zone {
+  background: var(--lm-tint);
+  border: 1px solid var(--lm-border);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.8);
+}
+
+[data-theme='light'] .calendar-weekdays {
+  color: #666666;
+}
+
+[data-theme='light'] .calendar-day {
+  background: #ffffff;
+  border: 1px solid var(--lm-border);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+[data-theme='light'] .calendar-day:hover {
+  background: #fafafa;
+  border-color: #e0e0e0;
+}
+
+[data-theme='light'] .calendar-day-number {
+  color: #333333;
+}
+
+[data-theme='light'] .calendar-day-expense {
+  color: #666666;
+}
+
+[data-theme='light'] .calendar-day--spent {
+  border-color: rgba(198, 40, 40, 0.32);
+  box-shadow: 0 1px 3px rgba(198, 40, 40, 0.1);
+}
+
+[data-theme='light'] .calendar-day-cat-icon {
+  filter: contrast(1.08) saturate(1.1);
+}
+
+[data-theme='light'] .month-end-card {
+  background: #ffffff;
+  border: 1px solid var(--lm-border);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme='light'] .month-end-card__nag {
+  color: #444444;
+}
+
+[data-theme='light'] .app-disclaimer {
+  color: #555555;
+  background: #ffffff;
+  border: 1px solid var(--lm-border);
+}
+
+[data-theme='light'] .floating-actions button {
+  background: #ffffff;
+  color: #333333;
+  border: 1px solid var(--lm-border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme='light'] .feedback-link-btn {
+  background: #ffffff;
+  color: #333333;
+  border: 1px solid var(--lm-border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme='light'] .settings-toggle-bar {
+  border: 1px solid var(--lm-border);
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme='light'] .settings-toggle-title {
+  color: #222222;
+}
+
+[data-theme='light'] .settings-toggle-hint {
+  color: #666666;
+}
+
+[data-theme='light'] .settings-toggle-chevron {
+  color: #888888;
+}
+
+[data-theme='light'] .settings-row label {
+  color: #444444;
+}
+
+[data-theme='light'] .settings-row select {
+  border: 1px solid var(--lm-border);
+  background: #ffffff;
+  color: #333333;
+  box-shadow: none;
+}
+
+[data-theme='light'] .settings-data-btn {
+  background: #ffffff;
+  color: #333333;
+  border: 1px solid var(--lm-border);
+}
+
+[data-theme='light'] select {
+  border: 1px solid var(--lm-border);
+  background: #ffffff;
+  color: #333333;
+}
+
+[data-theme='light'] .modal {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+[data-theme='light'] .dashboard-modal {
+  border: 1px solid var(--lm-border);
+  background: #ffffff;
+  color: #333333;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='light'] .dashboard-list-bubble-text {
+  color: #333333;
+}
+
+[data-theme='light'] .dashboard-list-goal-hint {
+  color: #666666;
+}
+
+[data-theme='light'] .dashboard-list-goal-select {
+  border: 1px solid var(--lm-border);
+  background: #ffffff;
+  color: #333333;
+}
+
+[data-theme='light'] .dashboard-list-item {
+  border-bottom: 1px solid var(--lm-border);
+}
+
+[data-theme='light'] .dashboard-list-category {
+  color: #333333;
+}
+
+[data-theme='light'] .dashboard-list-amount {
+  color: #222222;
+}
+
+[data-theme='light'] .dashboard-list-memo {
+  color: #555555;
+}
+
+[data-theme='light'] .dashboard-list-empty {
+  color: #666666;
+}
+
+[data-theme='light'] .dashboard-list-close-btn {
+  background: var(--lm-tint);
+  color: #333333;
+  border: 1px solid var(--lm-border);
+}
+
+[data-theme='light'] .analysis-modal-card {
+  border: 1px solid var(--lm-border);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme='light'] .analysis-modal-card h3 {
+  background: var(--lm-tint);
+  color: #222222;
+  border-bottom: 1px solid var(--lm-border);
+}
+
+[data-theme='light'] .analysis-intro-hero {
+  color: #333333;
+}
+
+[data-theme='light'] .analysis-grid-box {
+  background: #ffffff;
+  border: 1px solid var(--lm-border);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme='light'] .analysis-grid-label {
+  color: #333333;
+}
+
+[data-theme='light'] .analysis-label-note {
+  color: #666666;
+}
+
+[data-theme='light'] .analysis-mini-label {
+  color: #333333;
+}
+
+[data-theme='light'] .analysis-mini-note {
+  color: #555555;
+}
+
+[data-theme='light'] .analysis-refresh-btn {
+  background: #ffffff;
+  color: #333333;
+  border: 1px solid var(--lm-border);
+}
+
+[data-theme='light'] .analysis-cat-square {
+  border: 1px solid var(--lm-border);
+  background: #ffffff;
+}
+
+[data-theme='light'] .modal-card {
+  color: #333333;
+}
+
+[data-theme='light'] .modal-card h3 {
+  color: #222222;
+}
+
+[data-theme='light'] .day-detail-panel {
+  border: 1px solid var(--lm-border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme='light'] .day-detail-panel-close {
+  background: var(--lm-tint);
+  color: #333333;
+}
+
+[data-theme='light'] .day-detail-add-inline {
+  color: #333333;
+  background: var(--lm-tint);
+  border-color: var(--lm-border);
+}
+
+[data-theme='light'] .cat-toast {
+  border: 1px solid var(--lm-border);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='light'] .cat-btn {
+  border: 1px solid var(--lm-border);
+  color: #333333;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme='light'] .cat-btn-label {
+  color: #333333;
+}
+
+[data-theme='light'] .cat-btn-warning,
+[data-theme='light'] .cat-btn:nth-child(n) {
+  border-color: var(--lm-border);
+  color: #333333;
+}
+
+[data-theme='light'] .quick-tag-btn {
+  background: #ffffff;
+  color: #333333;
+  border: 1px solid var(--lm-border);
+}
+
+[data-theme='light'] .quick-tag-btn.active {
+  border-color: #b00020;
+  color: #b00020;
+  background: #fff5f6;
+}
+
+[data-theme='light'] .entry-screen {
+  background: #ffffff;
+  border: 1px solid var(--lm-border);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme='light'] .entry-screen #go-category,
+[data-theme='light'] .entry-screen .entry-submit-next {
+  border: 1px solid #d0d0d0;
+  color: #333333;
+}
+
+[data-theme='light'] .entry-screen #go-category:hover,
+[data-theme='light'] .entry-screen .entry-submit-next:hover {
+  background: #3a3a40;
+  color: #ffffff;
+  border-color: transparent;
+}
+
+[data-theme='light'] .entry-screen #go-category:active,
+[data-theme='light'] .entry-screen .entry-submit-next:active {
+  background: #2e2e32;
+  color: #ffffff;
+}
+
+[data-theme='light'] .entry-screen .type-btn {
+  background: var(--lm-tint);
+  border: 1px solid var(--lm-border);
+}
+
+[data-theme='light'] .entry-screen .type-btn.active {
+  box-shadow:
+    0 0 0 1px var(--lm-border),
+    0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme='light'] input[type='date']::-webkit-calendar-picker-indicator {
+  filter: none;
+  opacity: 0.75;
+}
+
+[data-theme='light'] .hero-watch-cat,
+[data-theme='light'] .home-title-chip__cat,
+[data-theme='light'] .settings-toggle-cat,
+[data-theme='light'] .month-end-card__tok {
+  filter: saturate(1.12) contrast(1.05);
+}
+
+[data-theme='light'] .settings-theme-ios {
+  background: #e8e8ec;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='light'] .settings-theme-ios-slider {
+  background: #ffffff;
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.1),
+    0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme='light'] .flow-header,
+[data-theme='light'] .screen.active:not(.home-screen) {
+  color: #333333;
+}
+
+[data-theme='light'] .month-end-metric {
+  border: 0.5px solid var(--lm-border);
+}
+
+[data-theme='light'] .red-gauge-cat-face,
+[data-theme='light'] .ratio-chart-cat {
+  filter: saturate(1.1) contrast(1.04);
+}

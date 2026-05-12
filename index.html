@@ -7,7 +7,24 @@
     <!-- 아이콘 교체 시 ?v= 값만 올리면 캐시·SW 없이 새 파일을 받기 쉬움. 홈 화면 아이콘은 기기에서 삭제 후 다시 추가해야 갱신됨. -->
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=5" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#161616" />
+    <meta name="theme-color" id="theme-color-meta" content="#161616" />
+    <script>
+      (function () {
+        try {
+          var k = 'janso-cat-color-mode'
+          var v = localStorage.getItem(k)
+          var t =
+            v === 'light' || v === 'dark'
+              ? v
+              : window.matchMedia('(prefers-color-scheme: light)').matches
+                ? 'light'
+                : 'dark'
+          document.documentElement.setAttribute('data-theme', t)
+          var m = document.getElementById('theme-color-meta')
+          if (m) m.setAttribute('content', t === 'light' ? '#ffffff' : '#161616')
+        } catch (e) {}
+      })()
+    </script>
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <meta name="apple-mobile-web-app-title" content="잔소리 가계부" />

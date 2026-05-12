@@ -155,6 +155,56 @@ type BackupPayload = {
   }
 }
 
+const COLOR_MODE_STORAGE_KEY = 'janso-cat-color-mode'
+type ColorMode = 'light' | 'dark'
+
+function resolveColorMode(): ColorMode {
+  try {
+    const v = localStorage.getItem(COLOR_MODE_STORAGE_KEY)
+    if (v === 'light' || v === 'dark') return v
+  } catch {
+    /* ignore */
+  }
+  if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches) {
+    return 'light'
+  }
+  return 'dark'
+}
+
+function ThemeSunGlyph() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden>
+      <circle cx="8" cy="8" r="3.2" fill="currentColor" />
+      <g stroke="currentColor" strokeWidth="1.25" strokeLinecap="round">
+        <line x1="8" y1="0.7" x2="8" y2="2.7" />
+        <line x1="8" y1="13.3" x2="8" y2="15.3" />
+        <line x1="0.7" y1="8" x2="2.7" y2="8" />
+        <line x1="13.3" y1="8" x2="15.3" y2="8" />
+        <line x1="2.7" y1="2.7" x2="4" y2="4" />
+        <line x1="12" y1="12" x2="13.3" y2="13.3" />
+        <line x1="2.7" y1="13.3" x2="4" y2="12" />
+        <line x1="12" y1="4" x2="13.3" y2="2.7" />
+      </g>
+    </svg>
+  )
+}
+
+function ThemeMoonGlyph() {
+  return (
+    <svg width="12" height="11" viewBox="0 0 16 16" aria-hidden>
+      <path
+        fill="currentColor"
+        d="M9.8 2.4a5.6 5.6 0 100 11.2 5.1 5.1 0 01-3.9-9.2 5.6 5.6 0 013.9-2z"
+      />
+      <path
+        fill="currentColor"
+        opacity="0.55"
+        d="M12.2 3.5l.35.7.75.1-.55.55.15.75-.65-.35-.65.35.15-.75-.55-.55.75-.1.35-.7zm1.4 2.8l.2.45.5.05-.4.35.1.5-.45-.25-.45.25.1-.5-.4-.35.5-.05.2-.45zm-1.1 2.1l.15.35.35.05-.3.25.08.38-.33-.18-.33.18.08-.38-.3-.25.35-.05.15-.35z"
+      />
+    </svg>
+  )
+}
+
 function App() {
   const now = new Date()
   const currentYear = now.getFullYear()
@@ -179,6 +229,7 @@ function App() {
   const [toastVisible, setToastVisible] = useState(false)
   const [redWarningPhase, setRedWarningPhase] = useState<'idle' | 'blinking' | 'steady'>('idle')
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [colorMode, setColorMode] = useState<ColorMode>(() => resolveColorMode())
   const [dayDetailDateKey, setDayDetailDateKey] = useState<string | null>(null)
   const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null)
   const [analysisDisclaimerOpen, setAnalysisDisclaimerOpen] = useState(false)
@@ -412,6 +463,16 @@ function App() {
       document.removeEventListener('mousedown', handleOutsideClick)
     }
   }, [monthEndHelpOpenKey])
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = colorMode
+    try {
+      const meta = document.getElementById('theme-color-meta') as HTMLMetaElement | null
+      if (meta) meta.content = colorMode === 'light' ? '#ffffff' : '#161616'
+    } catch {
+      /* ignore */
+    }
+  }, [colorMode])
 
   function showCatToast(imageSrc: string, variant: ToastVariant): void {
     setToastImageSrc(imageSrc)
@@ -668,6 +729,15 @@ function App() {
 
     setSelectedQuickTag(tag)
     setMemoInput(`${tag}${memoWithoutTag ? ` ${memoWithoutTag}` : ''}`)
+  }
+
+  function setColorModePersist(next: ColorMode): void {
+    setColorMode(next)
+    try {
+      localStorage.setItem(COLOR_MODE_STORAGE_KEY, next)
+    } catch {
+      /* ignore */
+    }
   }
 
   function onChangeIntensity(value: string): void {
@@ -1019,24 +1089,66 @@ function App() {
               </div>
             </section>
           </section>
-          <button
-            type="button"
-            className="settings-toggle-btn"
-            onClick={() => setSettingsOpen((prev) => !prev)}
-            aria-expanded={settingsOpen}
-            aria-label="설정 — 잔소리 수위 · 금지 기간"
-          >
-            <span className="settings-toggle-left">
-              <img src={entryCatUrl} alt="" className="settings-toggle-cat" aria-hidden />
-              <span className="settings-toggle-title">설정</span>
-            </span>
-            <span className="settings-toggle-right">
-              <span className="settings-toggle-hint">잔소리 수위 · 금지 기간 설정</span>
-              <span className="settings-toggle-chevron" aria-hidden>›</span>
-            </span>
-          </button>
+          <div className="settings-toggle-bar" aria-label="설정 및 화면 모드">
+            <button
+              type="button"
+              className="settings-toggle-side settings-toggle-side--left"
+              onClick={() => setSettingsOpen((prev) => !prev)}
+              aria-expanded={settingsOpen}
+              aria-controls="settings-expand-panel"
+            >
+              <span className="settings-toggle-left">
+                <img src={entryCatUrl} alt="" className="settings-toggle-cat" aria-hidden />
+                <span className="settings-toggle-title">설정</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              className={`settings-theme-ios ${colorMode === 'dark' ? 'settings-theme-ios--dark' : ''}`}
+              onClick={() => setColorModePersist(colorMode === 'light' ? 'dark' : 'light')}
+              role="switch"
+              aria-checked={colorMode === 'light'}
+              aria-label={
+                colorMode === 'light'
+                  ? '라이트 모드입니다. 다크 모드로 전환하려면 누르세요.'
+                  : '다크 모드입니다. 라이트 모드로 전환하려면 누르세요.'
+              }
+            >
+              <span className="settings-theme-ios-slider" aria-hidden />
+              <span className="settings-theme-ios-inner">
+                <span
+                  className={`settings-theme-ios-side settings-theme-ios-side--day ${colorMode === 'light' ? 'settings-theme-ios-side--on' : ''}`}
+                >
+                  <span className="settings-theme-ios-icon">
+                    <ThemeSunGlyph />
+                  </span>
+                  <span className="settings-theme-ios-text">낮</span>
+                </span>
+                <span
+                  className={`settings-theme-ios-side settings-theme-ios-side--night ${colorMode === 'dark' ? 'settings-theme-ios-side--on' : ''}`}
+                >
+                  <span className="settings-theme-ios-icon">
+                    <ThemeMoonGlyph />
+                  </span>
+                  <span className="settings-theme-ios-text">밤</span>
+                </span>
+              </span>
+            </button>
+            <button
+              type="button"
+              className="settings-toggle-side settings-toggle-side--right"
+              onClick={() => setSettingsOpen((prev) => !prev)}
+              aria-expanded={settingsOpen}
+              aria-controls="settings-expand-panel"
+            >
+              <span className="settings-toggle-right">
+                <span className="settings-toggle-hint">잔소리 수위 · 금지 기간 설정</span>
+                <span className="settings-toggle-chevron" aria-hidden>›</span>
+              </span>
+            </button>
+          </div>
           {settingsOpen && (
-            <div className="settings-row">
+            <div className="settings-row" id="settings-expand-panel">
               <label>잔소리 수위
                 <select value={nagIntensity} onChange={(e) => onChangeIntensity(e.target.value)}>
                   <option value="normal">보통</option>
