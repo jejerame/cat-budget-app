@@ -63,6 +63,9 @@ const ENTRY_DISCLAIMER_EXTRA = '과거 데이터에 기반한 예시일 뿐 수�
 const DAILY_ANGRY_THRESHOLD = 100_000 // 10만원 이상이면 angry
 /** 달력 셀: 하루 지출 합계가 이 금액을 넘으면 red1.png 고양이로 표시 */
 const CALENDAR_DAY_HIGH_EXPENSE_CAT_THRESHOLD = 200_000
+/** 달력 연도 콤보: 거래가 없어도 선택 가능하도록 올해 기준 이전·이후 연도를 항상 포함 */
+const CALENDAR_YEAR_COMBO_PAST = 15
+const CALENDAR_YEAR_COMBO_FUTURE = 1
 const QUICK_MEMO_TAGS = ['외식', '배달', '해외여행', '이벤트', '경조사', '통신', '사료', '병원']
 const PET_LARGE_EXPENSE_THRESHOLD = 150_000
 const PET_SOFT_NAGS_LARGE = [
@@ -416,7 +419,10 @@ function App() {
     [transactions, editingTransactionId],
   )
   const calendarYearOptions = useMemo(() => {
-    const years = new Set<number>([currentYear])
+    const years = new Set<number>()
+    for (let y = currentYear - CALENDAR_YEAR_COMBO_PAST; y <= currentYear + CALENDAR_YEAR_COMBO_FUTURE; y++) {
+      years.add(y)
+    }
     transactions.forEach((item) => years.add(new Date(item.createdAt).getFullYear()))
     return [...years].sort((a, b) => a - b)
   }, [transactions, currentYear])
