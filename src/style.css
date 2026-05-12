@@ -3055,6 +3055,14 @@ input[type='date']::-webkit-calendar-picker-indicator {
   filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.35));
 }
 
+/* red1(고지출·빨간 고양이): jan2보다 한 단계 크게 — 클래스는 지출액 조건과 src 선택이 항상 일치하도록 App에서 동기 부여 */
+.calendar-day--spent .calendar-day-cat-icon.calendar-day-cat-icon--red1 {
+  width: 22px;
+  height: 22px;
+  right: 0;
+  bottom: 0;
+}
+
 .calendar-day-expense {
   font-size: 7.5px;
   font-weight: 700;

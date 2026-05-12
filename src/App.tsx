@@ -18,6 +18,7 @@ import richDayCatUrl from '../rich.png'
 import tokCatUrl from '../tok.png'
 import janCatUrl from '../jan1.png'
 import jan2CatUrl from '../jan2.png'
+import red1CatUrl from '../red1.png'
 import entryCatUrl from '../cat11.png'
 import cat3Url from '../cat3.png'
 import cat4Url from '../cat4.png'
@@ -60,6 +61,8 @@ const RED_GAUGE_STAGE_ORDER: { tone: 'tone-risk' | 'tone-caution' | 'tone-giveup
 const INVESTMENT_DISCLAIMER = '본 앱의 기회비용 계산 및 제안은 소비 절약을 돕기 위한 참고용이며, 실제 투자 결과에 대해 제작자는 어떠한 법적 책임도 지지 않습니다. 투자의 판단과 책임은 사용자 본인에게 있습니다.'
 const ENTRY_DISCLAIMER_EXTRA = '과거 데이터에 기반한 예시일 뿐 수익을 보장하지 않습니다.'
 const DAILY_ANGRY_THRESHOLD = 100_000 // 10만원 이상이면 angry
+/** 달력 셀: 하루 지출 합계가 이 금액을 넘으면 red1.png 고양이로 표시 */
+const CALENDAR_DAY_HIGH_EXPENSE_CAT_THRESHOLD = 200_000
 const QUICK_MEMO_TAGS = ['외식', '배달', '해외여행', '이벤트', '경조사', '통신', '사료', '병원']
 const PET_LARGE_EXPENSE_THRESHOLD = 150_000
 const PET_SOFT_NAGS_LARGE = [
@@ -1066,6 +1069,9 @@ function App() {
                   const totalExpense = info?.totalExpense ?? 0
                   const hasExpense = totalExpense > 0
                   const expenseText = formatCalendarExpense(totalExpense)
+                  const isHighExpenseCatDay =
+                    totalExpense > CALENDAR_DAY_HIGH_EXPENSE_CAT_THRESHOLD
+                  const calendarDayCatSrc = isHighExpenseCatDay ? red1CatUrl : jan2CatUrl
 
                   return (
                     <button
@@ -1081,7 +1087,12 @@ function App() {
                         ) : null}
                       </div>
                       {hasExpense ? (
-                        <img src={jan2CatUrl} alt="" className="calendar-day-cat-icon" aria-hidden="true" />
+                        <img
+                          src={calendarDayCatSrc}
+                          alt=""
+                          className={`calendar-day-cat-icon${isHighExpenseCatDay ? ' calendar-day-cat-icon--red1' : ''}`}
+                          aria-hidden="true"
+                        />
                       ) : null}
                     </button>
                   )
