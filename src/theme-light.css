@@ -138,6 +138,19 @@
   filter: contrast(1.08) saturate(1.1);
 }
 
+[data-theme='light'] .calendar-day-tip {
+  background: rgba(28, 28, 32, 0.92);
+  border-color: rgba(0, 0, 0, 0.12);
+  color: rgba(252, 252, 254, 0.98);
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+[data-theme='light'] .calendar-day--spent .calendar-day-mark--income {
+  border-bottom-color: #1565c0;
+}
+
 [data-theme='light'] .month-end-card {
   background: #ffffff;
   border: 1px solid var(--lm-border);

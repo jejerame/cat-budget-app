@@ -3009,7 +3009,7 @@ input[type='date']::-webkit-calendar-picker-indicator {
   background: #2a2a2e;
   width: 100%;
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
   position: relative;
   display: flex;
   flex-direction: row;
@@ -3103,6 +3103,97 @@ input[type='date']::-webkit-calendar-picker-indicator {
   white-space: nowrap;
   margin: 0;
   letter-spacing: -0.03em;
+}
+
+.calendar-day--income-mark .calendar-day-number {
+  margin-left: 5px;
+}
+
+.calendar-day-mark {
+  position: absolute;
+  z-index: 3;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.calendar-day-mark--income {
+  top: 3px;
+  left: 3px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 3.5px 5px 3.5px;
+  border-color: transparent transparent #4a8ff5 transparent;
+  filter: drop-shadow(0 0 0.5px rgba(0, 0, 0, 0.35));
+}
+
+.calendar-day-mark--saving {
+  top: 3px;
+  right: 3px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 25%, #ffb8e6, #e573b8 55%, #c94d9e);
+  box-shadow:
+    0 0 0 0.5px rgba(0, 0, 0, 0.12),
+    0 0 3px rgba(229, 115, 184, 0.45);
+}
+
+.calendar-day-tip {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 5px;
+  z-index: 5;
+  width: max-content;
+  max-width: calc(100% - 4px);
+  padding: 4px 6px 5px;
+  font-size: 8px;
+  line-height: 1.28;
+  font-weight: 600;
+  color: rgba(248, 248, 250, 0.98);
+  text-align: left;
+  letter-spacing: -0.04em;
+  pointer-events: none;
+  background: rgba(14, 14, 18, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.calendar-day--spent .calendar-day-tip {
+  bottom: 22px;
+}
+
+.calendar-day--spent.calendar-day--income-mark .calendar-day-mark--income {
+  border-bottom-color: #2f6fd4;
+}
+
+.calendar-day-tip__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.calendar-day-tip__row + .calendar-day-tip__row {
+  margin-top: 2px;
+}
+
+.calendar-day-tip__k {
+  font-weight: 600;
+  opacity: 0.78;
+  font-size: 7.5px;
+}
+
+.calendar-day-tip__v {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
 
 /* 일일 1회 · "1억 고양이" 스플래시 (클릭은 통과) — 모달(200) 바로 아래 */

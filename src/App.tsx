@@ -236,6 +236,9 @@ function App() {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [colorMode, setColorMode] = useState<ColorMode>(() => resolveColorMode())
   const [dayDetailDateKey, setDayDetailDateKey] = useState<string | null>(null)
+  const [calendarDayTipHoverKey, setCalendarDayTipHoverKey] = useState<string | null>(null)
+  const [calendarDayTipTouchKey, setCalendarDayTipTouchKey] = useState<string | null>(null)
+  const calendarDayTouchTipTimeoutRef = useRef<number | null>(null)
   const [editingTransactionId, setEditingTransactionId] = useState<string | null>(null)
   const [analysisDisclaimerOpen, setAnalysisDisclaimerOpen] = useState(false)
   const [analysisText, setAnalysisText] = useState<AnalysisContent>({
@@ -383,6 +386,28 @@ function App() {
     })
     return map
   }, [transactions, calendarYear, calendarMonth])
+  const dailyIncomeByKey = useMemo(() => {
+    const map = new Map<string, number>()
+    transactions.forEach((item) => {
+      if (item.type !== 'income') return
+      const d = new Date(item.createdAt)
+      if (d.getFullYear() !== calendarYear || d.getMonth() !== calendarMonth) return
+      const key = toDateKey(d)
+      map.set(key, (map.get(key) ?? 0) + item.amount)
+    })
+    return map
+  }, [transactions, calendarYear, calendarMonth])
+  const dailySavingByKey = useMemo(() => {
+    const map = new Map<string, number>()
+    transactions.forEach((item) => {
+      if (item.type !== 'saving') return
+      const d = new Date(item.createdAt)
+      if (d.getFullYear() !== calendarYear || d.getMonth() !== calendarMonth) return
+      const key = toDateKey(d)
+      map.set(key, (map.get(key) ?? 0) + item.amount)
+    })
+    return map
+  }, [transactions, calendarYear, calendarMonth])
   const angryCatCountInCalendar = useMemo(() => {
     let count = 0
     dailyExpenseByKey.forEach((info) => {
@@ -465,8 +490,20 @@ function App() {
       if (toastTimeoutRef.current) {
         window.clearTimeout(toastTimeoutRef.current)
       }
+      if (calendarDayTouchTipTimeoutRef.current) {
+        window.clearTimeout(calendarDayTouchTipTimeoutRef.current)
+      }
     }
   }, [])
+
+  useEffect(() => {
+    setCalendarDayTipHoverKey(null)
+    setCalendarDayTipTouchKey(null)
+    if (calendarDayTouchTipTimeoutRef.current) {
+      window.clearTimeout(calendarDayTouchTipTimeoutRef.current)
+      calendarDayTouchTipTimeoutRef.current = null
+    }
+  }, [selectedCalendarYear, selectedCalendarMonth])
 
   useEffect(() => {
     if (!monthEndHelpOpenKey) return
@@ -1100,14 +1137,52 @@ function App() {
                   const isHighExpenseCatDay =
                     totalExpense > CALENDAR_DAY_HIGH_EXPENSE_CAT_THRESHOLD
                   const calendarDayCatSrc = isHighExpenseCatDay ? red1CatUrl : jan2CatUrl
+                  const dayIncome = dailyIncomeByKey.get(cell.key) ?? 0
+                  const daySaving = dailySavingByKey.get(cell.key) ?? 0
+                  const hasDayTipData = dayIncome > 0 || daySaving > 0
+                  const showDayTip =
+                    hasDayTipData &&
+                    (calendarDayTipHoverKey === cell.key || calendarDayTipTouchKey === cell.key)
 
                   return (
                     <button
                       key={cell.key}
                       type="button"
-                      className={`calendar-day${hasExpense ? ' calendar-day--spent' : ''}`}
+                      className={[
+                        'calendar-day',
+                        hasExpense ? 'calendar-day--spent' : '',
+                        dayIncome > 0 ? 'calendar-day--income-mark' : '',
+                        daySaving > 0 ? 'calendar-day--saving-mark' : '',
+                      ]
+                        .filter(Boolean)
+                        .join(' ')}
+                      aria-label={`${cell.day}일${hasExpense ? ` 지출 ${formatWon(totalExpense)}` : ''}${dayIncome > 0 ? ` 수입 ${formatWon(dayIncome)}` : ''}${daySaving > 0 ? ` 저축 ${formatWon(daySaving)}` : ''}`}
                       onClick={() => openDayDetailOrEntry(cell.key)}
+                      onMouseEnter={() => {
+                        if (hasDayTipData) setCalendarDayTipHoverKey(cell.key)
+                      }}
+                      onMouseLeave={() => {
+                        setCalendarDayTipHoverKey((k) => (k === cell.key ? null : k))
+                      }}
+                      onTouchStart={() => {
+                        if (!hasDayTipData) return
+                        setCalendarDayTipHoverKey(null)
+                        if (calendarDayTouchTipTimeoutRef.current) {
+                          window.clearTimeout(calendarDayTouchTipTimeoutRef.current)
+                        }
+                        setCalendarDayTipTouchKey(cell.key)
+                        calendarDayTouchTipTimeoutRef.current = window.setTimeout(() => {
+                          setCalendarDayTipTouchKey(null)
+                          calendarDayTouchTipTimeoutRef.current = null
+                        }, 2600)
+                      }}
                     >
+                      {dayIncome > 0 ? (
+                        <span className="calendar-day-mark calendar-day-mark--income" aria-hidden />
+                      ) : null}
+                      {daySaving > 0 ? (
+                        <span className="calendar-day-mark calendar-day-mark--saving" aria-hidden />
+                      ) : null}
                       <div className="calendar-day-stack">
                         <span className="calendar-day-number">{cell.day}</span>
                         {hasExpense ? (
@@ -1121,6 +1196,18 @@ function App() {
                           className={`calendar-day-cat-icon${isHighExpenseCatDay ? ' calendar-day-cat-icon--red1' : ''}`}
                           aria-hidden="true"
                         />
+                      ) : null}
+                      {showDayTip ? (
+                        <div className="calendar-day-tip" role="tooltip">
+                          <div className="calendar-day-tip__row">
+                            <span className="calendar-day-tip__k">수입</span>
+                            <span className="calendar-day-tip__v">{formatWon(dayIncome)}</span>
+                          </div>
+                          <div className="calendar-day-tip__row">
+                            <span className="calendar-day-tip__k">저축</span>
+                            <span className="calendar-day-tip__v">{formatWon(daySaving)}</span>
+                          </div>
+                        </div>
                       ) : null}
                     </button>
                   )
