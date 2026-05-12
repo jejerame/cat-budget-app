@@ -1,4 +1,4 @@
-const CACHE_NAME = 'janso-cat-cache-v5'
+const CACHE_NAME = 'janso-cat-cache-v9'
 const CORE_ASSETS = ['/manifest.webmanifest', '/favicon.svg']
 
 self.addEventListener('install', (event) => {
@@ -32,10 +32,13 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
+  // Safari 등에서 HTTP 캐시·SW 캐시에 오래 묶이지 않도록 네트워크는 no-store
+  const netFetch = () => fetch(request, { cache: 'no-store' })
+
   // 페이지 진입/새로고침은 항상 네트워크 우선 -> 새 배포 반영 지연 최소화
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
+      netFetch()
         .then((response) => {
           const cloned = response.clone()
           void caches.open(CACHE_NAME).then((cache) => cache.put(request, cloned))
@@ -47,10 +50,13 @@ self.addEventListener('fetch', (event) => {
   }
 
   event.respondWith(
-    fetch(request)
+    netFetch()
       .then((response) => {
-        // 정적 리소스는 네트워크 성공 시 최신본으로 캐시 갱신
-        if (response.ok && (request.destination === 'script' || request.destination === 'style' || request.destination === 'image' || request.destination === 'font')) {
+        // JS/CSS는 해시 파일명으로 갱신되므로 Cache API에 넣지 않음(구버전 번들 재사용 방지)
+        if (
+          response.ok
+          && (request.destination === 'image' || request.destination === 'font')
+        ) {
           const cloned = response.clone()
           void caches.open(CACHE_NAME).then((cache) => cache.put(request, cloned))
         }

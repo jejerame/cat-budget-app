@@ -4,7 +4,14 @@ import { getEtfRecommendation } from './data/etfRecommendations'
 import { getBanPeriodLabel, getIntensityCopy, type BanPeriod, type NagIntensity } from './data/nagIntensity'
 import { getRandomNagByAmount } from './data/nagMessages'
 import { getCategoryLabel } from './data/spendingCategories'
-import { calculateTenYearCompoundValue, calculateTenYearMonthlyWaste, formatWon } from './utils/finance'
+import {
+  calculateTenYearCompoundValue,
+  calculateTenYearMonthlyWaste,
+  formatWon,
+  formatWonInputValue,
+  parseWonInput,
+  wonAmountToKorean,
+} from './utils/finance'
 import { createTransaction, getMonthSummary, loadTransactions, saveTransactions, toDateKey, type TransactionRecord, type TransactionType } from './utils/transactions'
 import begDayCatUrl from '../beg.png'
 import richDayCatUrl from '../rich.png'
@@ -214,6 +221,10 @@ function App() {
     [selectedCalendarYear, selectedCalendarMonth],
   )
   const summary = useMemo(() => getMonthSummary(transactions), [transactions])
+  const amountKoreanReading = useMemo(() => {
+    const n = parseWonInput(amountInput)
+    return !Number.isNaN(n) && n > 0 ? wonAmountToKorean(n) : ''
+  }, [amountInput])
   const monthEnd = useMemo(() => getMonthEndSummary(transactions, selectedCalendarDate), [transactions, selectedCalendarDate])
   const categories = selectedType === 'expense' ? expenseCategories : selectedType === 'income' ? incomeCategories : savingCategories
   const monthExpenseByGroup = useMemo(
@@ -591,7 +602,7 @@ function App() {
   function beginEditTransaction(record: TransactionRecord): void {
     setDayDetailDateKey(null)
     setEditingTransactionId(record.id)
-    setAmountInput(String(record.amount))
+    setAmountInput(formatWonInputValue(String(record.amount)))
     setMemoInput(record.memo ?? '')
     setEntryDate(toDateKey(new Date(record.createdAt)))
     setSelectedType(record.type)
@@ -605,7 +616,7 @@ function App() {
   }
 
   function handleCategoryClick(category: string): void {
-    const amount = Number(amountInput)
+    const amount = parseWonInput(amountInput)
     if (Number.isNaN(amount) || amount <= 0) {
       alert('먼저 금액을 입력해 주세요.')
       return
@@ -761,7 +772,7 @@ function App() {
 
     if (type === 'saving') {
       expenseSelectStreakRef.current = 0
-      const pendingAmount = Number(amountInput)
+      const pendingAmount = parseWonInput(amountInput)
       const nextSavingAmount = Number.isFinite(pendingAmount) && pendingAmount > 0 ? pendingAmount : 0
       const thisMonthSaving = summary.saving
       const thisMonthIncome = summary.income
@@ -1182,8 +1193,20 @@ function App() {
               <img src={entryCatUrl} alt="" className="entry-title-cat" aria-hidden="true" />
             </h2>
           </header>
-          <label>금액(원)
-            <input type="number" min={100} step={100} placeholder="예: 6500" value={amountInput} onChange={(e) => setAmountInput(e.target.value)} />
+          <label className="entry-amount-label">
+            금액(원)
+            <span className="amount-korean-reading" aria-live="polite">
+              {amountKoreanReading || '\u00a0'}
+            </span>
+            <input
+              type="text"
+              inputMode="numeric"
+              autoComplete="off"
+              enterKeyHint="done"
+              placeholder="예: 6,500"
+              value={amountInput}
+              onChange={(e) => setAmountInput(formatWonInputValue(e.target.value))}
+            />
           </label>
           <label>날짜
             <input type="date" value={entryDate} onChange={(e) => setEntryDate(e.target.value)} />

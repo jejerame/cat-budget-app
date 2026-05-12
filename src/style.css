@@ -1349,6 +1349,20 @@ input[type='date']::-webkit-calendar-picker-indicator {
   margin: 0 auto 14px;
 }
 
+.entry-screen label.entry-amount-label {
+  margin-bottom: 14px;
+}
+
+.entry-screen .amount-korean-reading {
+  display: block;
+  min-height: 1.15em;
+  font-size: 12px;
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  color: #1b5e20;
+  margin-top: -2px;
+}
+
 .entry-screen input {
   background: #ffffff;
   color: #23283a;
