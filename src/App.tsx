@@ -1046,7 +1046,7 @@ function App() {
                 <div className="red-indicator-stage-row" aria-label={`지출 비율 ${budgetGaugeStage.label}`}>
                   <span className="red-indicator-stage-title">
                     <span className="red-indicator-headline-strong">
-                      이번 달 지출 {formatWon(summary.expense)}
+                      지금까지 쓴 돈 {formatWon(summary.expense)}
                       <> · 가용 예산 대비 {Math.round(budgetRatioUncapped)}%</>
                     </span>{' '}
                     <span className="red-indicator-headline-meta">(수입-저축+이월 기준)</span>
