@@ -1248,7 +1248,7 @@ function App() {
                   <span className="settings-theme-ios-icon">
                     <ThemeSunGlyph />
                   </span>
-                  <span className="settings-theme-ios-text">낮</span>
+                  <span className="settings-theme-ios-text">DAY</span>
                 </span>
                 <span
                   className={`settings-theme-ios-side settings-theme-ios-side--night ${colorMode === 'dark' ? 'settings-theme-ios-side--on' : ''}`}
@@ -1256,7 +1256,7 @@ function App() {
                   <span className="settings-theme-ios-icon">
                     <ThemeMoonGlyph />
                   </span>
-                  <span className="settings-theme-ios-text">밤</span>
+                  <span className="settings-theme-ios-text">DARK</span>
                 </span>
               </span>
             </button>
