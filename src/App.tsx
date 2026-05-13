@@ -53,12 +53,16 @@ const BAN_PERIOD_STORAGE_KEY = 'compound-ban-period'
 const SAVING_TARGET_RATE_STORAGE_KEY = 'compound-saving-target-rate'
 /** 수입이 0원일 때 지출 비율 게이지 분모로 쓰는 기본값(전월 수입도 없을 때) */
 const INCOME_GAUGE_FALLBACK_WON = 1_000_000
-/** 반성 지수(지출/수입 %) 3단계 — 상단 칩 라벨 */
-const BUDGET_GAUGE_STAGE_ORDER: { tone: 'tone-risk' | 'tone-caution' | 'tone-giveup'; label: string }[] = [
-  { tone: 'tone-risk', label: '평온단계' },
-  { tone: 'tone-caution', label: '자제 필요' },
-  { tone: 'tone-giveup', label: '포기 단계' },
+/** 지출 비율 게이지 5단계(막대 20% 구간마다) — 상단 칩 라벨 */
+const BUDGET_GAUGE_STAGES: { tone: 'tone-risk' | 'tone-caution' | 'tone-giveup'; label: string }[] = [
+  { tone: 'tone-risk', label: '1·양호' },
+  { tone: 'tone-risk', label: '2·주의' },
+  { tone: 'tone-caution', label: '3·경고' },
+  { tone: 'tone-caution', label: '4·위험' },
+  { tone: 'tone-giveup', label: '5·한계' },
 ]
+/** 1~5단계 고정 이미지(비율 0~20, 20~40, …, 80~100+) */
+const BUDGET_GAUGE_CAT_SRC = [happyGaugeUrl, supGaugeUrl, ang1GaugeUrl, ang2GaugeUrl, redCatUrl] as const
 const INVESTMENT_DISCLAIMER = '본 앱의 기회비용 계산 및 제안은 소비 절약을 돕기 위한 참고용이며, 실제 투자 결과에 대해 제작자는 어떠한 법적 책임도 지지 않습니다. 투자의 판단과 책임은 사용자 본인에게 있습니다.'
 const ENTRY_DISCLAIMER_EXTRA = '과거 데이터에 기반한 예시일 뿐 수익을 보장하지 않습니다.'
 const DAILY_ANGRY_THRESHOLD = 100_000 // 10만원 이상이면 angry
@@ -299,18 +303,10 @@ function App() {
   /** 실제 적자: 수입이 있으면 지출>수입, 수입이 없고 지출만 있으면 적자로 간주 */
   const isDeficitActual = summary.income > 0 ? summary.expense > summary.income : summary.expense > 0
   const budgetThumbLeftPercent = Math.min(budgetRatioUncapped, 100)
-  const budgetGaugeStage = getBudgetGaugeStage(budgetRatioUncapped)
-  const budgetGaugeNagLine = getBudgetGaugeNagLine(budgetRatioUncapped)
-  const budgetGaugeCatSrc =
-    budgetRatioUncapped > 100
-      ? redCatUrl
-      : budgetRatioUncapped >= 81
-        ? ang2GaugeUrl
-        : budgetRatioUncapped >= 51
-          ? ang1GaugeUrl
-          : budgetRatioUncapped >= 31
-            ? supGaugeUrl
-            : happyGaugeUrl
+  const budgetGaugeTierIndex = getBudgetGaugeTierIndex(budgetRatioUncapped)
+  const budgetGaugeStage = getBudgetGaugeStage(budgetGaugeTierIndex, budgetRatioUncapped)
+  const budgetGaugeNagLine = getBudgetGaugeNagLine(budgetRatioUncapped, budgetGaugeTierIndex)
+  const budgetGaugeCatSrc = BUDGET_GAUGE_CAT_SRC[budgetGaugeTierIndex]
   const amountKoreanReading = useMemo(() => {
     const n = parseWonInput(amountInput)
     return !Number.isNaN(n) && n > 0 ? wonAmountToKorean(n) : ''
@@ -1074,15 +1070,15 @@ function App() {
                     </span>
                   </span>
                   <div className="red-indicator-stage-chips">
-                    {BUDGET_GAUGE_STAGE_ORDER.map(({ tone, label }, idx) => (
-                      <span key={tone} className="red-indicator-stage-chip-wrap">
+                    {BUDGET_GAUGE_STAGES.map(({ tone, label }, idx) => (
+                      <span key={`stage-${idx}`} className="red-indicator-stage-chip-wrap">
                         {idx > 0 ? (
                           <span className="red-indicator-stage-sep" aria-hidden>
                             ·
                           </span>
                         ) : null}
                         <span
-                          className={`red-indicator-stage-chip${budgetGaugeStage.tone === tone ? ` red-indicator-stage-chip--current red-indicator-stage-chip--${tone}` : ''}`}
+                          className={`red-indicator-stage-chip${budgetGaugeStage.tierIndex === idx ? ` red-indicator-stage-chip--current red-indicator-stage-chip--${tone}` : ''}`}
                         >
                           {label}
                         </span>
@@ -1101,7 +1097,14 @@ function App() {
                       .filter(Boolean)
                       .join(' ')}
                   >
-                    <div className="red-gauge-gradient-bar" aria-hidden />
+                    <div className="red-gauge-fill-row" aria-hidden>
+                      <div className="red-gauge-gradient-bar" />
+                      <div className="red-gauge-segments">
+                        {[0, 1, 2, 3, 4].map((slot) => (
+                          <span key={slot} className="red-gauge-segment" />
+                        ))}
+                      </div>
+                    </div>
                     <div
                       className="red-gauge-cat-thumb"
                       style={{ left: `${budgetThumbLeftPercent}%` }}
@@ -1987,26 +1990,35 @@ function getRedReflectionComment(memo: string): string {
   return '지금 지출도 기록하면 통제할 수 있어요. 다음 결제 전 10초만 더 생각해봐요.'
 }
 
-function getBudgetGaugeStage(ratioPercent: number): {
+function getBudgetGaugeTierIndex(ratioPercent: number): number {
+  const clamped = Math.min(Math.max(ratioPercent, 0), 100)
+  return Math.min(4, Math.floor(clamped / 20))
+}
+
+function getBudgetGaugeStage(
+  tierIndex: number,
+  ratioPercent: number,
+): {
   label: string
   percent: number
   tone: 'tone-risk' | 'tone-caution' | 'tone-giveup'
+  tierIndex: number
 } {
-  if (ratioPercent >= 90) {
-    return { label: BUDGET_GAUGE_STAGE_ORDER[2].label, percent: Math.min(ratioPercent, 100), tone: 'tone-giveup' }
-  }
-  if (ratioPercent >= 50) {
-    return { label: BUDGET_GAUGE_STAGE_ORDER[1].label, percent: ratioPercent, tone: 'tone-caution' }
-  }
-  return { label: BUDGET_GAUGE_STAGE_ORDER[0].label, percent: ratioPercent, tone: 'tone-risk' }
+  const idx = ratioPercent > 100 ? 4 : tierIndex
+  const s = BUDGET_GAUGE_STAGES[idx]
+  return { label: s.label, percent: Math.min(ratioPercent, 100), tone: s.tone, tierIndex: idx }
 }
 
-function getBudgetGaugeNagLine(ratioPercent: number): string {
+function getBudgetGaugeNagLine(ratioPercent: number, tierIndex: number): string {
   if (ratioPercent > 100) return '에휴, 내 팔자야... 결국 다 썼구나? 포기다, 포기! 🔥'
-  if (ratioPercent >= 81) return '지갑 닫아! 지금 안 멈추면 이번 달은 끝이야! 🚫'
-  if (ratioPercent >= 51) return '잠깐! 벌써 절반 넘게 썼어. 정신 차려, 집사! ⚠️'
-  if (ratioPercent >= 31) return '어어? 슬슬 쓰는 게 늘어나는데? 지켜보고 있다. 👀'
-  return '좋아, 잘하고 있어. 이대로만 아껴 쓰자! ✨'
+  const lines = [
+    '좋아, 잘하고 있어. 이대로만 아껴 쓰자! ✨',
+    '어어? 슬슬 쓰는 게 늘어나는데? 지켜보고 있다. 👀',
+    '잠깐! 벌써 절반 넘게 썼어. 정신 차려, 집사! ⚠️',
+    '지갑 닫아! 지금 안 멈추면 이번 달은 끝이야! 🚫',
+    '한도 끝이야! 더 쓰면 통장이 비명 지를 거다! 💀',
+  ]
+  return lines[tierIndex]
 }
 
 function pickRandomCatFaces(): [string, string, string] {

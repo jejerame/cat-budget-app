@@ -451,3 +451,7 @@
 [data-theme='light'] .ratio-chart-cat {
   filter: saturate(1.1) contrast(1.04);
 }
+
+[data-theme='light'] .red-gauge-segment {
+  border-right-color: rgba(24, 24, 28, 0.22);
+}
