@@ -1097,14 +1097,7 @@ function App() {
                       .filter(Boolean)
                       .join(' ')}
                   >
-                    <div className="red-gauge-fill-row" aria-hidden>
-                      <div className="red-gauge-gradient-bar" />
-                      <div className="red-gauge-segments">
-                        {[0, 1, 2, 3, 4].map((slot) => (
-                          <span key={slot} className="red-gauge-segment" />
-                        ))}
-                      </div>
-                    </div>
+                    <div className="red-gauge-gradient-bar" aria-hidden />
                     <div
                       className="red-gauge-cat-thumb"
                       style={{ left: `${budgetThumbLeftPercent}%` }}
