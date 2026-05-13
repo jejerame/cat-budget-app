@@ -26,6 +26,8 @@ import cat6Url from '../cat6.png'
 import cat7Url from '../cat7.png'
 import happyGaugeUrl from '../happy.png'
 import supGaugeUrl from '../sup.png'
+import ang1GaugeUrl from '../ang1.png'
+import ang2GaugeUrl from '../ang2.png'
 import redCatUrl from '../red.png'
 import martCatUrl from '../mart.png'
 import houseCatUrl from '../house.png'
@@ -300,11 +302,15 @@ function App() {
   const budgetGaugeStage = getBudgetGaugeStage(budgetRatioUncapped)
   const budgetGaugeNagLine = getBudgetGaugeNagLine(budgetRatioUncapped)
   const budgetGaugeCatSrc =
-    isDeficitActual || budgetRatioUncapped >= 90
+    budgetRatioUncapped > 100
       ? redCatUrl
-      : budgetRatioUncapped >= 50
-        ? supGaugeUrl
-        : happyGaugeUrl
+      : budgetRatioUncapped >= 81
+        ? ang2GaugeUrl
+        : budgetRatioUncapped >= 51
+          ? ang1GaugeUrl
+          : budgetRatioUncapped >= 31
+            ? supGaugeUrl
+            : happyGaugeUrl
   const amountKoreanReading = useMemo(() => {
     const n = parseWonInput(amountInput)
     return !Number.isNaN(n) && n > 0 ? wonAmountToKorean(n) : ''
@@ -1996,12 +2002,11 @@ function getBudgetGaugeStage(ratioPercent: number): {
 }
 
 function getBudgetGaugeNagLine(ratioPercent: number): string {
-  if (ratioPercent >= 100) return '적자다! 빌려온 돈으로 사는 인생이냐!'
-  if (ratioPercent >= 90) return '내일 지구가 멸망하니? 왜 이래!'
-  if (ratioPercent >= 70) return '저축은 포기했니? 이러다 거지 될래?'
-  if (ratioPercent >= 50) return '벌써 반이나 썼어? 이제부터 손가락만 빨 거야?'
-  if (ratioPercent > 30) return '어어? 슬슬 쓰는 게 늘어나는데? 지켜보고 있다.'
-  return '좋아, 잘하고 있어. 이대로만 아껴 쓰자!'
+  if (ratioPercent > 100) return '에휴, 내 팔자야... 결국 다 썼구나? 포기다, 포기! 🔥'
+  if (ratioPercent >= 81) return '지갑 닫아! 지금 안 멈추면 이번 달은 끝이야! 🚫'
+  if (ratioPercent >= 51) return '잠깐! 벌써 절반 넘게 썼어. 정신 차려, 집사! ⚠️'
+  if (ratioPercent >= 31) return '어어? 슬슬 쓰는 게 늘어나는데? 지켜보고 있다. 👀'
+  return '좋아, 잘하고 있어. 이대로만 아껴 쓰자! ✨'
 }
 
 function pickRandomCatFaces(): [string, string, string] {
