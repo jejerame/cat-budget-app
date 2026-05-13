@@ -1,11 +1,12 @@
-const etfComparableCategories = new Set(['red', 'self_dev', 'special', 'pet'])
+const etfComparableCategories = new Set(['red', 'self_dev', 'special', 'pet', 'couple'])
 const categoryLabels: Record<string, string> = {
   salary: '월급',
   allowance: '용돈',
   carryover: '이월',
   saving: '저축',
   red: 'RED(커피, 택시, 충동구매)',
-  living: '생활(식비, 필수품)',
+  living: '생활(식비, 필수품, 의료)',
+  couple: '커플(데이트 비용)',
   fixed: '고정(주거, 보험, 통신)',
   self_dev: '자기개발(취미, 건강, 미용)',
   special: '특별(이벤트, 여행, 경조사)',

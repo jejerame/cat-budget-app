@@ -33,6 +33,7 @@ import martCatUrl from '../mart.png'
 import houseCatUrl from '../house.png'
 import bookCatUrl from '../book.png'
 import tourCatUrl from '../tour.png'
+import dateCoupleCatUrl from '../date1.png'
 import dogCatUrl from '../dog.png'
 import popupExpenseUrl from '../popup1.png'
 import popupSavingGoodUrl from '../popup2.png'
@@ -98,6 +99,7 @@ const INCOME_BUBBLE_MESSAGES = [
 const expenseCategories = [
   'red',
   'living',
+  'couple',
   'fixed',
   'self_dev',
   'special',
@@ -106,7 +108,7 @@ const expenseCategories = [
 const incomeCategories = ['salary', 'allowance', 'carryover', 'other']
 const savingCategories = ['saving', 'other']
 const warningExpenseCategories = new Set(['red'])
-const coachingExpenseCategories = new Set(['living', 'self_dev', 'special', 'pet'])
+const coachingExpenseCategories = new Set(['living', 'couple', 'self_dev', 'special', 'pet'])
 const infoExpenseCategories = new Set(['fixed'])
 const essentialExpenseCategories = new Set(['living', 'fixed'])
 
@@ -119,6 +121,7 @@ const POPUP_IMAGE_BY_TYPE = {
 const CATEGORY_ICON_BY_KEY: Record<string, string> = {
   red: redCatUrl,
   living: martCatUrl,
+  couple: dateCoupleCatUrl,
   fixed: houseCatUrl,
   self_dev: bookCatUrl,
   special: tourCatUrl,
@@ -1864,6 +1867,10 @@ function getCategorySpecificComment(level: 'strong' | 'coach' | 'info', category
     return `생활 필수 지출은 강한 통제보다 예산 관리가 우선입니다. ${period === '7days' ? '이번 주' : '이번 기간'} 한도만 정해서 안정적으로 관리하세요.`
   }
 
+  if (categoryLabel.includes('커플')) {
+    return `데이트·선물 비용은 반복되기 쉬워요. ${period === '7days' ? '이번 주' : '이번 기간'} 미리 정한 데이트 예산 안에서만 쓰기로 해요.`
+  }
+
   if (categoryLabel.includes('특별')) {
     if (isTravelOrEventMemo(memo)) {
       return `여행/이벤트 지출은 한 번 커지면 회복이 어렵습니다. ${period === '7days' ? '이번 주' : '이번 기간'}는 강한 통제로 지출 속도를 늦추세요.`
@@ -1897,7 +1904,11 @@ function getCategorySpecificBanMessage(
     if (isDiningOutMemo(memo)) {
       return defaultBanMessage('외식/배달', amount, period)
     }
-    return `생활(식비/필수품)은 강한 통제 대상보다 예산 관리 권유 대상입니다. 다음 기간 한도 내에서만 관리해요.`
+    return `생활(식비/필수품/의료)은 강한 통제 대상보다 예산 관리 권유 대상입니다. 다음 기간 한도 내에서만 관리해요.`
+  }
+
+  if (category === 'couple') {
+    return `데이트 비용도 추억은 소중하지만, ${period === '7days' ? '이번 주' : '이번 기간'} 예산 한도 안에서 집사 통장도 함께 지켜요.`
   }
 
   if (category === 'special') {

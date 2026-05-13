@@ -768,6 +768,11 @@ body {
   border-color: #d29f00;
 }
 
+.group-couple {
+  background: #fff0f6;
+  border-color: #c94d7c;
+}
+
 .group-fixed {
   background: #ededee;
   border-color: #4a5560;
@@ -2063,21 +2068,26 @@ input[type='date']::-webkit-calendar-picker-indicator {
 }
 
 .cat-btn:nth-child(3) {
-  background: #f5f5f7;
+  background: #fff5f9;
   border-color: rgba(46, 46, 52, 0.38);
 }
 
 .cat-btn:nth-child(4) {
-  background: #fff9f1;
+  background: #f5f5f7;
   border-color: rgba(46, 46, 52, 0.38);
 }
 
 .cat-btn:nth-child(5) {
-  background: #f7f7f8;
+  background: #fff9f1;
   border-color: rgba(46, 46, 52, 0.38);
 }
 
 .cat-btn:nth-child(6) {
+  background: #f7f7f8;
+  border-color: rgba(46, 46, 52, 0.38);
+}
+
+.cat-btn:nth-child(7) {
   background: #fff7fd;
   border-color: rgba(46, 46, 52, 0.38);
 }
