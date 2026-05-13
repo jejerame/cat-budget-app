@@ -52,8 +52,6 @@ const DEFAULT_ANNUAL_RETURN_RATE = 0.07
 const NAG_INTENSITY_STORAGE_KEY = 'compound-nag-intensity'
 const BAN_PERIOD_STORAGE_KEY = 'compound-ban-period'
 const SAVING_TARGET_RATE_STORAGE_KEY = 'compound-saving-target-rate'
-/** 수입이 0원일 때 지출 비율 게이지 분모로 쓰는 기본값(전월 수입도 없을 때) */
-const INCOME_GAUGE_FALLBACK_WON = 1_000_000
 /** 지출 비율 게이지 5단계(막대 20% 구간마다) — 상단 칩 라벨 */
 const BUDGET_GAUGE_STAGES: { tone: 'tone-risk' | 'tone-caution' | 'tone-giveup'; label: string }[] = [
   { tone: 'tone-risk', label: '1·양호' },
@@ -289,22 +287,16 @@ function App() {
     [selectedCalendarYear, selectedCalendarMonth],
   )
   const summary = useMemo(() => getMonthSummary(transactions, selectedCalendarDate), [transactions, selectedCalendarDate])
-  const prevMonthSummary = useMemo(() => {
-    const d = new Date(selectedCalendarYear, selectedCalendarMonth - 1, 1)
-    return getMonthSummary(transactions, d)
-  }, [transactions, selectedCalendarYear, selectedCalendarMonth])
-  const gaugeIncomeDenominator = useMemo(() => {
-    if (summary.income > 0) return summary.income
-    if (prevMonthSummary.income > 0) return prevMonthSummary.income
-    return INCOME_GAUGE_FALLBACK_WON
-  }, [summary.income, prevMonthSummary.income])
-  /** 수입이 있으면 실제 수입 대비, 없으면 기준액 대비 지출 비율(%) — 단계·잔소리·썸 위치에 공통 사용 */
+  /** 가용 예산(분모) = 수입 − 저축 + 이월(이월 카테고리 수입 합, 없으면 0). 0 이하이면 비율 0%. */
+  const gaugeAvailableBudgetRaw = summary.income - summary.saving + summary.carryoverIncome
+  const gaugeAvailableBudget = Math.max(0, gaugeAvailableBudgetRaw)
   const budgetRatioUncapped = useMemo(() => {
-    if (gaugeIncomeDenominator <= 0) return 0
-    return (summary.expense / gaugeIncomeDenominator) * 100
-  }, [summary.expense, gaugeIncomeDenominator])
-  /** 실제 적자: 수입이 있으면 지출>수입, 수입이 없고 지출만 있으면 적자로 간주 */
-  const isDeficitActual = summary.income > 0 ? summary.expense > summary.income : summary.expense > 0
+    if (gaugeAvailableBudget <= 0) return 0
+    return (summary.expense / gaugeAvailableBudget) * 100
+  }, [summary.expense, gaugeAvailableBudget])
+  /** 가용 예산을 넘긴 지출이면 적자로 간주(분모 0이면 지출만 있으면 적자 표시) */
+  const isDeficitActual =
+    gaugeAvailableBudget > 0 ? summary.expense > gaugeAvailableBudget : summary.expense > 0
   const budgetThumbLeftPercent = Math.min(budgetRatioUncapped, 100)
   const budgetGaugeTierIndex = getBudgetGaugeTierIndex(budgetRatioUncapped)
   const budgetGaugeStage = getBudgetGaugeStage(budgetGaugeTierIndex, budgetRatioUncapped)
@@ -1055,22 +1047,9 @@ function App() {
                   <span className="red-indicator-stage-title">
                     <span className="red-indicator-headline-strong">
                       이번 달 지출 {formatWon(summary.expense)}
-                      {summary.income > 0 ? (
-                        <> · 수입 대비 {Math.round(budgetRatioUncapped)}%</>
-                      ) : (
-                        <>
-                          {' '}
-                          · 기준 {formatWon(gaugeIncomeDenominator)} 대비 {Math.round(budgetRatioUncapped)}%
-                        </>
-                      )}
+                      <> · 가용 예산 대비 {Math.round(budgetRatioUncapped)}%</>
                     </span>{' '}
-                    <span className="red-indicator-headline-meta">
-                      {summary.income > 0
-                        ? `(수입 ${formatWon(summary.income)} 기준)`
-                        : prevMonthSummary.income > 0
-                          ? '(수입 미입력 · 전월 수입을 기준으로 표시)'
-                          : '(수입 미입력 · 100만 원 기준으로 표시)'}
-                    </span>
+                    <span className="red-indicator-headline-meta">(수입-저축+이월 기준)</span>
                   </span>
                   <div className="red-indicator-stage-chips">
                     {BUDGET_GAUGE_STAGES.map(({ tone, label }, idx) => (

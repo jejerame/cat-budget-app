@@ -54,6 +54,7 @@ export function getMonthSummary(records: TransactionRecord[], date = new Date())
   expense: number
   saving: number
   balance: number
+  carryoverIncome: number
 } {
   const y = date.getFullYear()
   const m = date.getMonth()
@@ -66,6 +67,9 @@ export function getMonthSummary(records: TransactionRecord[], date = new Date())
   const income = monthRecords.filter((x) => x.type === 'income').reduce((sum, x) => sum + x.amount, 0)
   const expense = monthRecords.filter((x) => x.type === 'expense').reduce((sum, x) => sum + x.amount, 0)
   const saving = monthRecords.filter((x) => x.type === 'saving').reduce((sum, x) => sum + x.amount, 0)
+  const carryoverIncome = monthRecords
+    .filter((x) => x.type === 'income' && x.category === 'carryover')
+    .reduce((sum, x) => sum + x.amount, 0)
 
-  return { income, expense, saving, balance: income - expense - saving }
+  return { income, expense, saving, balance: income - expense - saving, carryoverIncome }
 }
