@@ -1801,11 +1801,13 @@ input[type='date']::-webkit-calendar-picker-indicator {
 .day-detail-row-btn {
   width: 100%;
   margin: 0;
-  padding: 10px 12px;
+  height: auto;
+  min-height: 0;
+  padding: 12px 12px 11px;
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 4px;
+  gap: 6px;
   text-align: left;
   border: 1px solid #e8e8ea;
   border-radius: 10px;
@@ -1814,6 +1816,8 @@ input[type='date']::-webkit-calendar-picker-indicator {
   font: inherit;
   color: inherit;
   transition: background-color 0.14s ease, border-color 0.14s ease;
+  overflow: visible;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .day-detail-row-btn:hover {
@@ -1828,26 +1832,34 @@ input[type='date']::-webkit-calendar-picker-indicator {
 .day-detail-row-btn-main {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
   gap: 10px;
+  min-width: 0;
 }
 
 .day-detail-type {
   font-size: 11px;
   font-weight: 700;
   color: #5a5a64;
+  line-height: 1.45;
 }
 
 .day-detail-amount {
   font-size: 13px;
   font-weight: 800;
   color: #2a2a30;
+  line-height: 1.45;
+  flex-shrink: 0;
+  text-align: right;
 }
 
 .day-detail-memo-line {
   font-size: 11px;
   color: #5e5e66;
-  line-height: 1.38;
+  line-height: 1.5;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  padding-bottom: 1px;
 }
 
 .day-detail-empty {
@@ -1864,8 +1876,10 @@ input[type='date']::-webkit-calendar-picker-indicator {
 .day-detail-add-inline {
   display: block;
   width: 100%;
+  height: auto;
+  min-height: 44px;
   margin-top: 10px;
-  padding: 8px 10px;
+  padding: 10px 10px;
   font-size: 11px;
   font-weight: 600;
   color: #4e4e58;
@@ -1873,6 +1887,7 @@ input[type='date']::-webkit-calendar-picker-indicator {
   border: 1px dashed rgba(72, 72, 82, 0.35);
   border-radius: 10px;
   cursor: pointer;
+  line-height: 1.4;
 }
 
 .day-detail-add-inline:hover {
