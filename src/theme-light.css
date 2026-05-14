@@ -165,7 +165,9 @@
   color: #666666;
 }
 
-[data-theme='light'] .petty-nag-card__ranks {
+[data-theme='light'] .petty-nag-card__ranks,
+[data-theme='light'] .petty-nag-card__ranks-empty,
+[data-theme='light'] .petty-nag-card__rank-row {
   color: #222222;
 }
 

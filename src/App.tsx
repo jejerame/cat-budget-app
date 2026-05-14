@@ -316,12 +316,6 @@ function App() {
     () => getTopExpenseCategoriesByMonth(transactions, selectedCalendarDate, 3),
     [transactions, selectedCalendarDate],
   )
-  const expenseTopRankLine = useMemo(() => {
-    if (expenseMonthTop3.length === 0) return '이번 달 기록된 지출이 없어요.'
-    return expenseMonthTop3
-      .map((row, idx) => `${idx + 1}위: ${getCategoryLabel(row.category)} ${formatWon(row.total)}`)
-      .join(' / ')
-  }, [expenseMonthTop3])
   const pettyNagQuote = useMemo(() => {
     const seed =
       selectedCalendarDate.getFullYear() * 7919 +
@@ -1296,7 +1290,17 @@ function App() {
                 </div>
               </div>
             </div>
-            <p className="petty-nag-card__ranks">{expenseTopRankLine}</p>
+            <div className="petty-nag-card__ranks">
+              {expenseMonthTop3.length === 0 ? (
+                <p className="petty-nag-card__ranks-empty">이번 달 기록된 지출이 없어요.</p>
+              ) : (
+                expenseMonthTop3.map((row, idx) => (
+                  <p key={`${row.category}-${idx}`} className="petty-nag-card__rank-row">
+                    {`${idx + 1}위: ${getCategoryLabel(row.category)} ${formatWon(row.total)}`}
+                  </p>
+                ))
+              )}
+            </div>
             <p className="month-end-card__nag petty-nag-card__quote">{pettyNagQuote}</p>
           </section>
           <footer className="app-disclaimer app-disclaimer--in-home" aria-label="투자 면책 조항">

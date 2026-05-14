@@ -1316,6 +1316,9 @@ label {
 }
 
 .petty-nag-card__ranks {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   margin: 0;
   padding: 0 2px;
   font-size: 11px;
@@ -1324,6 +1327,16 @@ label {
   letter-spacing: -0.03em;
   color: #242830;
   word-break: keep-all;
+}
+
+.petty-nag-card__ranks-empty,
+.petty-nag-card__rank-row {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  color: inherit;
 }
 
 .petty-nag-card__quote {
