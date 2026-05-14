@@ -306,7 +306,7 @@ body {
   padding-bottom: 0;
 }
 
-/* 스크롤 시 설정(잔소리 수위)까지 한 덩어리로 상단 고정 — 월말 코칭·면책은 같은 스크롤로만 이동 */
+/* 스크롤 시 설정(잔소리 수위)까지 한 덩어리로 상단 고정 — 하단 짜투리 잔소리·면책은 같은 스크롤로만 이동 */
 .home-sticky-through-settings {
   position: sticky;
   top: 0;
@@ -1302,142 +1302,32 @@ label {
   line-height: 1.12;
 }
 
-.month-end-card__subtitle {
+.petty-nag-card__head {
+  width: 100%;
+}
+
+.petty-nag-card__hint {
   margin: 0;
-  font-size: 11px;
-  font-weight: 400;
-  line-height: 1.25;
-  color: #5c6370;
-  letter-spacing: -0.03em;
-}
-
-.month-end-card__subtitle--with-help {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.month-end-card__basis {
-  margin: 0;
-  font-size: 9px;
-  font-weight: 400;
-  line-height: 1.2;
-  color: #84848c;
-  letter-spacing: -0.02em;
-}
-
-.month-end-card__metrics {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  flex: 1 1 220px;
-  justify-content: flex-end;
-}
-
-.month-end-metric {
-  flex: 1 1 72px;
-  min-width: 68px;
-  max-width: 120px;
-  padding: 5px 5px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  text-align: center;
-  background: #ffffff;
-  border-radius: 10px;
-  border: 0.5px solid #ededed;
-  box-sizing: border-box;
-}
-
-.month-end-metric__label {
-  font-size: 8px;
-  font-weight: 500;
-  color: #75757d;
-  line-height: 1.1;
-  letter-spacing: -0.04em;
-}
-
-.month-end-metric__label--with-help {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-}
-
-.month-end-help {
-  position: relative;
-  display: inline-flex;
-}
-
-.month-end-help__trigger {
-  width: 12px;
-  min-width: 12px;
-  height: 12px;
-  min-height: 12px;
-  border: 1px solid rgba(88, 88, 92, 0.7);
-  border-radius: 999px;
-  background: #ffffff;
-  color: #6a6a72;
-  padding: 0;
-  font-size: 8px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.month-end-help__content {
-  position: absolute;
-  bottom: calc(100% + 7px);
-  right: 0;
-  width: min(210px, 65vw);
-  padding: 7px 8px;
-  border-radius: 9px;
-  border: 1px solid rgba(72, 72, 80, 0.2);
-  background: #ffffff;
-  color: #45454d;
-  font-size: 9px;
-  line-height: 1.35;
-  box-shadow: 0 8px 18px rgba(22, 22, 26, 0.18);
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(6px);
-  transition: opacity 0.14s ease, transform 0.14s ease, visibility 0.14s ease;
-  z-index: 10;
-  text-align: left;
-}
-
-.month-end-metric:first-child .month-end-help__content {
-  left: 0;
-  right: auto;
-}
-
-.month-end-help.active .month-end-help__content {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-}
-
-.month-end-metric__value {
   font-size: 10px;
-  font-weight: 700;
-  color: #2a2a30;
+  font-weight: 500;
+  line-height: 1.25;
+  color: #6a6f78;
   letter-spacing: -0.03em;
-  line-height: 1.1;
+}
+
+.petty-nag-card__ranks {
+  margin: 0;
+  padding: 0 2px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.45;
+  letter-spacing: -0.03em;
+  color: #242830;
   word-break: keep-all;
 }
 
-.month-end-surplus--positive {
-  color: #1b9e6c;
-}
-
-.month-end-surplus--negative {
-  color: #d92f45;
-}
-
-.month-end-surplus--neutral {
-  color: #5c6370;
-  font-weight: 600;
+.petty-nag-card__quote {
+  margin-top: 0;
 }
 
 .month-end-card__nag {
@@ -1709,7 +1599,7 @@ input[type='date']::-webkit-calendar-picker-indicator {
   object-fit: contain;
 }
 
-/* 달력 연동 · 일별 내역 패널(월말 코칭 자리 대체) */
+/* 달력 연동 · 일별 내역 패널 */
 .day-detail-panel {
   flex-shrink: 0;
   position: relative;
@@ -3444,7 +3334,7 @@ input[type='date']::-webkit-calendar-picker-indicator {
   }
 
   /*
-   * 월말 코칭·면책이 뷰포트에 딱 맞으면 스크롤이 생기지 않아, 고정된 입력·피드백 버튼 뒤 글자가 가려짐.
+   * 짜투리 잔소리·면책이 뷰포트에 딱 맞으면 스크롤이 생기지 않아, 고정된 입력·피드백 버튼 뒤 글자가 가려짐.
    * 설정을 펼치면 길이가 늘어 스크롤이 생기는 것과 같이, 짧을 때도 항상 아래로 스크롤 가능하도록 여백 확보.
    */
   .screen.home-screen.active {

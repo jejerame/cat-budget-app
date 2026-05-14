@@ -161,6 +161,14 @@
   color: #444444;
 }
 
+[data-theme='light'] .petty-nag-card__hint {
+  color: #666666;
+}
+
+[data-theme='light'] .petty-nag-card__ranks {
+  color: #222222;
+}
+
 [data-theme='light'] .app-disclaimer {
   color: #555555;
   background: #ffffff;

@@ -94,6 +94,13 @@ const INCOME_BUBBLE_MESSAGES = [
   '수입 기록 완료! 진짜 잘하고 있어.',
 ]
 
+/** 가계부 하단 「짜투리 잔소리」— 고정 문구 중 시드로 하나 선택 */
+const PETTY_NAG_QUOTES = [
+  '다 꼭 필요한 거였어? 다시 한 번 확인해 봐. 정신 똑바로 붙들고.',
+  '소비는 순간이지만 영수증은 영원하지.',
+  '덮어놓고 쓰다 보면 거지 꼴 못 면한다',
+] as const
+
 const expenseCategories = [
   'red',
   'living',
@@ -261,7 +268,6 @@ function App() {
   })
   const [lastExpenseAnalysisInput, setLastExpenseAnalysisInput] = useState<ExpenseAnalysisInput | null>(null)
   const [analysisCardCats, setAnalysisCardCats] = useState<[string, string, string]>([cat3Url, cat4Url, cat7Url])
-  const [monthEndHelpOpenKey, setMonthEndHelpOpenKey] = useState<null | 'topCut' | 'nonEssential' | 'goal' | 'surplus'>(null)
   const [nagIntensity, setNagIntensity] = useState<NagIntensity>(() => {
     const stored = localStorage.getItem(NAG_INTENSITY_STORAGE_KEY)
     if (stored === 'normal' || stored === 'hard' || stored === 'spartian-lite' || stored === 'spartian' || stored === 'spartian-max') {
@@ -306,7 +312,24 @@ function App() {
     const n = parseWonInput(amountInput)
     return !Number.isNaN(n) && n > 0 ? wonAmountToKorean(n) : ''
   }, [amountInput])
-  const monthEnd = useMemo(() => getMonthEndSummary(transactions, selectedCalendarDate), [transactions, selectedCalendarDate])
+  const expenseMonthTop3 = useMemo(
+    () => getTopExpenseCategoriesByMonth(transactions, selectedCalendarDate, 3),
+    [transactions, selectedCalendarDate],
+  )
+  const expenseTopRankLine = useMemo(() => {
+    if (expenseMonthTop3.length === 0) return '이번 달 기록된 지출이 없어요.'
+    return expenseMonthTop3
+      .map((row, idx) => `${idx + 1}위: ${getCategoryLabel(row.category)} ${formatWon(row.total)}`)
+      .join(' / ')
+  }, [expenseMonthTop3])
+  const pettyNagQuote = useMemo(() => {
+    const seed =
+      selectedCalendarDate.getFullYear() * 7919 +
+      selectedCalendarDate.getMonth() * 503 +
+      expenseMonthTop3.reduce((acc, row, i) => acc + row.total * (i + 7) + row.category.length * 97, 0)
+    const idx = Math.abs(seed) % PETTY_NAG_QUOTES.length
+    return PETTY_NAG_QUOTES[idx] ?? PETTY_NAG_QUOTES[0]
+  }, [selectedCalendarDate, expenseMonthTop3])
   const categories = selectedType === 'expense' ? expenseCategories : selectedType === 'income' ? incomeCategories : savingCategories
   const redBlinkTimeoutRef = useRef<number | null>(null)
   const toastTimeoutRef = useRef<number | null>(null)
@@ -405,15 +428,6 @@ function App() {
     })
     return map
   }, [transactions, calendarYear, calendarMonth])
-  const angryCatCountInCalendar = useMemo(() => {
-    let count = 0
-    dailyExpenseByKey.forEach((info) => {
-      const isAngry = !info.hasRed && info.totalExpense >= DAILY_ANGRY_THRESHOLD
-      if (isAngry) count += 1
-    })
-    return count
-  }, [dailyExpenseByKey])
-
   const calendarCells = useMemo(() => buildCalendarCells(calendarYear, calendarMonth), [calendarYear, calendarMonth])
   const dayDetailRecords = useMemo(
     () => (dayDetailDateKey ? getTransactionsForDateKey(transactions, dayDetailDateKey) : []),
@@ -501,20 +515,6 @@ function App() {
       calendarDayTouchTipTimeoutRef.current = null
     }
   }, [selectedCalendarYear, selectedCalendarMonth])
-
-  useEffect(() => {
-    if (!monthEndHelpOpenKey) return
-    const handleOutsideClick = (event: MouseEvent) => {
-      const target = event.target
-      if (!(target instanceof Element)) return
-      if (target.closest('.month-end-help')) return
-      setMonthEndHelpOpenKey(null)
-    }
-    document.addEventListener('mousedown', handleOutsideClick)
-    return () => {
-      document.removeEventListener('mousedown', handleOutsideClick)
-    }
-  }, [monthEndHelpOpenKey])
 
   useEffect(() => {
     document.documentElement.dataset.theme = colorMode
@@ -682,10 +682,6 @@ function App() {
     if (!lastExpenseAnalysisInput) return
     setAnalysisText(buildExpenseAnalysisText(lastExpenseAnalysisInput, analysisText.etfName))
     setAnalysisCardCats(pickRandomCatFaces())
-  }
-
-  function toggleMonthEndHelp(key: 'topCut' | 'nonEssential' | 'goal' | 'surplus'): void {
-    setMonthEndHelpOpenKey((prev) => (prev === key ? null : key))
   }
 
   function resetEntryFormForNew(dateKey?: string): void {
@@ -1290,101 +1286,18 @@ function App() {
           )}
           </div>
 
-          <section className="month-end-card" aria-label="월말 절약 코칭">
-              <div className="month-end-card__top">
-                <div className="month-end-card__lead">
-                  <img src={tokCatUrl} alt="" className="month-end-card__tok" aria-hidden />
-                  <div className="month-end-card__titles">
-                    <h3 className="month-end-card__title">월말 절약 코칭</h3>
-                    <p className="month-end-card__subtitle month-end-card__subtitle--with-help">
-                      <span>{monthEnd.firstPrioritySubtitle}</span>
-                      <span className={`month-end-help ${monthEndHelpOpenKey === 'topCut' ? 'active' : ''}`}>
-                        <button
-                          type="button"
-                          className="month-end-help__trigger"
-                          aria-label="1순위 비필수 계산식 설명"
-                          onClick={() => toggleMonthEndHelp('topCut')}
-                        >
-                          ?
-                        </button>
-                        <span className="month-end-help__content">
-                          선택한 달의 비필수 카테고리 합계를 비교해 가장 큰 항목 1개를 표시합니다.
-                        </span>
-                      </span>
-                    </p>
-                    <p className="month-end-card__basis">계산 기준: 선택한 달의 비필수 지출</p>
-                  </div>
-                </div>
-                <div className="month-end-card__metrics">
-                  <div className="month-end-metric">
-                    <span className="month-end-metric__label month-end-metric__label--with-help">
-                      <span>총 비필수 지출</span>
-                      <span className={`month-end-help ${monthEndHelpOpenKey === 'nonEssential' ? 'active' : ''}`}>
-                        <button
-                          type="button"
-                          className="month-end-help__trigger"
-                          aria-label="총 비필수 지출 계산식 설명"
-                          onClick={() => toggleMonthEndHelp('nonEssential')}
-                        >
-                          ?
-                        </button>
-                        <span className="month-end-help__content">
-                          선택한 달 지출 중 필수(living, fixed)를 제외한 모든 금액 합계입니다.
-                        </span>
-                      </span>
-                    </span>
-                    <span className="month-end-metric__value">{formatWon(monthEnd.currentNonEssential)}</span>
-                  </div>
-                  <div className="month-end-metric">
-                    <span className="month-end-metric__label month-end-metric__label--with-help">
-                      <span>다음 달 목표</span>
-                      <span className={`month-end-help ${monthEndHelpOpenKey === 'goal' ? 'active' : ''}`}>
-                        <button
-                          type="button"
-                          className="month-end-help__trigger"
-                          aria-label="다음 달 목표 계산식 설명"
-                          onClick={() => toggleMonthEndHelp('goal')}
-                        >
-                          ?
-                        </button>
-                        <span className="month-end-help__content">
-                          선택한 달 총 비필수 지출의 80%를 반올림한 값입니다. (현재월 비필수 x 0.8)
-                        </span>
-                      </span>
-                    </span>
-                    <span className="month-end-metric__value">{formatWon(monthEnd.nextMonthForcedGoal)}</span>
-                  </div>
-                  <div className="month-end-metric">
-                    <span className="month-end-metric__label month-end-metric__label--with-help">
-                      <span>여유 자금</span>
-                      <span className={`month-end-help ${monthEndHelpOpenKey === 'surplus' ? 'active' : ''}`}>
-                        <button
-                          type="button"
-                          className="month-end-help__trigger"
-                          aria-label="여유 자금 계산식 설명"
-                          onClick={() => toggleMonthEndHelp('surplus')}
-                        >
-                          ?
-                        </button>
-                        <span className="month-end-help__content">
-                          전월 비필수 x 0.8(이번 달 목표)에서 현재 비필수를 뺀 값입니다.
-                        </span>
-                      </span>
-                    </span>
-                    <span className={`month-end-metric__value month-end-surplus month-end-surplus--${monthEnd.surplusTone}`}>
-                      {monthEnd.surplusDisplay}
-                    </span>
-                  </div>
+          <section className="month-end-card petty-nag-card" aria-label="짜투리 잔소리">
+            <div className="month-end-card__top petty-nag-card__head">
+              <div className="month-end-card__lead">
+                <img src={tokCatUrl} alt="" className="month-end-card__tok" aria-hidden />
+                <div className="month-end-card__titles">
+                  <h3 className="month-end-card__title">짜투리 잔소리</h3>
+                  <p className="petty-nag-card__hint">선택한 달 · 지출 카테고리 합계 기준</p>
                 </div>
               </div>
-              <div className="month-end-card__nag">
-                {[
-                  monthEnd.goalStatusText,
-                  angryCatCountInCalendar >= 5 ? '집사야, 이번 달은 고양이가 굶게 생겼다' : null,
-                ]
-                  .filter(Boolean)
-                  .join(' ')}
-              </div>
+            </div>
+            <p className="petty-nag-card__ranks">{expenseTopRankLine}</p>
+            <p className="month-end-card__nag petty-nag-card__quote">{pettyNagQuote}</p>
           </section>
           <footer className="app-disclaimer app-disclaimer--in-home" aria-label="투자 면책 조항">
             <span className="app-disclaimer-icon" aria-hidden="true">ⓘ</span>
@@ -2045,63 +1958,6 @@ function getTransactionTypeLabel(type: TransactionType): string {
   return '지출'
 }
 
-function getMonthEndSummary(transactions: TransactionRecord[], baseDate: Date): {
-  firstPrioritySubtitle: string
-  currentNonEssential: number
-  nextMonthForcedGoal: number
-  goalStatusText: string
-  surplusDisplay: string
-  surplusTone: 'positive' | 'negative' | 'neutral'
-} {
-  const targetMonth = new Date(baseDate.getFullYear(), baseDate.getMonth(), 1)
-  const prevMonth = new Date(targetMonth.getFullYear(), targetMonth.getMonth() - 1, 1)
-  const currentNonEssential = getNonEssentialExpenseTotal(transactions, targetMonth)
-  const prevNonEssential = getNonEssentialExpenseTotal(transactions, prevMonth)
-  const nextMonthForcedGoal = Math.round(currentNonEssential * 0.8)
-  const thisMonthForcedGoal = Math.round(prevNonEssential * 0.8)
-  const topCut = getTopCutCategory(transactions, targetMonth)
-
-  const firstPrioritySubtitle = topCut
-    ? `1순위 비필수: ${getCategoryLabel(topCut.category)} · ${formatWon(topCut.total)}`
-    : '1순위 비필수 항목: 데이터 부족'
-
-  const gap = prevNonEssential > 0 ? thisMonthForcedGoal - currentNonEssential : null
-  let surplusDisplay: string
-  let surplusTone: 'positive' | 'negative' | 'neutral'
-  if (gap === null) {
-    surplusDisplay = '—'
-    surplusTone = 'neutral'
-  } else if (gap > 0) {
-    surplusDisplay = `+${formatWon(gap)}`
-    surplusTone = 'positive'
-  } else if (gap < 0) {
-    surplusDisplay = `-${formatWon(Math.abs(gap))}`
-    surplusTone = 'negative'
-  } else {
-    surplusDisplay = formatWon(0)
-    surplusTone = 'neutral'
-  }
-
-  const goalStatusText =
-    prevNonEssential <= 0
-      ? '전월 비필수 소비 데이터가 없어 이번 달 강제 목표 비교는 생략됩니다.'
-      : (() => {
-          const g = thisMonthForcedGoal - currentNonEssential
-          return g >= 0
-            ? `이번 달 목표(${formatWon(thisMonthForcedGoal)}) 대비 ${formatWon(g)} 여유입니다.`
-            : `이번 달 목표(${formatWon(thisMonthForcedGoal)}) 대비 ${formatWon(Math.abs(g))} 초과입니다.`
-        })()
-
-  return {
-    firstPrioritySubtitle,
-    currentNonEssential,
-    nextMonthForcedGoal,
-    goalStatusText,
-    surplusDisplay,
-    surplusTone,
-  }
-}
-
 function getMonthExpenseRecords(transactions: TransactionRecord[], date: Date): Array<{ category: string; amount: number }> {
   const y = date.getFullYear()
   const m = date.getMonth()
@@ -2114,23 +1970,20 @@ function getMonthExpenseRecords(transactions: TransactionRecord[], date: Date): 
     .map((item) => ({ category: item.category, amount: item.amount }))
 }
 
-function getNonEssentialExpenseTotal(transactions: TransactionRecord[], date: Date): number {
-  return getMonthExpenseRecords(transactions, date)
-    .filter((item) => !essentialExpenseCategories.has(item.category))
-    .reduce((sum, item) => sum + item.amount, 0)
-}
-
-function getTopCutCategory(transactions: TransactionRecord[], date: Date): { category: string; total: number } | null {
+/** 선택한 달의 지출을 카테고리별로 합산한 뒤 금액 내림차순 상위 limit개 */
+function getTopExpenseCategoriesByMonth(
+  transactions: TransactionRecord[],
+  date: Date,
+  limit: number,
+): Array<{ category: string; total: number }> {
   const totals = new Map<string, number>()
-  getMonthExpenseRecords(transactions, date)
-    .filter((item) => !essentialExpenseCategories.has(item.category))
-    .forEach((item) => {
-      totals.set(item.category, (totals.get(item.category) ?? 0) + item.amount)
-    })
-
-  if (totals.size === 0) return null
-  const sorted = [...totals.entries()].sort((a, b) => b[1] - a[1])
-  return { category: sorted[0][0], total: sorted[0][1] }
+  getMonthExpenseRecords(transactions, date).forEach((item) => {
+    totals.set(item.category, (totals.get(item.category) ?? 0) + item.amount)
+  })
+  return [...totals.entries()]
+    .map(([category, total]) => ({ category, total }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, limit)
 }
 
 function buildCalendarCells(year: number, month: number): Array<null | { key: string; day: number }> {
