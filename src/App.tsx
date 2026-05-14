@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { SplashCatOverlay } from './components/SplashCatOverlay'
+import { NagBubbleOverlay } from './components/NagBubbleOverlay'
+import { getInstantNagMessageForExpense } from './data/instantNagBubbles'
 import { getEtfRecommendation } from './data/etfRecommendations'
 import { getBanPeriodLabel, getIntensityCopy, type BanPeriod, type NagIntensity } from './data/nagIntensity'
 import { getRandomNagByAmount } from './data/nagMessages'
@@ -67,6 +69,10 @@ const ENTRY_DISCLAIMER_EXTRA = '과거 데이터에 기반한 예시일 뿐 수�
 const DAILY_ANGRY_THRESHOLD = 100_000 // 10만원 이상이면 angry
 /** 달력 셀: 하루 지출 합계가 이 금액을 넘으면 red1.png 고양이로 표시 */
 const CALENDAR_DAY_HIGH_EXPENSE_CAT_THRESHOLD = 200_000
+/** 단일 지출이 이 금액 이상이면 말풍선(say1) 종료 후 「잔소리의 복리 효과」만 표시 */
+const HIGH_EXPENSE_COMPOUND_THRESHOLD = 200_000
+const INSTANT_NAG_BUBBLE_MS = 2_000
+const WEEKLY_SETTLEMENT_BUBBLE_STORAGE_PREFIX = 'weekly-settlement-bubble:v1:'
 /** 달력 연도 콤보: 거래가 없어도 선택 가능하도록 올해 기준 이전·이후 연도를 항상 포함 */
 const CALENDAR_YEAR_COMBO_PAST = 15
 const CALENDAR_YEAR_COMBO_FUTURE = 1
@@ -237,6 +243,9 @@ function App() {
   const [selectedQuickTag, setSelectedQuickTag] = useState('')
   const [selectedType, setSelectedType] = useState<TransactionType>('expense')
   const [analysisOpen, setAnalysisOpen] = useState(false)
+  const [nagBubble, setNagBubble] = useState<null | { variant: 'instant' | 'weekly'; text: string }>(null)
+  const pendingCompoundAfterInstantRef = useRef<null | { amount: number; category: string; memo: string }>(null)
+  const nagBubbleRef = useRef(nagBubble)
   const [chartOpen, setChartOpen] = useState(false)
   const [dashboardModalType, setDashboardModalType] = useState<DashboardCardType | null>(null)
   const [redReflectionOpen, setRedReflectionOpen] = useState(false)
@@ -520,6 +529,41 @@ function App() {
     }
   }, [colorMode])
 
+  useEffect(() => {
+    nagBubbleRef.current = nagBubble
+  }, [nagBubble])
+
+  useEffect(() => {
+    if (nagBubble != null) return undefined
+    if (screen !== 'home') return undefined
+    const today = new Date()
+    if (today.getDay() !== 0) return undefined
+    const key = `${WEEKLY_SETTLEMENT_BUBBLE_STORAGE_PREFIX}${toDateKey(today)}`
+    try {
+      if (localStorage.getItem(key)) return undefined
+    } catch {
+      return undefined
+    }
+
+    const id = window.setTimeout(() => {
+      if (nagBubbleRef.current != null) return
+      try {
+        if (localStorage.getItem(key)) return
+      } catch {
+        return
+      }
+      const text = getWeeklySettlementNagText(transactions, new Date())
+      try {
+        localStorage.setItem(key, '1')
+      } catch {
+        /* ignore */
+      }
+      setNagBubble({ variant: 'weekly', text })
+    }, 1100)
+
+    return () => window.clearTimeout(id)
+  }, [nagBubble, screen, transactions])
+
   function showCatToast(imageSrc: string, variant: ToastVariant): void {
     setToastImageSrc(imageSrc)
     setToastVariant(variant)
@@ -621,7 +665,7 @@ function App() {
     }
   }
 
-  function openAnalysis(amount: number, type: TransactionType, category: string): void {
+  function openAnalysis(amount: number, type: TransactionType, category: string, memoOverride?: string): void {
     if (amount <= 0) {
       setLastExpenseAnalysisInput(null)
       setAnalysisText({
@@ -662,7 +706,7 @@ function App() {
     const input: ExpenseAnalysisInput = {
       amount,
       category,
-      memo: memoInput.trim(),
+      memo: memoOverride !== undefined ? memoOverride : memoInput.trim(),
       banPeriod,
     }
     setLastExpenseAnalysisInput(input)
@@ -748,7 +792,12 @@ function App() {
     resetEntryFormForNew()
     setScreen('home')
     if (selectedType === 'expense') {
-      openAnalysis(amount, selectedType, category)
+      pendingCompoundAfterInstantRef.current =
+        amount >= HIGH_EXPENSE_COMPOUND_THRESHOLD ? { amount, category, memo: normalizedMemo } : null
+      setNagBubble({
+        variant: 'instant',
+        text: getInstantNagMessageForExpense(category, normalizedMemo),
+      })
     }
   }
 
@@ -969,6 +1018,28 @@ function App() {
   return (
     <>
       <SplashCatOverlay />
+      <NagBubbleOverlay
+        variant={nagBubble?.variant ?? 'instant'}
+        text={nagBubble?.text ?? ''}
+        visible={Boolean(nagBubble)}
+        autoHideMs={nagBubble?.variant === 'instant' ? INSTANT_NAG_BUBBLE_MS : undefined}
+        onAutoClose={
+          nagBubble?.variant === 'instant'
+            ? () => {
+                const pending = pendingCompoundAfterInstantRef.current
+                pendingCompoundAfterInstantRef.current = null
+                setNagBubble(null)
+                if (pending) {
+                  window.setTimeout(() => {
+                    openAnalysis(pending.amount, 'expense', pending.category, pending.memo)
+                  }, 0)
+                }
+              }
+            : undefined
+        }
+        showConfirm={nagBubble?.variant === 'weekly'}
+        onConfirm={nagBubble?.variant === 'weekly' ? () => setNagBubble(null) : undefined}
+      />
       <main className="app-shell">
         <section className={`screen ${screen === 'home' ? 'active' : ''} home-screen`}>
           <div className="home-sticky-through-settings">
@@ -1988,6 +2059,36 @@ function getTopExpenseCategoriesByMonth(
     .map(([category, total]) => ({ category, total }))
     .sort((a, b) => b.total - a.total)
     .slice(0, limit)
+}
+
+function startOfLocalDay(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0)
+}
+
+function sumExpenseBetween(transactions: TransactionRecord[], from: Date, toExclusive: Date): number {
+  const a = from.getTime()
+  const b = toExclusive.getTime()
+  return transactions
+    .filter((r) => {
+      if (r.type !== 'expense') return false
+      const t = new Date(r.createdAt).getTime()
+      return t >= a && t < b
+    })
+    .reduce((s, r) => s + r.amount, 0)
+}
+
+/** 일요일: 직전 7일 vs 그 이전 7일 지출 합계 비교 문구 */
+function getWeeklySettlementNagText(transactions: TransactionRecord[], today: Date): string {
+  if (today.getDay() !== 0) return ''
+  const end = startOfLocalDay(today)
+  const lastStart = new Date(end)
+  lastStart.setDate(lastStart.getDate() - 7)
+  const prevStart = new Date(lastStart)
+  prevStart.setDate(prevStart.getDate() - 7)
+  const lastSum = sumExpenseBetween(transactions, lastStart, end)
+  const prevSum = sumExpenseBetween(transactions, prevStart, lastStart)
+  if (lastSum > prevSum) return '지난주보다 더 썼네? 거지 꼴 못 면한다!'
+  return '칭찬해. 그래도 정신 단디 똑바로 차리자.'
 }
 
 function buildCalendarCells(year: number, month: number): Array<null | { key: string; day: number }> {
