@@ -3438,19 +3438,19 @@ input[type='date']::-webkit-calendar-picker-indicator {
   pointer-events: none;
 }
 
-/* say1: 말풍선이 좌상단이라 우·하단 여백을 더 주어 본문이 말풍선 시각 중앙에 오도록 보정 */
+/* say1: 말풍선 윤곽(특히 우측 들쭉날쭉) 안쪽으로 글자가 들어가도록 우·상단 여백 확대 */
 .nag-bubble-card--instant .nag-bubble-text-pad {
-  padding: 5% 17% 45% 5%;
+  padding: 4% 26% 46% 9%;
 }
 
 .nag-bubble-card--weekly .nag-bubble-text-pad {
-  padding: 8% 12% 38% 12%;
+  padding: 8% 15% 38% 15%;
 }
 
 .nag-bubble-text-inner {
   box-sizing: border-box;
   width: 100%;
-  max-width: min(68%, 15.5rem);
+  max-width: min(62%, 14rem);
   max-height: 100%;
   margin: 0 auto;
   display: flex;
@@ -3460,20 +3460,29 @@ input[type='date']::-webkit-calendar-picker-indicator {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
+  padding: 0 4px;
+}
+
+.nag-bubble-card--instant .nag-bubble-text-inner {
+  max-width: min(52%, 12rem);
 }
 
 .nag-bubble-text {
   margin: 0;
   width: 100%;
   max-width: 100%;
+  min-width: 0;
   max-height: 100%;
+  box-sizing: border-box;
+  padding: 0 2px;
   font-family: 'Nanum Pen Script', 'Segoe Print', 'Bradley Hand', 'Apple Chancery', cursive, sans-serif;
   font-weight: 400;
   letter-spacing: -0.02em;
   color: #101018;
   text-align: center;
-  word-break: keep-all;
-  overflow-wrap: break-word;
+  /* keep-all은 한 줄이 과도하게 길어져 오른쪽으로 삐져나갈 수 있음 → 말풍선 안에서는 어디서든 줄바꿈 허용 */
+  word-break: normal;
+  overflow-wrap: anywhere;
   hyphens: manual;
 }
 
