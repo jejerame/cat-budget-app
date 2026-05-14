@@ -2986,7 +2986,7 @@ input[type='date']::-webkit-calendar-picker-indicator {
 .calendar-zone {
   flex: 1 1 auto;
   /* 남는 공간 우선 사용 + 찌그러짐 방지(하단 코칭과 무관하게 최소 높이 보장) */
-  min-height: clamp(260px, 46vh, 560px);
+  min-height: clamp(248px, 42vh, 520px);
   margin-top: 4px;
   border-radius: 12px;
   padding: 4px 4px 4px;
@@ -3372,7 +3372,7 @@ input[type='date']::-webkit-calendar-picker-indicator {
   }
 
   .calendar-zone {
-    min-height: clamp(300px, 50dvh, 620px);
+    min-height: clamp(278px, 44dvh, 560px);
     padding: 4px;
   }
 
