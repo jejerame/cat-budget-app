@@ -3426,51 +3426,34 @@ input[type='date']::-webkit-calendar-picker-indicator {
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
 }
 
+/* 말풍선(say1/say2) 흰 영역 시각 중심: 이미지 비율 기준 top/left 고정 + translate로 박스 중앙 정렬 */
 .nag-bubble-text-pad {
   position: absolute;
-  inset: 0;
   box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  transform: translate(-50%, -50%);
   text-align: center;
-  overflow: hidden;
   pointer-events: none;
-}
-
-/* say1: 말풍선 흰 영역 기준 좌우 대칭 → flex 가운데 정렬이 시각 중앙과 일치 */
-.nag-bubble-card--instant .nag-bubble-text-pad {
-  padding: 6% 17% 44% 17%;
-}
-
-.nag-bubble-card--weekly .nag-bubble-text-pad {
-  padding: 8% 14% 38% 14%;
-}
-
-.nag-bubble-text-inner {
-  box-sizing: border-box;
-  width: min(70%, 15rem);
-  max-width: 100%;
-  flex: 0 0 auto;
-  align-self: center;
-  max-height: 100%;
-  margin-inline: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  min-width: 0;
-  min-height: 0;
   overflow: hidden;
   padding: 0 6px;
+  /* 너비·좌표는 variant에서 지정 (이미지 가로 약 50%) */
 }
 
-.nag-bubble-card--instant .nag-bubble-text-inner {
-  width: min(66%, 14.25rem);
+/* say1: 좌상단 말풍선 빈 영역 중심 — 수치는 에셋 비율에 맞춤 */
+.nag-bubble-card--instant .nag-bubble-text-pad {
+  top: 27%;
+  left: 40%;
+  width: 50%;
+  max-width: min(50%, 12.75rem);
+  max-height: 36%;
 }
 
-.nag-bubble-card--weekly .nag-bubble-text-inner {
-  width: min(72%, 15.5rem);
+/* say2: 타원 말풍선 중심 */
+.nag-bubble-card--weekly .nag-bubble-text-pad {
+  top: 24%;
+  left: 50%;
+  width: 50%;
+  max-width: min(50%, 13.5rem);
+  max-height: 40%;
 }
 
 .nag-bubble-text {
@@ -3484,9 +3467,9 @@ input[type='date']::-webkit-calendar-picker-indicator {
   font-family: 'Nanum Pen Script', 'Segoe Print', 'Bradley Hand', 'Apple Chancery', cursive, sans-serif;
   font-weight: 400;
   letter-spacing: -0.02em;
+  line-height: 1.14;
   color: #101018;
   text-align: center;
-  /* keep-all은 한 줄이 과도하게 길어져 오른쪽으로 삐져나갈 수 있음 → 말풍선 안에서는 어디서든 줄바꿈 허용 */
   word-break: normal;
   overflow-wrap: anywhere;
   hyphens: manual;
