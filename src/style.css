@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap');
 
 :root {
   --white: #ffffff;
@@ -3427,6 +3428,7 @@ input[type='date']::-webkit-calendar-picker-indicator {
 
 .nag-bubble-text-pad {
   position: absolute;
+  inset: 0;
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -3436,32 +3438,43 @@ input[type='date']::-webkit-calendar-picker-indicator {
   pointer-events: none;
 }
 
+/* say1: 말풍선이 좌상단이라 우·하단 여백을 더 주어 본문이 말풍선 시각 중앙에 오도록 보정 */
 .nag-bubble-card--instant .nag-bubble-text-pad {
-  left: 9%;
-  right: 9%;
-  top: 7%;
-  bottom: 44%;
-  padding: 10px 14px 12px;
+  padding: 5% 17% 45% 5%;
 }
 
 .nag-bubble-card--weekly .nag-bubble-text-pad {
-  left: 11%;
-  right: 11%;
-  top: 9%;
-  bottom: 38%;
-  padding: 12px 16px 14px;
+  padding: 8% 12% 38% 12%;
+}
+
+.nag-bubble-text-inner {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: min(68%, 15.5rem);
+  max-height: 100%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .nag-bubble-text {
   margin: 0;
+  width: 100%;
   max-width: 100%;
   max-height: 100%;
-  font-weight: 800;
-  letter-spacing: -0.05em;
+  font-family: 'Nanum Pen Script', 'Segoe Print', 'Bradley Hand', 'Apple Chancery', cursive, sans-serif;
+  font-weight: 400;
+  letter-spacing: -0.02em;
   color: #101018;
+  text-align: center;
   word-break: keep-all;
-  overflow-wrap: anywhere;
-  hyphens: auto;
+  overflow-wrap: break-word;
+  hyphens: manual;
 }
 
 .nag-bubble-confirm {

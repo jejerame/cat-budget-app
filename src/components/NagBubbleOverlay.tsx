@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useEffect, useState } from 'react'
 import say1Url from '../../say1.png'
 import say2Url from '../../say2.png'
+import { playNagBubblePop } from '../utils/nagBubblePopSound'
 
 export type NagBubbleVariant = 'instant' | 'weekly'
 
@@ -25,30 +26,33 @@ export function NagBubbleOverlay({
   showConfirm,
   onConfirm,
 }: NagBubbleOverlayProps) {
-  const wrapRef = useRef<HTMLDivElement>(null)
+  const innerRef = useRef<HTMLDivElement>(null)
   const textRef = useRef<HTMLParagraphElement>(null)
   const [layoutTick, setLayoutTick] = useState(0)
-
   useLayoutEffect(() => {
     if (!visible) return
-    const wrap = wrapRef.current
+    const wrap = innerRef.current
     const el = textRef.current
     if (!wrap || !el) return
 
-    const maxPx = variant === 'instant' ? 15.5 : 16.5
-    const minPx = 9.5
+    const maxPx = variant === 'instant' ? 22 : 23
+    const minPx = 11
     let size = maxPx
     el.style.fontSize = `${size}px`
-    el.style.lineHeight = variant === 'instant' ? '1.32' : '1.34'
+    el.style.lineHeight = variant === 'instant' ? '1.28' : '1.3'
 
-    for (let i = 0; i < 90 && size > minPx; i += 1) {
-      const overY = el.scrollHeight > el.clientHeight + 0.5
-      const overX = el.scrollWidth > el.clientWidth + 0.5
+    for (let i = 0; i < 100 && size > minPx; i += 1) {
+      const overY = el.scrollHeight > wrap.clientHeight + 0.5
+      const overX = el.scrollWidth > wrap.clientWidth + 0.5
       if (!overY && !overX) break
-      size -= 0.45
+      size -= 0.4
       el.style.fontSize = `${size}px`
     }
   }, [visible, text, variant, layoutTick])
+
+  useEffect(() => {
+    if (visible) playNagBubblePop()
+  }, [visible])
 
   const onAutoCloseRef = useRef(onAutoClose)
   onAutoCloseRef.current = onAutoClose
@@ -74,10 +78,12 @@ export function NagBubbleOverlay({
             draggable={false}
             onLoad={() => setLayoutTick((n) => n + 1)}
           />
-          <div ref={wrapRef} className="nag-bubble-text-pad">
-            <p ref={textRef} className="nag-bubble-text">
-              {text}
-            </p>
+          <div className="nag-bubble-text-pad">
+            <div ref={innerRef} className="nag-bubble-text-inner">
+              <p ref={textRef} className="nag-bubble-text">
+                {text}
+              </p>
+            </div>
           </div>
         </div>
         {showConfirm && (
