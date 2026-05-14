@@ -3438,21 +3438,23 @@ input[type='date']::-webkit-calendar-picker-indicator {
   pointer-events: none;
 }
 
-/* say1: 말풍선 윤곽(특히 우측 들쭉날쭉) 안쪽으로 글자가 들어가도록 우·상단 여백 확대 */
+/* say1: 말풍선 흰 영역 기준 좌우 대칭 → flex 가운데 정렬이 시각 중앙과 일치 */
 .nag-bubble-card--instant .nag-bubble-text-pad {
-  padding: 4% 26% 46% 9%;
+  padding: 6% 17% 44% 17%;
 }
 
 .nag-bubble-card--weekly .nag-bubble-text-pad {
-  padding: 8% 15% 38% 15%;
+  padding: 8% 14% 38% 14%;
 }
 
 .nag-bubble-text-inner {
   box-sizing: border-box;
-  width: 100%;
-  max-width: min(62%, 14rem);
+  width: min(70%, 15rem);
+  max-width: 100%;
+  flex: 0 0 auto;
+  align-self: center;
   max-height: 100%;
-  margin: 0 auto;
+  margin-inline: auto;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3460,11 +3462,15 @@ input[type='date']::-webkit-calendar-picker-indicator {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  padding: 0 4px;
+  padding: 0 6px;
 }
 
 .nag-bubble-card--instant .nag-bubble-text-inner {
-  max-width: min(52%, 12rem);
+  width: min(66%, 14.25rem);
+}
+
+.nag-bubble-card--weekly .nag-bubble-text-inner {
+  width: min(72%, 15.5rem);
 }
 
 .nag-bubble-text {
