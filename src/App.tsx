@@ -1445,20 +1445,20 @@ function App() {
           )}
           <div className="type-group">
             <button
-              className={`type-btn ${selectedType === 'expense' ? 'active' : ''}`}
-              type="button"
-              aria-label="지출"
-              onClick={() => handleSelectType('expense')}
-            >
-              <img src={payTypeUrl} alt="" className="type-btn-img" draggable={false} />
-            </button>
-            <button
               className={`type-btn ${selectedType === 'income' ? 'active' : ''}`}
               type="button"
               aria-label="수입"
               onClick={() => handleSelectType('income')}
             >
               <img src={incomeTypeUrl} alt="" className="type-btn-img" draggable={false} />
+            </button>
+            <button
+              className={`type-btn ${selectedType === 'expense' ? 'active' : ''}`}
+              type="button"
+              aria-label="지출"
+              onClick={() => handleSelectType('expense')}
+            >
+              <img src={payTypeUrl} alt="" className="type-btn-img" draggable={false} />
             </button>
             <button
               className={`type-btn ${selectedType === 'saving' ? 'active' : ''}`}
