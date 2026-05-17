@@ -78,10 +78,12 @@ export function NagBubbleOverlay({
             draggable={false}
             onLoad={() => setLayoutTick((n) => n + 1)}
           />
-          <div ref={padRef} className="nag-bubble-text-pad">
-            <p ref={textRef} className="nag-bubble-text">
-              {text}
-            </p>
+          <div className="nag-bubble-text-pad">
+            <div ref={padRef} className="nag-bubble-text-slot">
+              <p ref={textRef} className="nag-bubble-text">
+                {text}
+              </p>
+            </div>
           </div>
         </div>
         {showConfirm && (

@@ -3426,7 +3426,11 @@ input[type='date']::-webkit-calendar-picker-indicator {
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
 }
 
-/* 말풍선 투명 박스: 좌우만 가두고 flex로 상하·좌우 정중앙 */
+/*
+ * say1: 말풍선(좌상) + 고양이(우하) 비대칭 → 전체 이미지 높이의 50%에 center 하면
+ * 글자가 고양이/말풍선 밖으로 내려감. 네 방향 패딩으로 '하얀 말풍선 사각형'만 남긴 뒤
+ * 그 안에서만 flex 중앙 정렬.
+ */
 .nag-bubble-text-pad {
   position: absolute;
   top: 0;
@@ -3436,20 +3440,26 @@ input[type='date']::-webkit-calendar-picker-indicator {
   box-sizing: border-box;
   pointer-events: none;
   overflow: hidden;
-  padding-left: 12%;
-  padding-right: 45%;
-  padding-top: 0;
-  padding-bottom: 0;
+  padding: 14% 45% 36% 12%;
+  display: flex;
+  flex-direction: column;
+}
+
+.nag-bubble-card--weekly .nag-bubble-text-pad {
+  padding: 12% 14% 42% 14%;
+}
+
+.nag-bubble-text-slot {
+  flex: 1 1 0;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   text-align: center;
-}
-
-.nag-bubble-card--weekly .nag-bubble-text-pad {
-  padding-left: 14%;
-  padding-right: 14%;
+  overflow: hidden;
 }
 
 .nag-bubble-text {
@@ -3458,6 +3468,7 @@ input[type='date']::-webkit-calendar-picker-indicator {
   max-width: 100%;
   min-width: 0;
   max-height: 100%;
+  flex: 0 1 auto;
   box-sizing: border-box;
   font-family: 'Gaegu', 'Malgun Gothic', 'Noto Sans KR', sans-serif;
   font-weight: 700;
