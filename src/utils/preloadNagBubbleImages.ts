@@ -1,23 +1,57 @@
 import say1Url from '../../say1.png'
 import say2Url from '../../say2.png'
 
-const loaded = new Set<string>()
+const decoded = new Set<string>()
 
+function urlForVariant(variant: 'instant' | 'weekly'): string {
+  return variant === 'instant' ? say1Url : say2Url
+}
+
+function isPaintable(img: HTMLImageElement): boolean {
+  return img.naturalWidth > 0 && img.naturalHeight > 0
+}
+
+/** onload/complete만으로는 iOS에서 높이 0인 가로 띠로 그려질 수 있음 → decode + naturalWidth 확인 */
 function loadOne(url: string): Promise<void> {
-  if (loaded.has(url)) return Promise.resolve()
+  if (decoded.has(url)) return Promise.resolve()
+
   return new Promise((resolve) => {
     const img = new Image()
     let settled = false
-    const done = () => {
-      if (settled) return
+
+    const settleOk = () => {
+      if (settled || !isPaintable(img)) return
       settled = true
-      loaded.add(url)
+      window.clearTimeout(fallbackId)
+      decoded.add(url)
       resolve()
     }
-    img.onload = done
-    img.onerror = done
+
+    const settleAnyway = () => {
+      if (settled) return
+      settled = true
+      window.clearTimeout(fallbackId)
+      resolve()
+    }
+
+    const fallbackId = window.setTimeout(settleAnyway, 12_000)
+
+    const afterLoad = () => {
+      void (async () => {
+        try {
+          if (typeof img.decode === 'function') await img.decode()
+        } catch {
+          /* decode 실패 시 onload 기준으로 진행 */
+        }
+        settleOk()
+      })()
+    }
+
+    img.onload = afterLoad
+    img.onerror = settleAnyway
     img.src = url
-    if (img.complete) done()
+
+    if (img.complete) afterLoad()
   })
 }
 
@@ -27,9 +61,9 @@ export function preloadNagBubbleImages(): Promise<void> {
 }
 
 export function isNagBubbleImageReady(variant: 'instant' | 'weekly'): boolean {
-  return loaded.has(variant === 'instant' ? say1Url : say2Url)
+  return decoded.has(urlForVariant(variant))
 }
 
 export function ensureNagBubbleImageReady(variant: 'instant' | 'weekly'): Promise<void> {
-  return loadOne(variant === 'instant' ? say1Url : say2Url)
+  return loadOne(urlForVariant(variant))
 }

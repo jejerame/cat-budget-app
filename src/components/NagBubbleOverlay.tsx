@@ -10,10 +10,8 @@ type NagBubbleOverlayProps = {
   variant: NagBubbleVariant
   text: string
   visible: boolean
-  /** 즉시 잔소리: ms 후 onAutoClose (부모에서 상태 해제) */
   autoHideMs?: number
   onAutoClose?: () => void
-  /** 주간 결산 등: 확인 버튼 */
   showConfirm?: boolean
   onConfirm?: () => void
 }
@@ -82,21 +80,9 @@ export function NagBubbleOverlay({
   }, [visible, imgReady, autoHideMs])
 
   if (!visible) return null
+  if (!imgReady) return null
 
   const imgSrc = variant === 'instant' ? say1Url : say2Url
-
-  if (!imgReady) {
-    return (
-      <img
-        src={imgSrc}
-        alt=""
-        className="nag-bubble-preload"
-        aria-hidden
-        decoding="async"
-        onLoad={() => setImgReady(true)}
-      />
-    )
-  }
 
   return (
     <div className="nag-bubble-overlay nag-bubble-overlay--visible" role="dialog" aria-modal="true" aria-live="polite">
@@ -107,7 +93,7 @@ export function NagBubbleOverlay({
             alt=""
             className="nag-bubble-img"
             draggable={false}
-            decoding="async"
+            decoding="sync"
             onLoad={() => setLayoutTick((n) => n + 1)}
           />
           <div className="nag-bubble-text-pad">
