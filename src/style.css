@@ -3358,6 +3358,15 @@ input[type='date']::-webkit-calendar-picker-indicator {
 }
 
 /* 지능형 말풍선 잔소리 (say1 즉시 / say2 주간) */
+.nag-bubble-preload {
+  position: fixed;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
 .nag-bubble-overlay {
   position: fixed;
   inset: 0;
@@ -3367,9 +3376,19 @@ input[type='date']::-webkit-calendar-picker-indicator {
   justify-content: center;
   padding: max(16px, var(--safe-top)) 14px calc(24px + var(--safe-bottom));
   box-sizing: border-box;
-  background: rgba(10, 10, 14, 0.48);
+  background: rgba(10, 10, 14, 0.52);
+  isolation: isolate;
+}
+
+/* iOS: backdrop-filter + 자식 transform 애니메이션이 겹치면 카드가 안 보이는 경우 방지 */
+.nag-bubble-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
+  pointer-events: none;
 }
 
 .nag-bubble-overlay--visible {
@@ -3386,6 +3405,8 @@ input[type='date']::-webkit-calendar-picker-indicator {
 }
 
 .nag-bubble-card {
+  position: relative;
+  z-index: 1;
   width: min(340px, calc(100vw - 28px));
   display: flex;
   flex-direction: column;
@@ -3404,11 +3425,9 @@ input[type='date']::-webkit-calendar-picker-indicator {
 @keyframes nag-bubble-pop-in {
   from {
     opacity: 0;
-    transform: translateY(10px) scale(0.96);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
   }
 }
 

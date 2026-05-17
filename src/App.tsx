@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { SplashCatOverlay } from './components/SplashCatOverlay'
 import { NagBubbleOverlay } from './components/NagBubbleOverlay'
 import { getInstantNagMessageForExpense } from './data/instantNagBubbles'
+import { preloadNagBubbleImages } from './utils/preloadNagBubbleImages'
 import { getEtfRecommendation } from './data/etfRecommendations'
 import { getBanPeriodLabel, getIntensityCopy, type BanPeriod, type NagIntensity } from './data/nagIntensity'
 import { getRandomNagByAmount } from './data/nagMessages'
@@ -528,6 +529,10 @@ function App() {
       /* ignore */
     }
   }, [colorMode])
+
+  useEffect(() => {
+    void preloadNagBubbleImages()
+  }, [])
 
   useEffect(() => {
     nagBubbleRef.current = nagBubble
