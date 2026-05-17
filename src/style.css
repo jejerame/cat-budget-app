@@ -3440,13 +3440,14 @@ input[type='date']::-webkit-calendar-picker-indicator {
   box-sizing: border-box;
   pointer-events: none;
   overflow: hidden;
-  padding: 14% 45% 36% 12%;
+  /* 위·아래 비대칭: 하단(고양이)을 더 잘라 flex 중심을 말풍선 시각 중앙으로 */
+  padding: 12% 45% 44% 12%;
   display: flex;
   flex-direction: column;
 }
 
 .nag-bubble-card--weekly .nag-bubble-text-pad {
-  padding: 12% 14% 42% 14%;
+  padding: 11% 14% 44% 14%;
 }
 
 .nag-bubble-text-slot {
@@ -3460,6 +3461,15 @@ input[type='date']::-webkit-calendar-picker-indicator {
   align-items: center;
   text-align: center;
   overflow: hidden;
+}
+
+/* say1 말풍선 몸통은 사각형보다 위쪽이 넓음 → 광학적 세로 중앙 보정 */
+.nag-bubble-card--instant .nag-bubble-text-slot {
+  transform: translateY(-6%);
+}
+
+.nag-bubble-card--weekly .nag-bubble-text-slot {
+  transform: translateY(-4%);
 }
 
 .nag-bubble-text {
