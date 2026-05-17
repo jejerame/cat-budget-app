@@ -3465,11 +3465,11 @@ input[type='date']::-webkit-calendar-picker-indicator {
 
 /* say1 말풍선 몸통은 사각형보다 위쪽이 넓음 → 광학적 세로 중앙 보정 */
 .nag-bubble-card--instant .nag-bubble-text-slot {
-  transform: translateY(-6%);
+  transform: translateY(-8%);
 }
 
 .nag-bubble-card--weekly .nag-bubble-text-slot {
-  transform: translateY(-4%);
+  transform: translateY(-5%);
 }
 
 .nag-bubble-text {
