@@ -1,11 +1,11 @@
-const CACHE_NAME = 'janso-cat-cache-v42'
+const CACHE_NAME = 'janso-cat-cache-v43'
 const CORE_ASSETS = ['/manifest.webmanifest', '/favicon.svg']
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(CORE_ASSETS)),
   )
-  self.skipWaiting()
+  // skipWaiting 제거: 활성화 시 페이지 강제 reload 없이 다음 실행부터 새 SW 적용
 })
 
 self.addEventListener('activate', (event) => {
