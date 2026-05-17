@@ -1,5 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;600;700;800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap');
 
 :root {
   --white: #ffffff;
@@ -3426,34 +3426,37 @@ input[type='date']::-webkit-calendar-picker-indicator {
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
 }
 
-/* 말풍선(say1/say2) 흰 영역 시각 중심: 이미지 비율 기준 top/left 고정 + translate로 박스 중앙 정렬 */
+/* 말풍선 텍스트: 이미지 전체 덮개 + 패딩으로 하얀 영역만 사용(좌표/transform 없음) */
 .nag-bubble-text-pad {
   position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   box-sizing: border-box;
-  transform: translate(-50%, -50%);
-  text-align: center;
   pointer-events: none;
   overflow: hidden;
-  padding: 0 6px;
-  /* 너비·좌표는 variant에서 지정 (이미지 가로 약 50%) */
+  padding-top: 15%;
+  padding-left: 12%;
+  padding-right: 45%;
+  padding-bottom: 38%;
+  text-align: center;
 }
 
-/* say1: 좌상단 말풍선 빈 영역 중심 — 수치는 에셋 비율에 맞춤 */
-.nag-bubble-card--instant .nag-bubble-text-pad {
-  top: 27%;
-  left: 40%;
-  width: 50%;
-  max-width: min(50%, 12.75rem);
-  max-height: 36%;
-}
-
-/* say2: 타원 말풍선 중심 */
+/* say2: 타원 말풍선 — 좌우 대칭·하단 고양이 여백만 유지 */
 .nag-bubble-card--weekly .nag-bubble-text-pad {
-  top: 24%;
-  left: 50%;
-  width: 50%;
-  max-width: min(50%, 13.5rem);
-  max-height: 40%;
+  padding-top: 12%;
+  padding-left: 14%;
+  padding-right: 14%;
+  padding-bottom: 40%;
+}
+
+.nag-bubble-text-body {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-align: center;
 }
 
 .nag-bubble-text {
@@ -3461,17 +3464,15 @@ input[type='date']::-webkit-calendar-picker-indicator {
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  max-height: 100%;
   box-sizing: border-box;
-  padding: 0 2px;
-  font-family: 'Nanum Pen Script', 'Segoe Print', 'Bradley Hand', 'Apple Chancery', cursive, sans-serif;
-  font-weight: 400;
-  letter-spacing: -0.02em;
-  line-height: 1.14;
+  font-family: 'Gaegu', 'Malgun Gothic', 'Noto Sans KR', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.16;
   color: #101018;
   text-align: center;
-  word-break: normal;
-  overflow-wrap: anywhere;
+  word-break: keep-all;
+  overflow-wrap: break-word;
   hyphens: manual;
 }
 

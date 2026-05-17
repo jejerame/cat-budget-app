@@ -26,12 +26,12 @@ export function NagBubbleOverlay({
   showConfirm,
   onConfirm,
 }: NagBubbleOverlayProps) {
-  const padRef = useRef<HTMLDivElement>(null)
+  const bodyRef = useRef<HTMLDivElement>(null)
   const textRef = useRef<HTMLParagraphElement>(null)
   const [layoutTick, setLayoutTick] = useState(0)
   useLayoutEffect(() => {
     if (!visible) return
-    const wrap = padRef.current
+    const wrap = bodyRef.current
     const el = textRef.current
     if (!wrap || !el) return
 
@@ -39,7 +39,7 @@ export function NagBubbleOverlay({
     const minPx = 11
     let size = maxPx
     el.style.fontSize = `${size}px`
-    el.style.lineHeight = variant === 'instant' ? '1.14' : '1.16'
+    el.style.lineHeight = variant === 'instant' ? '1.16' : '1.16'
 
     for (let i = 0; i < 100 && size > minPx; i += 1) {
       const overY = el.scrollHeight > wrap.clientHeight + 0.5
@@ -78,10 +78,12 @@ export function NagBubbleOverlay({
             draggable={false}
             onLoad={() => setLayoutTick((n) => n + 1)}
           />
-          <div ref={padRef} className="nag-bubble-text-pad">
-            <p ref={textRef} className="nag-bubble-text">
-              {text}
-            </p>
+          <div className="nag-bubble-text-pad">
+            <div ref={bodyRef} className="nag-bubble-text-body">
+              <p ref={textRef} className="nag-bubble-text">
+                {text}
+              </p>
+            </div>
           </div>
         </div>
         {showConfirm && (
