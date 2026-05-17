@@ -3426,7 +3426,7 @@ input[type='date']::-webkit-calendar-picker-indicator {
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
 }
 
-/* 말풍선 텍스트: 이미지 전체 덮개 + 패딩으로 하얀 영역만 사용(좌표/transform 없음) */
+/* 말풍선 투명 박스: 좌우만 가두고 flex로 상하·좌우 정중앙 */
 .nag-bubble-text-pad {
   position: absolute;
   top: 0;
@@ -3436,43 +3436,20 @@ input[type='date']::-webkit-calendar-picker-indicator {
   box-sizing: border-box;
   pointer-events: none;
   overflow: hidden;
-  padding-top: 8%;
   padding-left: 12%;
   padding-right: 45%;
-  padding-bottom: 38%;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-}
-
-/* say2: 타원 말풍선 — 좌우 대칭·하단 고양이 여백만 유지 */
-.nag-bubble-card--weekly .nag-bubble-text-pad {
-  padding-top: 8%;
-  padding-left: 14%;
-  padding-right: 14%;
-  padding-bottom: 40%;
-}
-
-.nag-bubble-text-body {
-  flex: 1 1 0;
-  min-height: 0;
-  width: 100%;
-  box-sizing: border-box;
-  overflow: hidden;
-  text-align: center;
+  padding-top: 0;
+  padding-bottom: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  /* 하단 벽: 짧은 문장이 말풍선 아래로 처지지 않게 위로 밀어 올림 */
-  padding-bottom: 25%;
+  align-items: center;
+  text-align: center;
 }
 
-.nag-bubble-card--instant .nag-bubble-text-body {
-  padding-bottom: 30%;
-}
-
-.nag-bubble-card--weekly .nag-bubble-text-body {
-  padding-bottom: 20%;
+.nag-bubble-card--weekly .nag-bubble-text-pad {
+  padding-left: 14%;
+  padding-right: 14%;
 }
 
 .nag-bubble-text {
@@ -3480,6 +3457,7 @@ input[type='date']::-webkit-calendar-picker-indicator {
   width: 100%;
   max-width: 100%;
   min-width: 0;
+  max-height: 100%;
   box-sizing: border-box;
   font-family: 'Gaegu', 'Malgun Gothic', 'Noto Sans KR', sans-serif;
   font-weight: 700;
