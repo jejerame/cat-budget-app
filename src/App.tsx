@@ -546,6 +546,7 @@ function App() {
       } catch {
         /* ignore */
       }
+      if (!text) return
       setNagBubble({ variant: 'weekly', text })
     }, 1100)
 
@@ -2049,9 +2050,9 @@ function sumExpenseBetween(transactions: TransactionRecord[], from: Date, toExcl
     .reduce((s, r) => s + r.amount, 0)
 }
 
-/** 일요일: 직전 7일 vs 그 이전 7일 지출 합계 비교 문구 */
-function getWeeklySettlementNagText(transactions: TransactionRecord[], today: Date): string {
-  if (today.getDay() !== 0) return ''
+/** 일요일: 직전 7일 vs 그 이전 7일 지출 합계 비교 문구 (비교할 지출이 없으면 null) */
+function getWeeklySettlementNagText(transactions: TransactionRecord[], today: Date): string | null {
+  if (today.getDay() !== 0) return null
   const end = startOfLocalDay(today)
   const lastStart = new Date(end)
   lastStart.setDate(lastStart.getDate() - 7)
@@ -2059,6 +2060,7 @@ function getWeeklySettlementNagText(transactions: TransactionRecord[], today: Da
   prevStart.setDate(prevStart.getDate() - 7)
   const lastSum = sumExpenseBetween(transactions, lastStart, end)
   const prevSum = sumExpenseBetween(transactions, prevStart, lastStart)
+  if (lastSum === 0 && prevSum === 0) return null
   if (lastSum > prevSum) return '지난주보다 더 썼네? 거지 꼴 못 면한다!'
   return '칭찬해. 그래도 정신 단디 똑바로 차리자.'
 }
