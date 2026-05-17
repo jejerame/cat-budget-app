@@ -1,4 +1,4 @@
-/** 지출 저장 직후 말풍선(say1)용 카테고리·키워드별 잔소리 */
+/** 지출 저장 직후 말풍선(say1)용 — 카테고리 우선, 메모는 같은 카테고리 안에서만 보조 */
 
 export const INSTANT_NAG_COFFEE = [
   '또 마셨구나?',
@@ -32,41 +32,141 @@ export const INSTANT_NAG_ESSENTIAL = ['너 지금 필수라고 합리화 중이�
 
 export const INSTANT_NAG_IMPULSE = ['고생한 나를 위한 선물? 그냥 충동구매야.'] as const
 
-export type InstantNagBucket = 'coffee' | 'taxi' | 'delivery' | 'dining' | 'impulse' | 'essential'
+export const INSTANT_NAG_COUPLE = [
+  '데이트비도 통장이 다 기억해.',
+  '좋은 추억이지만, 다음엔 공짜 산책 데이트는 어때?',
+  '사랑도 중요하지만 이번 달 데이트 예산도 같이 챙기자.',
+  '설렘은 살고, 통장 잔고도 살아남게 해 줘.',
+] as const
+
+export const INSTANT_NAG_FIXED = [
+  '고정비는 피할 순 없지만, 요금이 합리적인지는 봐야지.',
+  '매달 나가는 돈이야. 변동 없는지 한번 점검해 봐.',
+  '집세·보험은 필수지만, 더 싼 플랜은 없는지 찾아봤어?',
+] as const
+
+export const INSTANT_NAG_SPECIAL = [
+  '특별한 하루였구나. 다음 달 통장도 미리 생각해 둬.',
+  '이벤트·여행은 한 번에 크게 나가. 예산 상한은 정했지?',
+  '추억은 소중해. 다만 카드 한도도 같이 챙겨.',
+] as const
+
+export const INSTANT_NAG_SELF_DEV = [
+  '자기계발 멋지다. 지갑도 같이 단련 중이네.',
+  '성장 투자 좋아. 이번 달 취미·건강 예산은 아직 괜찮아?',
+  '나를 위한 지출이지만, 반복되면 습관이 돼.',
+] as const
+
+export const PET_INSTANT_LARGE_THRESHOLD = 150_000
+
+const PET_INSTANT_LARGE = [
+  '아이를 위한 마음은 알겠지만, 집사가 파산하면 아이도 슬퍼해요!',
+  '사랑은 충분해요. 이번 결제는 한 번만 더 계산해보고 지켜요.',
+] as const
+
+const PET_INSTANT_TREATS = [
+  '간식 많이 사준다고 사랑이 비례하는 건 아니에요. 아이 비만 오면 병원비가 더 나옵니다!',
+] as const
+
+const PET_INSTANT_TOY = [
+  '집사야, 저번에 산 장난감도 아직 새거다. 아이는 새 옷보다 너랑 5분 더 노는 걸 좋아해.',
+] as const
+
+const PET_INSTANT_MEDICAL = [
+  '이건 아끼지 마세요. 대신 다음 달엔 집사님 커피값을 줄여서 메꿉시다. 아이는 죄가 없으니까요!',
+] as const
+
+const PET_INSTANT_GROOMING = [
+  '댕댕이 미용은 풀코스로, 집사님 머리는 셀프 컷? 적당히 합시다. 같이 오래 살려면 집사 통장도 지켜야죠.',
+] as const
+
+const PET_INSTANT_DEFAULT = '아이를 챙기는 마음은 최고예요. 다만 집사 통장 체력도 같이 관리해요.'
+
+export type InstantNagBucket =
+  | 'coffee'
+  | 'taxi'
+  | 'delivery'
+  | 'dining'
+  | 'essential'
+  | 'impulse'
+  | 'couple'
+  | 'pet'
+  | 'fixed'
+  | 'special'
+  | 'self_dev'
 
 const COFFEE_RE = /커피|아메리카노|카페|라떼|스타벅스|americano|espresso|에스프레소/i
 const TAXI_RE = /택시|taxi|우버|uber/i
 const DELIVERY_RE = /배달|배민|요기요|쿠팡이츠|픽업/i
-const DINING_RE = /외식|맛집|식당|레스토랑|브런치|회식/i
-const IMPULSE_RE = /충동|옷|가방|여행|해외여행|이벤트|경조사|쇼핑|구매/i
+const DINING_RE = /외식|맛집|식당|레스토랑|브런치|회식|데이트|영화|카페데이트/i
 
 function pickRandom<T extends readonly string[]>(lines: T): string {
   const i = Math.floor(Math.random() * lines.length)
   return lines[i] ?? lines[0]
 }
 
+/** RED·생활만 메모 키워드로 세부 버킷. 그 외 카테고리는 메모와 무관하게 고정 버킷 */
 export function resolveInstantNagBucket(category: string, memo: string): InstantNagBucket {
   const t = memo.trim()
 
-  if (COFFEE_RE.test(t)) return 'coffee'
-  if (TAXI_RE.test(t)) return 'taxi'
-  if (DELIVERY_RE.test(t)) return 'delivery'
-  if (DINING_RE.test(t)) return 'dining'
-  if (IMPULSE_RE.test(t)) return 'impulse'
+  switch (category) {
+    case 'red':
+      if (COFFEE_RE.test(t)) return 'coffee'
+      if (TAXI_RE.test(t)) return 'taxi'
+      if (DELIVERY_RE.test(t)) return 'delivery'
+      if (DINING_RE.test(t)) return 'dining'
+      return 'impulse'
 
-  if (category === 'living' || category === 'fixed') return 'essential'
-  if (category === 'special' || category === 'self_dev' || category === 'pet') return 'impulse'
-  if (category === 'couple') return 'dining'
-  if (category === 'red') {
-    if (COFFEE_RE.test(t)) return 'coffee'
-    if (TAXI_RE.test(t)) return 'taxi'
-    return 'impulse'
+    case 'living':
+      if (DELIVERY_RE.test(t)) return 'delivery'
+      if (DINING_RE.test(t)) return 'dining'
+      if (COFFEE_RE.test(t)) return 'coffee'
+      if (TAXI_RE.test(t)) return 'taxi'
+      return 'essential'
+
+    case 'couple':
+      return 'couple'
+
+    case 'pet':
+      return 'pet'
+
+    case 'fixed':
+      return 'fixed'
+
+    case 'special':
+      return 'special'
+
+    case 'self_dev':
+      return 'self_dev'
+
+    default:
+      return 'impulse'
   }
-
-  return 'impulse'
 }
 
-export function getInstantNagMessageForExpense(category: string, memo: string): string {
+export function getPetInstantNagMessage(amount: number, memo: string): string {
+  const normalized = memo.toLowerCase()
+  if (amount >= PET_INSTANT_LARGE_THRESHOLD) return pickRandom(PET_INSTANT_LARGE)
+  if (['간식', '사료', '캔', '츄르'].some((kw) => normalized.includes(kw))) {
+    return pickRandom(PET_INSTANT_TREATS)
+  }
+  if (['장난감', '옷', '리드줄', '하네스'].some((kw) => normalized.includes(kw))) {
+    return pickRandom(PET_INSTANT_TOY)
+  }
+  if (['병원', '약', '진료', '접종'].some((kw) => normalized.includes(kw))) {
+    return pickRandom(PET_INSTANT_MEDICAL)
+  }
+  if (['미용', '스파', '향수', '악세', '액세'].some((kw) => normalized.includes(kw))) {
+    return pickRandom(PET_INSTANT_GROOMING)
+  }
+  return PET_INSTANT_DEFAULT
+}
+
+export function getInstantNagMessageForExpense(
+  category: string,
+  memo: string,
+  amount = 0,
+): string {
   const bucket = resolveInstantNagBucket(category, memo)
   switch (bucket) {
     case 'coffee':
@@ -79,6 +179,16 @@ export function getInstantNagMessageForExpense(category: string, memo: string): 
       return pickRandom(INSTANT_NAG_DINING)
     case 'essential':
       return pickRandom(INSTANT_NAG_ESSENTIAL)
+    case 'couple':
+      return pickRandom(INSTANT_NAG_COUPLE)
+    case 'pet':
+      return getPetInstantNagMessage(amount, memo)
+    case 'fixed':
+      return pickRandom(INSTANT_NAG_FIXED)
+    case 'special':
+      return pickRandom(INSTANT_NAG_SPECIAL)
+    case 'self_dev':
+      return pickRandom(INSTANT_NAG_SELF_DEV)
     default:
       return pickRandom(INSTANT_NAG_IMPULSE)
   }

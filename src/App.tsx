@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { SplashCatOverlay } from './components/SplashCatOverlay'
 import { NagBubbleOverlay } from './components/NagBubbleOverlay'
-import { getInstantNagMessageForExpense } from './data/instantNagBubbles'
+import { getInstantNagMessageForExpense, getPetInstantNagMessage } from './data/instantNagBubbles'
 import { preloadNagBubbleImages } from './utils/preloadNagBubbleImages'
 import { getEtfRecommendation } from './data/etfRecommendations'
 import { getBanPeriodLabel, getIntensityCopy, type BanPeriod, type NagIntensity } from './data/nagIntensity'
@@ -78,23 +78,6 @@ const WEEKLY_SETTLEMENT_BUBBLE_STORAGE_PREFIX = 'weekly-settlement-bubble:v1:'
 const CALENDAR_YEAR_COMBO_PAST = 15
 const CALENDAR_YEAR_COMBO_FUTURE = 1
 const QUICK_MEMO_TAGS = ['외식', '배달', '해외여행', '이벤트', '경조사', '통신', '사료', '병원']
-const PET_LARGE_EXPENSE_THRESHOLD = 150_000
-const PET_SOFT_NAGS_LARGE = [
-  '아이를 위한 마음은 알겠지만, 집사가 파산하면 아이도 슬퍼해요!',
-  '사랑은 충분해요. 이번 결제는 한 번만 더 계산해보고 지켜요.',
-]
-const PET_SOFT_NAGS_TREATS = [
-  '간식 많이 사준다고 사랑이 비례하는 건 아니에요. 아이 비만 오면 병원비가 더 나옵니다!',
-]
-const PET_SOFT_NAGS_TOY = [
-  '집사야, 저번에 산 장난감도 아직 새거다. 아이는 새 옷보다 너랑 5분 더 노는 걸 좋아해.',
-]
-const PET_SOFT_NAGS_MEDICAL = [
-  '이건 아끼지 마세요. 대신 다음 달엔 집사님 커피값을 줄여서 메꿉시다. 아이는 죄가 없으니까요!',
-]
-const PET_SOFT_NAGS_GROOMING = [
-  '댕댕이 미용은 풀코스로, 집사님 머리는 셀프 컷? 적당히 합시다. 같이 오래 살려면 집사 통장도 지켜야죠.',
-]
 const INCOME_BUBBLE_MESSAGES = [
   '이번 달도 고생했어.',
   '오늘도 번 만큼 대단해.',
@@ -801,7 +784,7 @@ function App() {
         amount >= HIGH_EXPENSE_COMPOUND_THRESHOLD ? { amount, category, memo: normalizedMemo } : null
       setNagBubble({
         variant: 'instant',
-        text: getInstantNagMessageForExpense(category, normalizedMemo),
+        text: getInstantNagMessageForExpense(category, normalizedMemo, amount),
       })
     }
   }
@@ -1914,23 +1897,7 @@ function isTelecomMemo(memo: string): boolean {
 }
 
 function getPetSoftNagMessage(amount: number, memo: string): string {
-  const normalized = memo.toLowerCase()
-  if (amount >= PET_LARGE_EXPENSE_THRESHOLD) {
-    return pickRandomLocal(PET_SOFT_NAGS_LARGE)
-  }
-  if (['간식', '사료', '캔', '츄르'].some((keyword) => normalized.includes(keyword))) {
-    return pickRandomLocal(PET_SOFT_NAGS_TREATS)
-  }
-  if (['장난감', '옷', '리드줄', '하네스'].some((keyword) => normalized.includes(keyword))) {
-    return pickRandomLocal(PET_SOFT_NAGS_TOY)
-  }
-  if (['병원', '약', '진료', '접종'].some((keyword) => normalized.includes(keyword))) {
-    return pickRandomLocal(PET_SOFT_NAGS_MEDICAL)
-  }
-  if (['미용', '스파', '향수', '악세', '액세'].some((keyword) => normalized.includes(keyword))) {
-    return pickRandomLocal(PET_SOFT_NAGS_GROOMING)
-  }
-  return '아이를 챙기는 마음은 최고예요. 다만 집사 통장 체력도 같이 관리해요.'
+  return getPetInstantNagMessage(amount, memo)
 }
 
 function pickRandomLocal(messages: string[]): string {
