@@ -1097,8 +1097,10 @@ function App() {
                   ))}
                 </select>
               </div>
-              <h1 className="home-title-chip" aria-label="앱 타이틀">
-                <span className="home-title-chip__text">잔소리 가계부</span>
+              <h1 className="home-title-chip" aria-label="잔소리 냥가계부">
+                <span className="home-title-chip__text">
+                  잔소리 <span className="home-title-chip__accent">냥</span>가계부
+                </span>
                 <img src={janCatUrl} alt="" className="home-title-chip__cat" aria-hidden="true" />
               </h1>
               <button className="icon-btn dark" type="button" onClick={() => setChartOpen(true)}>📊</button>
