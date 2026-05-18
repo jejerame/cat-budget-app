@@ -12,6 +12,8 @@ type NagBubbleOverlayProps = {
   visible: boolean
   /** say1/say2 대신 주거 cheer 등 커스텀 말풍선 PNG */
   imageSrc?: string
+  /** PNG에 문구가 포함된 경우 텍스트 오버레이 숨김 */
+  imageOnly?: boolean
   autoHideMs?: number
   onAutoClose?: () => void
   showConfirm?: boolean
@@ -23,6 +25,7 @@ export function NagBubbleOverlay({
   text,
   visible,
   imageSrc,
+  imageOnly = false,
   autoHideMs,
   onAutoClose,
   showConfirm,
@@ -34,6 +37,8 @@ export function NagBubbleOverlay({
   const [imgReady, setImgReady] = useState(false)
 
   const resolvedImageSrc = imageSrc ?? (variant === 'instant' ? say1Url : say2Url)
+  const housingClass = imageSrc || imageOnly ? ' nag-bubble-card--housing' : ''
+  const cheerOnlyClass = imageOnly ? ' nag-bubble-card--cheer-only' : ''
 
   useEffect(() => {
     if (!visible) {
@@ -53,7 +58,7 @@ export function NagBubbleOverlay({
   }, [visible, variant, imageSrc])
 
   useLayoutEffect(() => {
-    if (!visible || !imgReady) return
+    if (!visible || !imgReady || imageOnly) return
     const wrap = padRef.current
     const el = textRef.current
     if (!wrap || !el) return
@@ -71,7 +76,7 @@ export function NagBubbleOverlay({
       size -= 0.4
       el.style.fontSize = `${size}px`
     }
-  }, [visible, imgReady, text, variant, layoutTick])
+  }, [visible, imgReady, text, variant, layoutTick, imageOnly])
 
   useEffect(() => {
     if (!visible || !imgReady) return
@@ -91,24 +96,32 @@ export function NagBubbleOverlay({
   if (!imgReady) return null
 
   return (
-    <div className="nag-bubble-overlay nag-bubble-overlay--visible" role="dialog" aria-modal="true" aria-live="polite">
-      <div className={`nag-bubble-card nag-bubble-card--${variant}${imageSrc ? ' nag-bubble-card--housing' : ''}`}>
+    <div
+      className="nag-bubble-overlay nag-bubble-overlay--visible"
+      role="dialog"
+      aria-modal="true"
+      aria-live="polite"
+      aria-label={imageOnly ? text : undefined}
+    >
+      <div className={`nag-bubble-card nag-bubble-card--${variant}${housingClass}${cheerOnlyClass}`}>
         <div className="nag-bubble-visual">
           <img
             src={resolvedImageSrc}
-            alt=""
+            alt={imageOnly ? text : ''}
             className="nag-bubble-img"
             draggable={false}
             decoding="sync"
             onLoad={() => setLayoutTick((n) => n + 1)}
           />
-          <div className="nag-bubble-text-pad">
-            <div ref={padRef} className="nag-bubble-text-slot">
-              <p ref={textRef} className="nag-bubble-text">
-                {text}
-              </p>
+          {!imageOnly ? (
+            <div className="nag-bubble-text-pad">
+              <div ref={padRef} className="nag-bubble-text-slot">
+                <p ref={textRef} className="nag-bubble-text">
+                  {text}
+                </p>
+              </div>
             </div>
-          </div>
+          ) : null}
         </div>
         {showConfirm && (
           <button type="button" className="nag-bubble-confirm" onClick={onConfirm}>

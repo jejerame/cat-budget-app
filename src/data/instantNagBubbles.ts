@@ -1,5 +1,4 @@
 import type { NagIntensity } from './nagIntensity'
-import { getHousingInstantNagMessage, resolveHousingCheerKey } from './housingInstantNag'
 import { resolveContentIntensity } from './nagIntensity'
 
 /** 지출 저장 직후 말풍선(say1)용 — 카테고리 우선, 메모는 같은 카테고리 안에서만 보조 (문구 풀 = 스파르탄 라이트) */
@@ -196,7 +195,7 @@ export function getInstantNagMessageForExpense(
     case 'fixed':
       return pickRandom(INSTANT_NAG_FIXED)
     case 'housing':
-      return getHousingInstantNagMessage(resolveHousingCheerKey(memo))
+      return ''
     case 'special':
       return pickRandom(INSTANT_NAG_SPECIAL)
     case 'self_dev':

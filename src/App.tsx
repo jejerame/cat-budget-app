@@ -4,8 +4,8 @@ import { NagBubbleOverlay } from './components/NagBubbleOverlay'
 import { LimitBreakOverlay } from './components/LimitBreakOverlay'
 import { getInstantNagMessageForExpense, getPetInstantNagMessage } from './data/instantNagBubbles'
 import {
+  getHousingCheerAriaLabel,
   getHousingCheerImageUrl,
-  getHousingInstantNagMessage,
   resolveHousingCheerKey,
 } from './data/housingInstantNag'
 import { preloadNagBubbleImages } from './utils/preloadNagBubbleImages'
@@ -271,6 +271,8 @@ function App() {
     variant: 'instant' | 'weekly'
     text: string
     imageSrc?: string
+    /** cheer PNG 등 이미지 내 문구만 표시(텍스트 오버레이 없음) */
+    imageOnly?: boolean
   }>(null)
   const pendingCompoundAfterInstantRef = useRef<null | { amount: number; category: string; memo: string }>(null)
   const nagBubbleRef = useRef(nagBubble)
@@ -907,8 +909,9 @@ function App() {
             const housingKey = resolveHousingCheerKey(normalizedMemo)
             setNagBubble({
               variant: 'instant',
-              text: getHousingInstantNagMessage(housingKey),
+              text: getHousingCheerAriaLabel(housingKey),
               imageSrc: getHousingCheerImageUrl(housingKey),
+              imageOnly: true,
             })
           } else {
             setNagBubble({
@@ -1148,6 +1151,7 @@ function App() {
         variant={nagBubble?.variant ?? 'instant'}
         text={nagBubble?.text ?? ''}
         imageSrc={nagBubble?.imageSrc}
+        imageOnly={nagBubble?.imageOnly}
         visible={Boolean(nagBubble) && !nagsSilenced && !limitBreakOpen}
         autoHideMs={nagBubble?.variant === 'instant' ? INSTANT_NAG_BUBBLE_MS : undefined}
         onAutoClose={

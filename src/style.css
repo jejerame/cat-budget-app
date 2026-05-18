@@ -3567,24 +3567,17 @@ input[type='date']::-webkit-calendar-picker-indicator {
   transform: translateY(-5%);
 }
 
-/* 주거 cheer 말풍선 — instant와 동일한 상하좌우 정중앙 */
-.nag-bubble-card--housing .nag-bubble-text-pad {
-  padding: 12% 45% 44% 12%;
-  display: flex;
-  flex-direction: column;
+/* 주거 cheer PNG — 이미지 전용(문구는 PNG 내장), 둥근 사각형 */
+.nag-bubble-card--cheer-only .nag-bubble-visual {
+  border-radius: 22px;
+  overflow: hidden;
+  background: transparent;
 }
 
-.nag-bubble-card--housing .nag-bubble-text-slot {
-  flex: 1 1 0;
-  min-height: 0;
-  min-width: 0;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  transform: translateY(-8%);
+.nag-bubble-card--cheer-only .nag-bubble-img {
+  border-radius: 22px;
+  object-fit: cover;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
 }
 
 .nag-bubble-text {
