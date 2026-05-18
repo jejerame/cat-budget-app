@@ -13,12 +13,12 @@
         try {
           var k = 'janso-cat-color-mode'
           var v = localStorage.getItem(k)
-          var t =
-            v === 'light' || v === 'dark'
-              ? v
-              : window.matchMedia('(prefers-color-scheme: light)').matches
-                ? 'light'
-                : 'dark'
+          var t
+          if (v === 'light' || v === 'dark') {
+            t = v
+          } else {
+            t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+          }
           document.documentElement.setAttribute('data-theme', t)
           var m = document.getElementById('theme-color-meta')
           if (m) m.setAttribute('content', t === 'light' ? '#ffffff' : '#161616')

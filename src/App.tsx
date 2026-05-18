@@ -4,6 +4,14 @@ import { NagBubbleOverlay } from './components/NagBubbleOverlay'
 import { getInstantNagMessageForExpense, getPetInstantNagMessage } from './data/instantNagBubbles'
 import { preloadNagBubbleImages } from './utils/preloadNagBubbleImages'
 import {
+  applyColorModeToDocument,
+  loadColorModePreference,
+  persistManualColorMode,
+  resolveEffectiveColorMode,
+  type ColorMode,
+  type ColorModePreference,
+} from './utils/colorMode'
+import {
   applyBanPeriodChange,
   areNagsSilenced,
   BAN_PERIOD_UI_OPTIONS,
@@ -181,22 +189,6 @@ type BackupPayload = {
   }
 }
 
-const COLOR_MODE_STORAGE_KEY = 'janso-cat-color-mode'
-type ColorMode = 'light' | 'dark'
-
-function resolveColorMode(): ColorMode {
-  try {
-    const v = localStorage.getItem(COLOR_MODE_STORAGE_KEY)
-    if (v === 'light' || v === 'dark') return v
-  } catch {
-    /* ignore */
-  }
-  if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches) {
-    return 'light'
-  }
-  return 'dark'
-}
-
 function ThemeSunGlyph() {
   return (
     <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden>
@@ -258,7 +250,10 @@ function App() {
   const [toastVisible, setToastVisible] = useState(false)
   const [redWarningPhase, setRedWarningPhase] = useState<'idle' | 'blinking' | 'steady'>('idle')
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const [colorMode, setColorMode] = useState<ColorMode>(() => resolveColorMode())
+  const [colorModePreference, setColorModePreference] = useState<ColorModePreference>(() => loadColorModePreference())
+  const [colorMode, setColorMode] = useState<ColorMode>(() =>
+    resolveEffectiveColorMode(loadColorModePreference()),
+  )
   const [dayDetailDateKey, setDayDetailDateKey] = useState<string | null>(null)
   const [calendarDayTipHoverKey, setCalendarDayTipHoverKey] = useState<string | null>(null)
   const [calendarDayTipTouchKey, setCalendarDayTipTouchKey] = useState<string | null>(null)
@@ -517,14 +512,22 @@ function App() {
   }, [selectedCalendarYear, selectedCalendarMonth])
 
   useEffect(() => {
-    document.documentElement.dataset.theme = colorMode
-    try {
-      const meta = document.getElementById('theme-color-meta') as HTMLMetaElement | null
-      if (meta) meta.content = colorMode === 'light' ? '#ffffff' : '#161616'
-    } catch {
-      /* ignore */
-    }
+    applyColorModeToDocument(colorMode)
   }, [colorMode])
+
+  useEffect(() => {
+    if (colorModePreference !== 'auto') {
+      setColorMode(colorModePreference)
+      return undefined
+    }
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+    const sync = (): void => {
+      setColorMode(mq.matches ? 'dark' : 'light')
+    }
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [colorModePreference])
 
   useEffect(() => {
     void preloadNagBubbleImages()
@@ -847,12 +850,9 @@ function App() {
   }
 
   function setColorModePersist(next: ColorMode): void {
+    setColorModePreference(next)
+    persistManualColorMode(next)
     setColorMode(next)
-    try {
-      localStorage.setItem(COLOR_MODE_STORAGE_KEY, next)
-    } catch {
-      /* ignore */
-    }
   }
 
   function onChangeIntensity(value: string): void {
