@@ -4,7 +4,7 @@ import malBubbleUrl from '../../mal.png'
 import { playLimitBreakBoom } from '../utils/limitBreakBoomSound'
 
 const LIMIT_BREAK_ARIA_LABEL =
-  '\uD398! \uD1B5\uC7A5\uC774 \uBC15\uC0B4 \uB0AC\uB2E4. \uB2F4\uB2EC \uC6D4\uAE09\uAE4C\uC9C0 \uC0BC\uC2DC\uC138\uB07C \uB77C\uBA74 \uBA39\uC73C\uBA74\uC11C \uC228\uB9CC \uC26C\uACE0 \uC0B4\uC544.'
+  '\uC651! \uD1B5\uC7A5\uC774 \uBC15\uC0B4 \uB0AC\uB2E4. \uB2F4\uB2EC \uC6D4\uAE09\uAE4C\uC9C0 \uC0BC\uC2DC\uC138\uB07C \uB77C\uBA74 \uBA39\uC73C\uBA74\uC11C \uC228\uB9CC \uC26C\uACE0 \uC0B4\uC544.'
 
 const SCENE_ASSET_URLS = [begCatUrl, malBubbleUrl] as const
 
@@ -89,7 +89,7 @@ export function LimitBreakOverlay({ open, onClose, onExplosionPhaseChange }: Lim
           {['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'].map((id) => (
             <span key={id} className={`limit-break-spark limit-break-spark--${id}`} />
           ))}
-          <p className="limit-break-boom-text">{'\uD398!'}</p>
+          <p className="limit-break-boom-text">BOMB!</p>
         </div>
       ) : null}
 
