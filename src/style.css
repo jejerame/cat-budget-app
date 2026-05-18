@@ -3771,8 +3771,11 @@ input[type='date']::-webkit-calendar-picker-indicator {
   z-index: 9999;
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   align-items: center;
   gap: 6px;
+  max-width: min(100vw - 20px, 340px);
   pointer-events: auto;
 }
 
@@ -3799,6 +3802,12 @@ input[type='date']::-webkit-calendar-picker-indicator {
   color: #fff;
   background: linear-gradient(180deg, #3ecf7a 0%, #1f9d55 100%);
   border-color: rgba(12, 90, 48, 0.45);
+}
+
+.monthly-settlement-dev-test__btn--weekly {
+  color: #fff;
+  background: linear-gradient(180deg, #6eb0ff 0%, #2f6fd4 100%);
+  border-color: rgba(18, 58, 120, 0.45);
 }
 
 .monthly-settlement-dev-test__btn:active {

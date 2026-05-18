@@ -55,6 +55,7 @@ import {
   getRandomNagByAmount,
   getRedReflectionComment,
   getWeeklySettlementNagText,
+  getWeeklySettlementNagTextDevPreview,
 } from './data/nagMessages'
 import { getCategoryLabel } from './data/spendingCategories'
 import {
@@ -1204,6 +1205,14 @@ function App() {
     setMonthlySettlement(buildMonthlySettlementDevPreview(tone, transactions))
   }
 
+  function previewWeeklySettlementForDev() {
+    setMonthlySettlement(null)
+    setNagBubble({
+      variant: 'weekly',
+      text: getWeeklySettlementNagTextDevPreview(transactions, new Date(), nagIntensity),
+    })
+  }
+
   return (
     <>
       <NagBubbleWarmup />
@@ -1593,7 +1602,10 @@ function App() {
             </div>
             <p className="month-end-card__nag petty-nag-card__quote">{pettyNagQuote}</p>
             {/* 개발 테스트용 버튼 — 배포 전 MonthlySettlementDevTestButtons 및 previewMonthlySettlementForDev 삭제 */}
-            <MonthlySettlementDevTestButtons onPreview={previewMonthlySettlementForDev} />
+            <MonthlySettlementDevTestButtons
+              onPreviewMonthly={previewMonthlySettlementForDev}
+              onPreviewWeekly={previewWeeklySettlementForDev}
+            />
           </section>
           <footer className="app-disclaimer app-disclaimer--in-home" aria-label="투자 면책 조항">
             <span className="app-disclaimer-icon" aria-hidden="true">ⓘ</span>

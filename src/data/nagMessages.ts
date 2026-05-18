@@ -210,3 +210,26 @@ export function getWeeklySettlementNagText(
   if (lastSum > prevSum) return lines.worse
   return lines.better
 }
+
+// —— 개발 테스트용 —— 배포 전 아래 블록 전체 삭제
+/** 일요일·localStorage 무시 — 주간 결산 say2 말풍선 문구 (지출 없으면 worse 샘플) */
+export function getWeeklySettlementNagTextDevPreview(
+  transactions: TransactionRecord[],
+  today: Date = new Date(),
+  selected: NagIntensity,
+): string {
+  const end = startOfLocalDay(today)
+  const lastStart = new Date(end)
+  lastStart.setDate(lastStart.getDate() - 7)
+  const prevStart = new Date(lastStart)
+  prevStart.setDate(prevStart.getDate() - 7)
+  const lastSum = sumExpenseBetween(transactions, lastStart, end)
+  const prevSum = sumExpenseBetween(transactions, prevStart, lastStart)
+  const tier = resolveContentIntensity(selected)
+  const lines = WEEKLY_SETTLEMENT[tier].worse
+    ? WEEKLY_SETTLEMENT[tier]
+    : WEEKLY_SETTLEMENT['spartian-lite']
+  if (lastSum === 0 && prevSum === 0) return lines.worse
+  if (lastSum > prevSum) return lines.worse
+  return lines.better
+}
