@@ -3567,17 +3567,31 @@ input[type='date']::-webkit-calendar-picker-indicator {
   transform: translateY(-5%);
 }
 
-/* 주거 cheer PNG — 이미지 전용(문구는 PNG 내장), 둥근 사각형 */
+/* 주거 cheer PNG — 지출 토스트(cat-toast)와 비슷한 크기로 화면 안에 수납 */
+.nag-bubble-card--cheer-only {
+  width: min(240px, calc(100vw - 36px));
+  gap: 0;
+}
+
 .nag-bubble-card--cheer-only .nag-bubble-visual {
-  border-radius: 22px;
+  width: 100%;
+  height: auto;
+  aspect-ratio: auto;
+  max-height: min(52vh, 320px);
+  border-radius: 18px;
   overflow: hidden;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(40, 40, 46, 0.2);
+  box-shadow: 0 12px 28px rgba(24, 24, 30, 0.22);
 }
 
 .nag-bubble-card--cheer-only .nag-bubble-img {
-  border-radius: 22px;
-  object-fit: cover;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+  width: 100%;
+  height: auto;
+  max-height: min(52vh, 320px);
+  border-radius: 18px;
+  object-fit: contain;
+  box-shadow: none;
 }
 
 .nag-bubble-text {
