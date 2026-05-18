@@ -1,17 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import splashCatUrl from '../../1won.png'
+import type { NagIntensity } from '../data/nagIntensity'
+import { getSplashBubbleMessage } from '../data/nagMessages'
 
 const STORAGE_KEY = 'compound-daily-cat-splash-at'
 const TWENTY_FOUR_H_MS = 24 * 60 * 60 * 1000
 const FADE_MS = 500
 const HOLD_MS = 700
-
-const SPLASH_BUBBLE_MESSAGES = [
-  '샀니? 샀어?',
-  '그게 꼭 필요해?',
-  '1억 안 모을 거야?',
-  '또 샀어?',
-] as const
 
 function isSplashDue(): boolean {
   const raw = localStorage.getItem(STORAGE_KEY)
@@ -26,15 +21,15 @@ type Phase = 'idle' | 'peak' | 'out'
 type SplashCatOverlayProps = {
   /** 잔소리 금지 기간이 켜져 있으면 스플래시 고양이도 표시하지 않음 */
   silenced?: boolean
+  nagIntensity?: NagIntensity
 }
 
-export function SplashCatOverlay({ silenced = false }: SplashCatOverlayProps) {
+export function SplashCatOverlay({ silenced = false, nagIntensity = 'spartian-lite' }: SplashCatOverlayProps) {
   const [finished, setFinished] = useState(() => silenced || !isSplashDue())
   const [phase, setPhase] = useState<Phase>('idle')
   const bubbleTextRef = useRef<string | null>(null)
   if (bubbleTextRef.current === null) {
-    const i = Math.floor(Math.random() * SPLASH_BUBBLE_MESSAGES.length)
-    bubbleTextRef.current = SPLASH_BUBBLE_MESSAGES[i] ?? SPLASH_BUBBLE_MESSAGES[0]
+    bubbleTextRef.current = getSplashBubbleMessage(nagIntensity)
   }
 
   useEffect(() => {

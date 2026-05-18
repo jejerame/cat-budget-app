@@ -219,9 +219,15 @@
 
 [data-theme='light'] .settings-row select {
   border: 1px solid var(--lm-border);
-  background: #ffffff;
+  background-color: #ffffff;
   color: #333333;
+  -webkit-text-fill-color: #333333;
   box-shadow: none;
+}
+
+[data-theme='light'] .settings-row select option {
+  background-color: #ffffff;
+  color: #333333;
 }
 
 [data-theme='light'] .settings-data-btn {

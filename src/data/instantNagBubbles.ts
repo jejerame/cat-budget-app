@@ -1,4 +1,7 @@
-/** 지출 저장 직후 말풍선(say1)용 — 카테고리 우선, 메모는 같은 카테고리 안에서만 보조 */
+import type { NagIntensity } from './nagIntensity'
+import { resolveContentIntensity } from './nagIntensity'
+
+/** 지출 저장 직후 말풍선(say1)용 — 카테고리 우선, 메모는 같은 카테고리 안에서만 보조 (문구 풀 = 스파르탄 라이트) */
 
 export const INSTANT_NAG_COFFEE = [
   '또 마셨구나?',
@@ -166,7 +169,9 @@ export function getInstantNagMessageForExpense(
   category: string,
   memo: string,
   amount = 0,
+  selectedIntensity: NagIntensity = 'spartian-lite',
 ): string {
+  void resolveContentIntensity(selectedIntensity)
   const bucket = resolveInstantNagBucket(category, memo)
   switch (bucket) {
     case 'coffee':

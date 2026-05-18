@@ -11,8 +11,24 @@ import {
   loadInitialBanPeriod,
 } from './utils/nagSilence'
 import { getEtfRecommendation } from './data/etfRecommendations'
-import { getBanPeriodLabel, getIntensityCopy, type BanPeriod, type NagIntensity } from './data/nagIntensity'
-import { getRandomNagByAmount } from './data/nagMessages'
+import {
+  getBanPeriodLabel,
+  getEffectiveIntensity,
+  getIntensityCopy,
+  isNagIntensityLocked,
+  NAG_INTENSITY_UI_OPTIONS,
+  normalizeNagIntensity,
+  type BanPeriod,
+  type NagIntensity,
+} from './data/nagIntensity'
+import {
+  getBudgetGaugeNagLine,
+  getExpenseModalNagMessages,
+  getPettyNagQuote,
+  getRandomNagByAmount,
+  getRedReflectionComment,
+  getWeeklySettlementNagText,
+} from './data/nagMessages'
 import { getCategoryLabel } from './data/spendingCategories'
 import {
   calculateTenYearCompoundValue,
@@ -89,13 +105,6 @@ const INCOME_BUBBLE_MESSAGES = [
   '오늘도 번 만큼 대단해.',
   '수입 기록 완료! 진짜 잘하고 있어.',
 ]
-
-/** 가계부 하단 「짜투리 잔소리」— 고정 문구 중 시드로 하나 선택 */
-const PETTY_NAG_QUOTES = [
-  '다 꼭 필요한 거였어? 다시 한 번 확인해 봐. 정신 똑바로 붙들고.',
-  '소비는 순간이지만 영수증은 영원하지.',
-  '덮어놓고 쓰다 보면 거지 꼴 못 면한다',
-] as const
 
 const expenseCategories = [
   'red',
@@ -269,10 +278,15 @@ function App() {
   const [analysisCardCats, setAnalysisCardCats] = useState<[string, string, string]>([cat3Url, cat4Url, cat7Url])
   const [nagIntensity, setNagIntensity] = useState<NagIntensity>(() => {
     const stored = localStorage.getItem(NAG_INTENSITY_STORAGE_KEY)
-    if (stored === 'normal' || stored === 'hard' || stored === 'spartian-lite' || stored === 'spartian' || stored === 'spartian-max') {
-      return stored
+    const normalized = normalizeNagIntensity(stored)
+    if (stored !== normalized) {
+      try {
+        localStorage.setItem(NAG_INTENSITY_STORAGE_KEY, normalized)
+      } catch {
+        /* ignore */
+      }
     }
-    return 'hard'
+    return normalized
   })
   const [banPeriod, setBanPeriod] = useState<BanPeriod>(() => loadInitialBanPeriod())
   const nagsSilenced = areNagsSilenced(banPeriod)
@@ -300,7 +314,7 @@ function App() {
   const budgetThumbLeftPercent = Math.min(budgetRatioUncapped, 100)
   const budgetGaugeTierIndex = getBudgetGaugeTierIndex(budgetRatioUncapped)
   const budgetGaugeStage = getBudgetGaugeStage(budgetGaugeTierIndex, budgetRatioUncapped)
-  const budgetGaugeNagLine = getBudgetGaugeNagLine(budgetRatioUncapped, budgetGaugeTierIndex)
+  const budgetGaugeNagLine = getBudgetGaugeNagLine(budgetRatioUncapped, budgetGaugeTierIndex, nagIntensity)
   const budgetGaugeCatSrc = BUDGET_GAUGE_CAT_SRC[budgetGaugeTierIndex]
   const amountKoreanReading = useMemo(() => {
     const n = parseWonInput(amountInput)
@@ -315,9 +329,8 @@ function App() {
       selectedCalendarDate.getFullYear() * 7919 +
       selectedCalendarDate.getMonth() * 503 +
       expenseMonthTop3.reduce((acc, row, i) => acc + row.total * (i + 7) + row.category.length * 97, 0)
-    const idx = Math.abs(seed) % PETTY_NAG_QUOTES.length
-    return PETTY_NAG_QUOTES[idx] ?? PETTY_NAG_QUOTES[0]
-  }, [selectedCalendarDate, expenseMonthTop3])
+    return getPettyNagQuote(seed, nagIntensity)
+  }, [selectedCalendarDate, expenseMonthTop3, nagIntensity])
   const categories = selectedType === 'expense' ? expenseCategories : selectedType === 'income' ? incomeCategories : savingCategories
   const redBlinkTimeoutRef = useRef<number | null>(null)
   const toastTimeoutRef = useRef<number | null>(null)
@@ -353,10 +366,7 @@ function App() {
       .filter((item) => !essentialExpenseCategories.has(item.category))
       .reduce((sum, item) => sum + item.amount, 0)
     const nonEssentialRate = expenseTotal > 0 ? Math.round((nonEssentialTotal / expenseTotal) * 100) : 0
-    const messages = [
-      `이번 달 총 지출은 ${formatWon(expenseTotal)}이야. 정말 다 필요한 거였어?`,
-      `이 중에서 비필수 지출이 ${nonEssentialRate}%네? 정신 안 차려?`,
-    ]
+    const messages = getExpenseModalNagMessages(expenseTotal, nonEssentialRate, formatWon)
     return pickRandomLocal(messages)
   }, [sortedMonthRecordsByType.expense])
   const incomeEncourageMessage = useMemo(() => {
@@ -560,7 +570,7 @@ function App() {
       } catch {
         return
       }
-      const text = getWeeklySettlementNagText(transactions, new Date())
+      const text = getWeeklySettlementNagText(transactions, new Date(), nagIntensity)
       try {
         localStorage.setItem(key, '1')
       } catch {
@@ -571,7 +581,7 @@ function App() {
     }, 1100)
 
     return () => window.clearTimeout(id)
-  }, [nagsSilenced, nagBubble, screen, transactions])
+  }, [nagsSilenced, nagBubble, screen, transactions, nagIntensity])
 
   function showCatToast(imageSrc: string, variant: ToastVariant): void {
     if (nagsSilenced) return
@@ -661,7 +671,7 @@ function App() {
     const intensityCopy = getIntensityCopy(effectiveIntensity)
     const categoryLabel = getCategoryLabel(input.category)
     const msgPeriod = getNagMessageBanPeriod(input.banPeriod)
-    const nagMessage = `${getCategorySpecificComment(level, categoryLabel, input.amount, msgPeriod, input.memo)} / ${getCategorySpecificBanMessage(input.category, input.memo, input.amount, msgPeriod, intensityCopy.banMessage)}`
+    const nagMessage = `${getCategorySpecificComment(level, categoryLabel, input.amount, msgPeriod, input.memo, nagIntensity)} / ${getCategorySpecificBanMessage(input.category, input.memo, input.amount, msgPeriod, intensityCopy.banMessage)}`
 
     return {
       intro: '이 소비를 매달 한 번씩, 10년 동안 반복하면',
@@ -808,7 +818,7 @@ function App() {
         amount >= HIGH_EXPENSE_COMPOUND_THRESHOLD ? { amount, category, memo: normalizedMemo } : null
       setNagBubble({
         variant: 'instant',
-        text: getInstantNagMessageForExpense(category, normalizedMemo, amount),
+        text: getInstantNagMessageForExpense(category, normalizedMemo, amount, nagIntensity),
       })
     }
   }
@@ -844,7 +854,8 @@ function App() {
   }
 
   function onChangeIntensity(value: string): void {
-    const next = value as NagIntensity
+    const next = normalizeNagIntensity(value)
+    if (isNagIntensityLocked(next)) return
     setNagIntensity(next)
     localStorage.setItem(NAG_INTENSITY_STORAGE_KEY, next)
   }
@@ -903,9 +914,10 @@ function App() {
         setTransactions(importedTransactions)
         saveTransactions(importedTransactions)
 
-        if (parsed.settings?.nagIntensity && ['normal', 'hard', 'spartian-lite', 'spartian', 'spartian-max'].includes(parsed.settings.nagIntensity)) {
-          setNagIntensity(parsed.settings.nagIntensity)
-          localStorage.setItem(NAG_INTENSITY_STORAGE_KEY, parsed.settings.nagIntensity)
+        if (parsed.settings?.nagIntensity) {
+          const imported = normalizeNagIntensity(parsed.settings.nagIntensity)
+          setNagIntensity(imported)
+          localStorage.setItem(NAG_INTENSITY_STORAGE_KEY, imported)
         }
         if (parsed.settings?.banPeriod) {
           const imported = parsed.settings.banPeriod
@@ -1035,7 +1047,7 @@ function App() {
 
   return (
     <>
-      <SplashCatOverlay silenced={nagsSilenced} />
+      <SplashCatOverlay silenced={nagsSilenced} nagIntensity={nagIntensity} />
       <NagBubbleOverlay
         variant={nagBubble?.variant ?? 'instant'}
         text={nagBubble?.text ?? ''}
@@ -1339,16 +1351,25 @@ function App() {
           {settingsOpen && (
             <div className="settings-row" id="settings-expand-panel">
               <label>잔소리 수위
-                <select value={nagIntensity} onChange={(e) => onChangeIntensity(e.target.value)}>
-                  <option value="normal">보통</option>
-                  <option value="hard">강함</option>
-                  <option value="spartian-lite">spartian-lite</option>
-                  <option value="spartian">spartian</option>
-                  <option value="spartian-max">spartian-max</option>
+                <select
+                  className="settings-intensity-select"
+                  value={nagIntensity}
+                  onChange={(e) => onChangeIntensity(e.target.value)}
+                >
+                  {NAG_INTENSITY_UI_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value} disabled={opt.locked}>
+                      {opt.label}
+                      {opt.locked ? ' (soon)' : ''}
+                    </option>
+                  ))}
                 </select>
               </label>
               <label>잔소리 금지 기간
-                <select value={banPeriod} onChange={(e) => onChangeBanPeriod(e.target.value)}>
+                <select
+                  className="settings-ban-period-select"
+                  value={banPeriod}
+                  onChange={(e) => onChangeBanPeriod(e.target.value)}
+                >
                   <option value="none">없음 (잔소리 표시)</option>
                   <option value="7days">7일 동안 잔소리 끄기</option>
                   <option value="this-month">이번 달 남은 기간 잔소리 끄기</option>
@@ -1816,7 +1837,7 @@ function App() {
                   <p className="editable-item-date">{new Date(item.createdAt).getMonth() + 1}/{new Date(item.createdAt).getDate()}</p>
                   <p><span className="reflection-label">항목</span>: <span className="reflection-value">{item.memo?.trim() || '메모 없음'}</span></p>
                   <p><span className="reflection-label">금액</span>: <span className="reflection-value reflection-value-amount">{formatWon(item.amount)}</span></p>
-                  <p className="reflection-comment">{getRedReflectionComment(item.memo ?? '')}</p>
+                  <p className="reflection-comment">{getRedReflectionComment(item.memo ?? '', nagIntensity)}</p>
                 </li>
               ))}
               {thisMonthRedRecords.length === 0 && <li className="red-reflection-empty">이번 달 RED 내역이 아직 없습니다.</li>}
@@ -1840,16 +1861,14 @@ function getExpenseInterventionLevel(category: string): 'strong' | 'coach' | 'in
   return 'coach'
 }
 
-function getEffectiveIntensity(level: 'strong' | 'coach' | 'info', selected: NagIntensity): NagIntensity {
-  if (level === 'strong') return selected
-  if (level === 'coach') {
-    if (selected === 'spartian-max' || selected === 'spartian') return 'hard'
-    return selected
-  }
-  return 'normal'
-}
-
-function getCategorySpecificComment(level: 'strong' | 'coach' | 'info', categoryLabel: string, amount: number, period: BanPeriod, memo = ''): string {
+function getCategorySpecificComment(
+  level: 'strong' | 'coach' | 'info',
+  categoryLabel: string,
+  amount: number,
+  period: BanPeriod,
+  memo = '',
+  nagIntensity: NagIntensity,
+): string {
   if (categoryLabel.includes('생활')) {
     if (isDiningOutMemo(memo)) {
       return `외식/배달 성격 지출은 반복되기 쉬워요. ${period === '7days' ? '이번 주' : '이번 기간'}는 강하게 한도를 묶어 관리합시다.`
@@ -1873,7 +1892,7 @@ function getCategorySpecificComment(level: 'strong' | 'coach' | 'info', category
   if (categoryLabel.includes('내 새끼')) {
     return getPetSoftNagMessage(amount, memo)
   }
-  if (level === 'strong') return getRandomNagByAmount(amount)
+  if (level === 'strong') return getRandomNagByAmount(amount, nagIntensity)
   if (level === 'coach') {
     return `${categoryLabel} 지출은 상황형 소비입니다. ${period === '7days' ? '이번 주' : '이번 기간'} 한도만 정해서 관리하세요.`
   }
@@ -1954,20 +1973,6 @@ function isCongratulatoryMemo(memo: string): boolean {
   return ['경조사', '축의금', '부의금', '조의금', '돌잔치', '결혼식', '장례'].some((keyword) => normalized.includes(keyword))
 }
 
-function getRedReflectionComment(memo: string): string {
-  const normalized = memo.toLowerCase()
-  if (normalized.includes('택시')) {
-    return '두 번 탈 거 한 번으로 줄이세요. 기본요금 거리는 튼튼한 두 다리로!'
-  }
-  if (normalized.includes('커피')) {
-    return '카페인 수혈도 적당히! 내일은 집에서 타온 커피 어때요?'
-  }
-  if (['옷', '가방', '화장품'].some((keyword) => normalized.includes(keyword))) {
-    return '인스타 보고 산 거 아니죠? 결제 전 10초만 더 고민하세요.'
-  }
-  return '지금 지출도 기록하면 통제할 수 있어요. 다음 결제 전 10초만 더 생각해봐요.'
-}
-
 function getBudgetGaugeTierIndex(ratioPercent: number): number {
   const clamped = Math.min(Math.max(ratioPercent, 0), 100)
   return Math.min(4, Math.floor(clamped / 20))
@@ -1985,18 +1990,6 @@ function getBudgetGaugeStage(
   const idx = ratioPercent > 100 ? 4 : tierIndex
   const s = BUDGET_GAUGE_STAGES[idx]
   return { label: s.label, percent: Math.min(ratioPercent, 100), tone: s.tone, tierIndex: idx }
-}
-
-function getBudgetGaugeNagLine(ratioPercent: number, tierIndex: number): string {
-  if (ratioPercent > 100) return '에휴, 내 팔자야... 결국 다 썼구나? 포기다, 포기! 🔥'
-  const lines = [
-    '좋아, 잘하고 있어. 이대로만 아껴 쓰자! ✨',
-    '어어? 슬슬 쓰는 게 늘어나는데? 지켜보고 있다. 👀',
-    '잠깐! 벌써 절반 넘게 썼어. 정신 차려, 집사! ⚠️',
-    '지갑 닫아! 지금 안 멈추면 이번 달은 끝이야! 🚫',
-    '한도 끝이야! 더 쓰면 통장이 비명 지를 거다! 💀',
-  ]
-  return lines[tierIndex]
 }
 
 function pickRandomCatFaces(): [string, string, string] {
@@ -2066,37 +2059,6 @@ function getTopExpenseCategoriesByMonth(
     .map(([category, total]) => ({ category, total }))
     .sort((a, b) => b.total - a.total)
     .slice(0, limit)
-}
-
-function startOfLocalDay(d: Date): Date {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0)
-}
-
-function sumExpenseBetween(transactions: TransactionRecord[], from: Date, toExclusive: Date): number {
-  const a = from.getTime()
-  const b = toExclusive.getTime()
-  return transactions
-    .filter((r) => {
-      if (r.type !== 'expense') return false
-      const t = new Date(r.createdAt).getTime()
-      return t >= a && t < b
-    })
-    .reduce((s, r) => s + r.amount, 0)
-}
-
-/** 일요일: 직전 7일 vs 그 이전 7일 지출 합계 비교 문구 (비교할 지출이 없으면 null) */
-function getWeeklySettlementNagText(transactions: TransactionRecord[], today: Date): string | null {
-  if (today.getDay() !== 0) return null
-  const end = startOfLocalDay(today)
-  const lastStart = new Date(end)
-  lastStart.setDate(lastStart.getDate() - 7)
-  const prevStart = new Date(lastStart)
-  prevStart.setDate(prevStart.getDate() - 7)
-  const lastSum = sumExpenseBetween(transactions, lastStart, end)
-  const prevSum = sumExpenseBetween(transactions, prevStart, lastStart)
-  if (lastSum === 0 && prevSum === 0) return null
-  if (lastSum > prevSum) return '지난주보다 더 썼네? 거지 꼴 못 면한다!'
-  return '칭찬해. 그래도 정신 단디 똑바로 차리자.'
 }
 
 function buildCalendarCells(year: number, month: number): Array<null | { key: string; day: number }> {
