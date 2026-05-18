@@ -481,12 +481,16 @@ body {
 }
 
 .home-title-chip__accent {
-  font-size: 12px;
-  font-weight: 900;
+  font-family: 'Gaegu', 'Malgun Gothic', cursive;
+  font-size: 13px;
+  font-weight: 700;
   color: #e6354d;
-  letter-spacing: -0.02em;
-  vertical-align: baseline;
+  letter-spacing: 0.02em;
   line-height: 1;
+  display: inline-block;
+  vertical-align: middle;
+  transform: rotate(-7deg) translateY(-0.5px);
+  transform-origin: center center;
 }
 
 .home-title-chip__cat {
