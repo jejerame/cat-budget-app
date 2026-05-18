@@ -3467,6 +3467,22 @@ input[type='date']::-webkit-calendar-picker-indicator {
   animation: nag-bubble-backdrop-in 0.32s ease forwards;
 }
 
+.nag-bubble-overlay--loading {
+  pointer-events: none;
+}
+
+.nag-bubble-card--ready .nag-bubble-img {
+  opacity: 1;
+}
+
+.nag-bubble-card:not(.nag-bubble-card--ready) .nag-bubble-img {
+  opacity: 0;
+}
+
+.nag-bubble-card--ready {
+  animation: nag-bubble-pop-in 0.34s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
 @keyframes nag-bubble-backdrop-in {
   from {
     opacity: 0;
@@ -3486,12 +3502,12 @@ input[type='date']::-webkit-calendar-picker-indicator {
   gap: 12px;
 }
 
-.nag-bubble-card--instant {
-  animation: nag-bubble-pop-in 0.34s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+.nag-bubble-card--instant:not(.nag-bubble-card--ready) {
+  animation: none;
 }
 
-.nag-bubble-card--weekly {
-  animation: nag-bubble-pop-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+.nag-bubble-card--weekly:not(.nag-bubble-card--ready) {
+  animation: none;
 }
 
 @keyframes nag-bubble-pop-in {
@@ -3893,6 +3909,7 @@ input[type='date']::-webkit-calendar-picker-indicator {
 
 .red-gauge-track--limit-break-flash {
   animation: limitBreakGaugeFlash 0.28s ease-in-out 5;
+  will-change: filter, opacity;
 }
 
 @keyframes limitBreakGaugeFlash {

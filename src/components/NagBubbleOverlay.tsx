@@ -33,32 +33,48 @@ export function NagBubbleOverlay({
 }: NagBubbleOverlayProps) {
   const padRef = useRef<HTMLDivElement>(null)
   const textRef = useRef<HTMLParagraphElement>(null)
+  const imgElRef = useRef<HTMLImageElement>(null)
   const [layoutTick, setLayoutTick] = useState(0)
-  const [imgReady, setImgReady] = useState(false)
+  const [imagePainted, setImagePainted] = useState(false)
 
   const resolvedImageSrc = imageSrc ?? (variant === 'instant' ? say1Url : say2Url)
   const housingClass = imageSrc || imageOnly ? ' nag-bubble-card--housing' : ''
   const cheerOnlyClass = imageOnly ? ' nag-bubble-card--cheer-only' : ''
+  const showTextOverlay = !imageOnly && imagePainted
+  const showCardContent = imagePainted
 
   useEffect(() => {
     if (!visible) {
-      setImgReady(false)
+      setImagePainted(false)
       return
     }
-    let cancelled = false
-    const ready = imageSrc
-      ? ensureBubbleImageReady(imageSrc)
-      : ensureNagBubbleImageReady(variant)
-    void ready.then(() => {
-      if (!cancelled) setImgReady(true)
-    })
-    return () => {
-      cancelled = true
-    }
+    void (imageSrc ? ensureBubbleImageReady(imageSrc) : ensureNagBubbleImageReady(variant))
   }, [visible, variant, imageSrc])
 
+  useEffect(() => {
+    if (!visible) return
+    const img = imgElRef.current
+    if (img?.complete && img.naturalWidth > 0) {
+      setImagePainted(true)
+    }
+  }, [visible, resolvedImageSrc])
+
+  useEffect(() => {
+    if (!visible || imagePainted) return
+    const id = window.setTimeout(() => {
+      const img = imgElRef.current
+      if (img && img.naturalWidth > 0) setImagePainted(true)
+    }, 120)
+    return () => window.clearTimeout(id)
+  }, [visible, imagePainted, resolvedImageSrc])
+
+  const handleImageReady = (): void => {
+    setImagePainted(true)
+    setLayoutTick((n) => n + 1)
+  }
+
   useLayoutEffect(() => {
-    if (!visible || !imgReady || imageOnly) return
+    if (!visible || !showTextOverlay) return
     const wrap = padRef.current
     const el = textRef.current
     if (!wrap || !el) return
@@ -76,44 +92,48 @@ export function NagBubbleOverlay({
       size -= 0.4
       el.style.fontSize = `${size}px`
     }
-  }, [visible, imgReady, text, variant, layoutTick, imageOnly])
+  }, [visible, showTextOverlay, text, variant, layoutTick])
 
   useEffect(() => {
-    if (!visible || !imgReady) return
+    if (!visible || !imagePainted) return
     playNagBubblePop()
-  }, [visible, imgReady])
+  }, [visible, imagePainted])
 
   const onAutoCloseRef = useRef(onAutoClose)
   onAutoCloseRef.current = onAutoClose
 
   useEffect(() => {
-    if (!visible || !imgReady || autoHideMs == null || !onAutoCloseRef.current) return
+    if (!visible || !imagePainted || autoHideMs == null || !onAutoCloseRef.current) return
     const id = window.setTimeout(() => onAutoCloseRef.current?.(), autoHideMs)
     return () => window.clearTimeout(id)
-  }, [visible, imgReady, autoHideMs])
+  }, [visible, imagePainted, autoHideMs])
 
   if (!visible) return null
-  if (!imgReady) return null
 
   return (
     <div
-      className="nag-bubble-overlay nag-bubble-overlay--visible"
+      className={`nag-bubble-overlay nag-bubble-overlay--visible${showCardContent ? '' : ' nag-bubble-overlay--loading'}`}
       role="dialog"
       aria-modal="true"
       aria-live="polite"
       aria-label={imageOnly ? text : undefined}
     >
-      <div className={`nag-bubble-card nag-bubble-card--${variant}${housingClass}${cheerOnlyClass}`}>
+      <div
+        className={`nag-bubble-card nag-bubble-card--${variant}${housingClass}${cheerOnlyClass}${showCardContent ? ' nag-bubble-card--ready' : ''}`}
+      >
         <div className="nag-bubble-visual">
           <img
+            ref={imgElRef}
             src={resolvedImageSrc}
             alt={imageOnly ? text : ''}
             className="nag-bubble-img"
             draggable={false}
-            decoding="sync"
-            onLoad={() => setLayoutTick((n) => n + 1)}
+            decoding="async"
+            fetchPriority="high"
+            onLoad={handleImageReady}
+            onError={handleImageReady}
           />
-          {!imageOnly ? (
+          {showTextOverlay ? (
             <div className="nag-bubble-text-pad">
               <div ref={padRef} className="nag-bubble-text-slot">
                 <p ref={textRef} className="nag-bubble-text">
@@ -123,11 +143,11 @@ export function NagBubbleOverlay({
             </div>
           ) : null}
         </div>
-        {showConfirm && (
+        {showConfirm && showCardContent ? (
           <button type="button" className="nag-bubble-confirm" onClick={onConfirm}>
             확인
           </button>
-        )}
+        ) : null}
       </div>
     </div>
   )

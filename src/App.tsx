@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
+import { flushSync } from 'react-dom'
 import { SplashCatOverlay } from './components/SplashCatOverlay'
 import { NagBubbleOverlay } from './components/NagBubbleOverlay'
+import { NagBubbleWarmup } from './components/NagBubbleWarmup'
 import { LimitBreakOverlay } from './components/LimitBreakOverlay'
 import { getInstantNagMessageForExpense, getPetInstantNagMessage } from './data/instantNagBubbles'
 import {
@@ -8,7 +10,6 @@ import {
   getHousingCheerImageUrl,
   resolveHousingCheerKey,
 } from './data/housingInstantNag'
-import { preloadNagBubbleImages } from './utils/preloadNagBubbleImages'
 import {
   applyColorModeToDocument,
   loadColorModePreference,
@@ -523,6 +524,7 @@ function App() {
     prevDeficitRef.current = isDeficitActual
     if (prev === null) return
     if (prev === false && isDeficitActual && !limitBreakOpen) {
+      setLimitBreakGaugeFlash(true)
       setLimitBreakOpen(true)
     }
   }, [isDeficitActual, isViewingCurrentMonth, limitBreakOpen])
@@ -595,10 +597,6 @@ function App() {
     mq.addEventListener('change', sync)
     return () => mq.removeEventListener('change', sync)
   }, [colorModePreference])
-
-  useEffect(() => {
-    void preloadNagBubbleImages()
-  }, [])
 
   useEffect(() => {
     if (banPeriod === 'none') return
@@ -899,6 +897,7 @@ function App() {
         if (!wasExceeded && willExceeded) {
           prevDeficitRef.current = true
           pendingCompoundAfterInstantRef.current = null
+          setLimitBreakGaugeFlash(true)
           setLimitBreakOpen(true)
           return
         }
@@ -907,17 +906,21 @@ function App() {
             amount >= HIGH_EXPENSE_COMPOUND_THRESHOLD ? { amount, category, memo: normalizedMemo } : null
           if (category === 'housing') {
             const housingKey = resolveHousingCheerKey(normalizedMemo)
-            setNagBubble({
-              variant: 'instant',
-              text: getHousingCheerAriaLabel(housingKey),
-              imageSrc: getHousingCheerImageUrl(housingKey),
-              imageOnly: true,
-            })
+            flushSync(() =>
+              setNagBubble({
+                variant: 'instant',
+                text: getHousingCheerAriaLabel(housingKey),
+                imageSrc: getHousingCheerImageUrl(housingKey),
+                imageOnly: true,
+              }),
+            )
           } else {
-            setNagBubble({
-              variant: 'instant',
-              text: getInstantNagMessageForExpense(category, normalizedMemo, amount, nagIntensity),
-            })
+            flushSync(() =>
+              setNagBubble({
+                variant: 'instant',
+                text: getInstantNagMessageForExpense(category, normalizedMemo, amount, nagIntensity),
+              }),
+            )
           }
         }
       }
@@ -1141,10 +1144,14 @@ function App() {
 
   return (
     <>
+      <NagBubbleWarmup />
       <SplashCatOverlay silenced={nagsSilenced} nagIntensity={nagIntensity} />
       <LimitBreakOverlay
         open={limitBreakOpen}
-        onClose={() => setLimitBreakOpen(false)}
+        onClose={() => {
+          setLimitBreakOpen(false)
+          setLimitBreakGaugeFlash(false)
+        }}
         onExplosionPhaseChange={handleLimitBreakExplosionPhase}
       />
       <NagBubbleOverlay
