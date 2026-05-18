@@ -3,6 +3,13 @@ import { SplashCatOverlay } from './components/SplashCatOverlay'
 import { NagBubbleOverlay } from './components/NagBubbleOverlay'
 import { getInstantNagMessageForExpense, getPetInstantNagMessage } from './data/instantNagBubbles'
 import { preloadNagBubbleImages } from './utils/preloadNagBubbleImages'
+import {
+  applyBanPeriodChange,
+  areNagsSilenced,
+  getNagMessageBanPeriod,
+  isActiveSilencePeriod,
+  loadInitialBanPeriod,
+} from './utils/nagSilence'
 import { getEtfRecommendation } from './data/etfRecommendations'
 import { getBanPeriodLabel, getIntensityCopy, type BanPeriod, type NagIntensity } from './data/nagIntensity'
 import { getRandomNagByAmount } from './data/nagMessages'
@@ -53,7 +60,6 @@ import smileListCatUrl from '../smal.png'
 
 const DEFAULT_ANNUAL_RETURN_RATE = 0.07
 const NAG_INTENSITY_STORAGE_KEY = 'compound-nag-intensity'
-const BAN_PERIOD_STORAGE_KEY = 'compound-ban-period'
 const SAVING_TARGET_RATE_STORAGE_KEY = 'compound-saving-target-rate'
 /** 지출 비율 게이지 5단계(막대 20% 구간마다) — 상단 칩 라벨 */
 const BUDGET_GAUGE_STAGES: { tone: 'tone-risk' | 'tone-caution' | 'tone-giveup'; label: string }[] = [
@@ -268,13 +274,8 @@ function App() {
     }
     return 'hard'
   })
-  const [banPeriod, setBanPeriod] = useState<BanPeriod>(() => {
-    const stored = localStorage.getItem(BAN_PERIOD_STORAGE_KEY)
-    if (stored === '7days' || stored === 'this-month' || stored === 'next-month') {
-      return stored
-    }
-    return 'next-month'
-  })
+  const [banPeriod, setBanPeriod] = useState<BanPeriod>(() => loadInitialBanPeriod())
+  const nagsSilenced = areNagsSilenced(banPeriod)
   const [savingTargetRate, setSavingTargetRate] = useState<number>(() => {
     const stored = Number(localStorage.getItem(SAVING_TARGET_RATE_STORAGE_KEY))
     if ([20, 30, 50, 70].includes(stored)) return stored
@@ -518,10 +519,29 @@ function App() {
   }, [])
 
   useEffect(() => {
+    if (banPeriod === 'none') return
+    if (!areNagsSilenced(banPeriod)) {
+      setBanPeriod('none')
+      applyBanPeriodChange('none')
+    }
+  }, [banPeriod])
+
+  useEffect(() => {
+    if (!nagsSilenced) return
+    setNagBubble(null)
+    pendingCompoundAfterInstantRef.current = null
+    setAnalysisOpen(false)
+    setRedReflectionOpen(false)
+    setToastVisible(false)
+    setToastImageSrc('')
+  }, [nagsSilenced])
+
+  useEffect(() => {
     nagBubbleRef.current = nagBubble
   }, [nagBubble])
 
   useEffect(() => {
+    if (nagsSilenced) return undefined
     if (nagBubble != null) return undefined
     if (screen !== 'home') return undefined
     const today = new Date()
@@ -551,9 +571,10 @@ function App() {
     }, 1100)
 
     return () => window.clearTimeout(id)
-  }, [nagBubble, screen, transactions])
+  }, [nagsSilenced, nagBubble, screen, transactions])
 
   function showCatToast(imageSrc: string, variant: ToastVariant): void {
+    if (nagsSilenced) return
     setToastImageSrc(imageSrc)
     setToastVariant(variant)
     setToastVisible(true)
@@ -639,14 +660,15 @@ function App() {
     const effectiveIntensity = getEffectiveIntensity(level, nagIntensity)
     const intensityCopy = getIntensityCopy(effectiveIntensity)
     const categoryLabel = getCategoryLabel(input.category)
-    const nagMessage = `${getCategorySpecificComment(level, categoryLabel, input.amount, input.banPeriod, input.memo)} / ${getCategorySpecificBanMessage(input.category, input.memo, input.amount, input.banPeriod, intensityCopy.banMessage)}`
+    const msgPeriod = getNagMessageBanPeriod(input.banPeriod)
+    const nagMessage = `${getCategorySpecificComment(level, categoryLabel, input.amount, msgPeriod, input.memo)} / ${getCategorySpecificBanMessage(input.category, input.memo, input.amount, msgPeriod, intensityCopy.banMessage)}`
 
     return {
       intro: '이 소비를 매달 한 번씩, 10년 동안 반복하면',
       expenseAmount: formatWon(waste),
       investAmount: formatWon(invested),
       etfName: etf.etfName,
-      etfReason: `${etf.reason} (${getBanPeriodLabel(input.banPeriod)} 기준 통제)`,
+      etfReason: `${etf.reason} (${getBanPeriodLabel(msgPeriod)} 기준 통제)`,
       shareProjection: getShareProjectionText(etf.etfName, annualSavingPotential),
       nag: nagMessage,
       tip: getCompactTip(nagMessage),
@@ -655,6 +677,7 @@ function App() {
   }
 
   function openAnalysis(amount: number, type: TransactionType, category: string, memoOverride?: string): void {
+    if (areNagsSilenced(banPeriod)) return
     if (amount <= 0) {
       setLastExpenseAnalysisInput(null)
       setAnalysisText({
@@ -780,7 +803,7 @@ function App() {
     saveTransactions(updated)
     resetEntryFormForNew()
     setScreen('home')
-    if (selectedType === 'expense') {
+    if (selectedType === 'expense' && !nagsSilenced) {
       pendingCompoundAfterInstantRef.current =
         amount >= HIGH_EXPENSE_COMPOUND_THRESHOLD ? { amount, category, memo: normalizedMemo } : null
       setNagBubble({
@@ -829,7 +852,7 @@ function App() {
   function onChangeBanPeriod(value: string): void {
     const next = value as BanPeriod
     setBanPeriod(next)
-    localStorage.setItem(BAN_PERIOD_STORAGE_KEY, next)
+    applyBanPeriodChange(next)
   }
 
   function onChangeSavingTargetRate(value: string): void {
@@ -884,9 +907,15 @@ function App() {
           setNagIntensity(parsed.settings.nagIntensity)
           localStorage.setItem(NAG_INTENSITY_STORAGE_KEY, parsed.settings.nagIntensity)
         }
-        if (parsed.settings?.banPeriod && ['7days', 'this-month', 'next-month'].includes(parsed.settings.banPeriod)) {
-          setBanPeriod(parsed.settings.banPeriod)
-          localStorage.setItem(BAN_PERIOD_STORAGE_KEY, parsed.settings.banPeriod)
+        if (parsed.settings?.banPeriod) {
+          const imported = parsed.settings.banPeriod
+          if (imported === 'none') {
+            setBanPeriod('none')
+            applyBanPeriodChange('none')
+          } else if (isActiveSilencePeriod(imported)) {
+            setBanPeriod(imported)
+            applyBanPeriodChange(imported)
+          }
         }
         if (parsed.settings && [20, 30, 50, 70].includes(Number(parsed.settings.savingTargetRate))) {
           const nextRate = Number(parsed.settings.savingTargetRate)
@@ -1006,11 +1035,11 @@ function App() {
 
   return (
     <>
-      <SplashCatOverlay />
+      <SplashCatOverlay silenced={nagsSilenced} />
       <NagBubbleOverlay
         variant={nagBubble?.variant ?? 'instant'}
         text={nagBubble?.text ?? ''}
-        visible={Boolean(nagBubble)}
+        visible={Boolean(nagBubble) && !nagsSilenced}
         autoHideMs={nagBubble?.variant === 'instant' ? INSTANT_NAG_BUBBLE_MS : undefined}
         onAutoClose={
           nagBubble?.variant === 'instant'
@@ -1092,7 +1121,7 @@ function App() {
                   <strong className="red-indicator-brief-value">{formatWon(summary.saving)}</strong>
                 </button>
               </div>
-              <div className="red-indicator-click-zone interactive" onClick={() => setRedReflectionOpen(true)}>
+              <div className="red-indicator-click-zone interactive" onClick={() => { if (!nagsSilenced) setRedReflectionOpen(true) }}>
                 <div className="red-indicator-stage-row" aria-label={`지출 비율 ${budgetGaugeStage.label}`}>
                   <span className="red-indicator-stage-title">
                     <span className="red-indicator-headline-strong">
@@ -1318,11 +1347,12 @@ function App() {
                   <option value="spartian-max">spartian-max</option>
                 </select>
               </label>
-              <label>금지 기간
+              <label>잔소리 금지 기간
                 <select value={banPeriod} onChange={(e) => onChangeBanPeriod(e.target.value)}>
-                  <option value="7days">7일</option>
-                  <option value="this-month">이번 달 남은 기간</option>
-                  <option value="next-month">다음 달 전체</option>
+                  <option value="none">없음 (잔소리 표시)</option>
+                  <option value="7days">7일 동안 잔소리 끄기</option>
+                  <option value="this-month">이번 달 남은 기간 잔소리 끄기</option>
+                  <option value="next-month">다음 달 전체 잔소리 끄기</option>
                 </select>
               </label>
               <div className="settings-data-actions" aria-label="데이터 백업 및 복원">
@@ -1636,21 +1666,23 @@ function App() {
           <h3 className="dashboard-list-title">
             {dashboardModalType === 'income' ? '번 것' : dashboardModalType === 'expense' ? '쓴 것' : '모은 것'}
           </h3>
-          <div className="dashboard-list-bubble-row">
-            <img
-              src={dashboardModalType === 'expense' ? angryListCatUrl : smileListCatUrl}
-              alt=""
-              className="dashboard-list-bubble-cat"
-              aria-hidden
-            />
-            <p className="dashboard-list-bubble-text">
-              {dashboardModalType === 'expense'
-                ? expenseModalNag
-                : dashboardModalType === 'income'
-                  ? incomeEncourageMessage
-                  : savingEncourageMessage}
-            </p>
-          </div>
+          {!nagsSilenced && (
+            <div className="dashboard-list-bubble-row">
+              <img
+                src={dashboardModalType === 'expense' ? angryListCatUrl : smileListCatUrl}
+                alt=""
+                className="dashboard-list-bubble-cat"
+                aria-hidden
+              />
+              <p className="dashboard-list-bubble-text">
+                {dashboardModalType === 'expense'
+                  ? expenseModalNag
+                  : dashboardModalType === 'income'
+                    ? incomeEncourageMessage
+                    : savingEncourageMessage}
+              </p>
+            </div>
+          )}
           {dashboardModalType === 'saving' ? (
             <div className="dashboard-list-goal-row">
               <p className="dashboard-list-goal-hint">목표 저축액 기준은 이번 달 수입의 {savingTargetRate}%예요.</p>

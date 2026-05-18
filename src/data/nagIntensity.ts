@@ -1,7 +1,8 @@
 export type NagIntensity = 'normal' | 'hard' | 'spartian-lite' | 'spartian' | 'spartian-max'
-export type BanPeriod = '7days' | 'this-month' | 'next-month'
+export type BanPeriod = 'none' | '7days' | 'this-month' | 'next-month'
 
 const periodLabels: Record<BanPeriod, string> = {
+  none: '없음',
   '7days': '7일',
   'this-month': '이번 달 남은 기간',
   'next-month': '다음 달 전체',
@@ -19,8 +20,8 @@ const intensityCopyMap: Record<NagIntensity, IntensityCopy> = {
     label: '보통',
     banListTitle: '다음 달 절약 권장 리스트',
     banListFallback: '전월 데이터가 부족해 권장 항목을 만들지 못했습니다.',
-    banMessage: (categoryLabel, amount) =>
-      `${categoryLabel}(${Math.round(amount).toLocaleString('ko-KR')}원)는 다음 달 우선 절약 권장 항목입니다.`,
+    banMessage: (categoryLabel, amount, period) =>
+      `${categoryLabel}(${Math.round(amount).toLocaleString('ko-KR')}원)는 ${period === 'none' ? '다음 달' : periodLabels[period]} 우선 절약 권장 항목입니다.`,
   },
   hard: {
     label: '강함',

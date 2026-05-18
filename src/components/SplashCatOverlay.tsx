@@ -23,8 +23,13 @@ function isSplashDue(): boolean {
 
 type Phase = 'idle' | 'peak' | 'out'
 
-export function SplashCatOverlay() {
-  const [finished, setFinished] = useState(() => !isSplashDue())
+type SplashCatOverlayProps = {
+  /** 잔소리 금지 기간이 켜져 있으면 스플래시 고양이도 표시하지 않음 */
+  silenced?: boolean
+}
+
+export function SplashCatOverlay({ silenced = false }: SplashCatOverlayProps) {
+  const [finished, setFinished] = useState(() => silenced || !isSplashDue())
   const [phase, setPhase] = useState<Phase>('idle')
   const bubbleTextRef = useRef<string | null>(null)
   if (bubbleTextRef.current === null) {
@@ -33,6 +38,10 @@ export function SplashCatOverlay() {
   }
 
   useEffect(() => {
+    if (silenced) {
+      setFinished(true)
+      return
+    }
     if (finished) return
 
     let cancelled = false
@@ -60,9 +69,9 @@ export function SplashCatOverlay() {
       window.clearTimeout(tFadeOut)
       window.clearTimeout(tDone)
     }
-  }, [finished])
+  }, [finished, silenced])
 
-  if (finished) return null
+  if (silenced || finished) return null
 
   const imgClass =
     phase === 'out'
