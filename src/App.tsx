@@ -1809,17 +1809,19 @@ function App() {
         <div className="modal-card dashboard-modal red-reflection-modal">
           <button type="button" className="modal-close-top red-reflection-close-top" onClick={() => setRedReflectionOpen(false)}>✕</button>
           <h3>반성 타임 · RED 내역</h3>
-          <ul className="editable-list red-reflection-list">
-            {thisMonthRedRecords.map((item) => (
-              <li key={item.id} className="editable-item reflection-item red-reflection-item">
-                <p className="editable-item-date">{new Date(item.createdAt).getMonth() + 1}/{new Date(item.createdAt).getDate()}</p>
-                <p><span className="reflection-label">항목</span>: <span className="reflection-value">{item.memo?.trim() || '메모 없음'}</span></p>
-                <p><span className="reflection-label">금액</span>: <span className="reflection-value reflection-value-amount">{formatWon(item.amount)}</span></p>
-                <p className="reflection-comment">{getRedReflectionComment(item.memo ?? '')}</p>
-              </li>
-            ))}
-            {thisMonthRedRecords.length === 0 && <li className="red-reflection-empty">이번 달 RED 내역이 아직 없습니다.</li>}
-          </ul>
+          <div className="red-reflection-body">
+            <ul className="editable-list red-reflection-list">
+              {thisMonthRedRecords.map((item) => (
+                <li key={item.id} className="editable-item reflection-item red-reflection-item">
+                  <p className="editable-item-date">{new Date(item.createdAt).getMonth() + 1}/{new Date(item.createdAt).getDate()}</p>
+                  <p><span className="reflection-label">항목</span>: <span className="reflection-value">{item.memo?.trim() || '메모 없음'}</span></p>
+                  <p><span className="reflection-label">금액</span>: <span className="reflection-value reflection-value-amount">{formatWon(item.amount)}</span></p>
+                  <p className="reflection-comment">{getRedReflectionComment(item.memo ?? '')}</p>
+                </li>
+              ))}
+              {thisMonthRedRecords.length === 0 && <li className="red-reflection-empty">이번 달 RED 내역이 아직 없습니다.</li>}
+            </ul>
+          </div>
           <div className="red-reflection-quote-row">
             <img src={ddCatUrl} alt="" className="red-reflection-quote-cat" aria-hidden />
             <p className="reflection-final-quote">지출 줄이는 거 힘들죠? 하지만 부자 되는 건 더 힘듭니다. 다시 마음 잡으세요!</p>
