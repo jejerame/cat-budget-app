@@ -14,6 +14,8 @@ type NagBubbleOverlayProps = {
   imageSrc?: string
   /** PNG에 문구가 포함된 경우 텍스트 오버레이 숨김 */
   imageOnly?: boolean
+  /** 주간 결산 카드 안에 말풍선만 삽입 */
+  embedded?: boolean
   autoHideMs?: number
   onAutoClose?: () => void
   showConfirm?: boolean
@@ -26,6 +28,7 @@ export function NagBubbleOverlay({
   visible,
   imageSrc,
   imageOnly = false,
+  embedded = false,
   autoHideMs,
   onAutoClose,
   showConfirm,
@@ -43,30 +46,32 @@ export function NagBubbleOverlay({
   const showTextOverlay = !imageOnly && imagePainted
   const showCardContent = imagePainted
 
+  const showActive = visible || embedded
+
   useEffect(() => {
-    if (!visible) {
+    if (!showActive) {
       setImagePainted(false)
       return
     }
     void (imageSrc ? ensureBubbleImageReady(imageSrc) : ensureNagBubbleImageReady(variant))
-  }, [visible, variant, imageSrc])
+  }, [showActive, variant, imageSrc])
 
   useEffect(() => {
-    if (!visible) return
+    if (!showActive) return
     const img = imgElRef.current
     if (img?.complete && img.naturalWidth > 0) {
       setImagePainted(true)
     }
-  }, [visible, resolvedImageSrc])
+  }, [showActive, resolvedImageSrc])
 
   useEffect(() => {
-    if (!visible || imagePainted) return
+    if (!showActive || imagePainted) return
     const id = window.setTimeout(() => {
       const img = imgElRef.current
       if (img && img.naturalWidth > 0) setImagePainted(true)
     }, 120)
     return () => window.clearTimeout(id)
-  }, [visible, imagePainted, resolvedImageSrc])
+  }, [showActive, imagePainted, resolvedImageSrc])
 
   const handleImageReady = (): void => {
     setImagePainted(true)
@@ -74,7 +79,7 @@ export function NagBubbleOverlay({
   }
 
   useLayoutEffect(() => {
-    if (!visible || !showTextOverlay) return
+    if (!showActive || !showTextOverlay) return
     const wrap = padRef.current
     const el = textRef.current
     if (!wrap || !el) return
@@ -92,23 +97,61 @@ export function NagBubbleOverlay({
       size -= 0.4
       el.style.fontSize = `${size}px`
     }
-  }, [visible, showTextOverlay, text, variant, layoutTick])
+  }, [showActive, showTextOverlay, text, variant, layoutTick])
 
   useEffect(() => {
-    if (!visible || !imagePainted) return
+    if (!showActive || !imagePainted) return
     playNagBubblePop()
-  }, [visible, imagePainted])
+  }, [showActive, imagePainted])
 
   const onAutoCloseRef = useRef(onAutoClose)
   onAutoCloseRef.current = onAutoClose
 
   useEffect(() => {
-    if (!visible || !imagePainted || autoHideMs == null || !onAutoCloseRef.current) return
+    if (!showActive || !imagePainted || autoHideMs == null || !onAutoCloseRef.current) return
     const id = window.setTimeout(() => onAutoCloseRef.current?.(), autoHideMs)
     return () => window.clearTimeout(id)
-  }, [visible, imagePainted, autoHideMs])
+  }, [showActive, imagePainted, autoHideMs])
 
-  if (!visible) return null
+  if (!showActive) return null
+
+  const card = (
+    <div
+      className={`nag-bubble-card nag-bubble-card--${variant}${housingClass}${cheerOnlyClass}${showCardContent ? ' nag-bubble-card--ready' : ''}${embedded ? ' nag-bubble-card--embedded' : ''}`}
+    >
+      <div className="nag-bubble-visual">
+        <img
+          ref={imgElRef}
+          src={resolvedImageSrc}
+          alt={imageOnly ? text : ''}
+          className="nag-bubble-img"
+          draggable={false}
+          decoding="async"
+          fetchPriority="high"
+          onLoad={handleImageReady}
+          onError={handleImageReady}
+        />
+        {showTextOverlay ? (
+          <div className="nag-bubble-text-pad">
+            <div ref={padRef} className="nag-bubble-text-slot">
+              <p ref={textRef} className="nag-bubble-text">
+                {text}
+              </p>
+            </div>
+          </div>
+        ) : null}
+      </div>
+      {!embedded && showConfirm && showCardContent ? (
+        <button type="button" className="nag-bubble-confirm" onClick={onConfirm}>
+          확인
+        </button>
+      ) : null}
+    </div>
+  )
+
+  if (embedded) {
+    return card
+  }
 
   return (
     <div
@@ -118,37 +161,7 @@ export function NagBubbleOverlay({
       aria-live="polite"
       aria-label={imageOnly ? text : undefined}
     >
-      <div
-        className={`nag-bubble-card nag-bubble-card--${variant}${housingClass}${cheerOnlyClass}${showCardContent ? ' nag-bubble-card--ready' : ''}`}
-      >
-        <div className="nag-bubble-visual">
-          <img
-            ref={imgElRef}
-            src={resolvedImageSrc}
-            alt={imageOnly ? text : ''}
-            className="nag-bubble-img"
-            draggable={false}
-            decoding="async"
-            fetchPriority="high"
-            onLoad={handleImageReady}
-            onError={handleImageReady}
-          />
-          {showTextOverlay ? (
-            <div className="nag-bubble-text-pad">
-              <div ref={padRef} className="nag-bubble-text-slot">
-                <p ref={textRef} className="nag-bubble-text">
-                  {text}
-                </p>
-              </div>
-            </div>
-          ) : null}
-        </div>
-        {showConfirm && showCardContent ? (
-          <button type="button" className="nag-bubble-confirm" onClick={onConfirm}>
-            확인
-          </button>
-        ) : null}
-      </div>
+      {card}
     </div>
   )
 }

@@ -3763,6 +3763,49 @@ input[type='date']::-webkit-calendar-picker-indicator {
   transform: translateY(1px);
 }
 
+/* —— 주간 결산 (월말 결산 카드와 통일) —— */
+.weekly-settlement-overlay {
+  z-index: 209;
+}
+
+.weekly-settlement-card {
+  max-height: min(92vh, 720px);
+  overflow-y: auto;
+}
+
+.weekly-settlement-compare {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: #f6f6f8;
+  font-size: 14px;
+  font-weight: 700;
+  color: #2a2a32;
+  text-align: center;
+  line-height: 1.35;
+}
+
+.weekly-settlement-compare strong {
+  font-weight: 800;
+  color: #101018;
+}
+
+.weekly-settlement-bubble-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.nag-bubble-card--embedded {
+  width: 100%;
+  max-width: 300px;
+  gap: 0;
+}
+
+.nag-bubble-card--embedded .nag-bubble-img {
+  box-shadow: none;
+}
+
 /* —— 개발 테스트용 버튼 (배포 전 이 블록 삭제) —— */
 .monthly-settlement-dev-test {
   position: fixed;

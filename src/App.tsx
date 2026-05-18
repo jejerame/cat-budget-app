@@ -4,6 +4,7 @@ import { SplashCatOverlay } from './components/SplashCatOverlay'
 import { NagBubbleOverlay } from './components/NagBubbleOverlay'
 import { NagBubbleWarmup } from './components/NagBubbleWarmup'
 import { MonthlySettlementOverlay } from './components/MonthlySettlementOverlay'
+import { WeeklySettlementOverlay } from './components/WeeklySettlementOverlay'
 import { MonthlySettlementDevTestButtons } from './components/MonthlySettlementDevTestButtons'
 import {
   buildMonthlySettlement,
@@ -54,9 +55,12 @@ import {
   getPettyNagQuote,
   getRandomNagByAmount,
   getRedReflectionComment,
-  getWeeklySettlementNagText,
-  getWeeklySettlementNagTextDevPreview,
 } from './data/nagMessages'
+import {
+  buildWeeklySettlement,
+  buildWeeklySettlementDevPreview,
+  type WeeklySettlementContent,
+} from './data/weeklySettlement'
 import { getCategoryLabel } from './data/spendingCategories'
 import {
   calculateTenYearCompoundValue,
@@ -282,7 +286,6 @@ function App() {
   const [selectedType, setSelectedType] = useState<TransactionType>('expense')
   const [analysisOpen, setAnalysisOpen] = useState(false)
   const [nagBubble, setNagBubble] = useState<null | {
-    variant: 'instant' | 'weekly'
     text: string
     imageSrc?: string
     /** cheer PNG 등 이미지 내 문구만 표시(텍스트 오버레이 없음) */
@@ -303,6 +306,7 @@ function App() {
   const [limitBreakOpen, setLimitBreakOpen] = useState(false)
   const [limitBreakGaugeFlash, setLimitBreakGaugeFlash] = useState(false)
   const [monthlySettlement, setMonthlySettlement] = useState<MonthlySettlementContent | null>(null)
+  const [weeklySettlement, setWeeklySettlement] = useState<WeeklySettlementContent | null>(null)
   const prevDeficitRef = useRef<boolean | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [colorModePreference, setColorModePreference] = useState<ColorModePreference>(() => loadColorModePreference())
@@ -547,6 +551,7 @@ function App() {
     if (!limitBreakOpen) return
     setNagBubble(null)
     setMonthlySettlement(null)
+    setWeeklySettlement(null)
     pendingCompoundAfterInstantRef.current = null
     setAnalysisOpen(false)
   }, [limitBreakOpen])
@@ -640,6 +645,7 @@ function App() {
     if (limitBreakOpen) return undefined
     if (nagBubble != null) return undefined
     if (monthlySettlement != null) return undefined
+    if (weeklySettlement != null) return undefined
     if (screen !== 'home') return undefined
     const today = new Date()
     if (!isLastDayOfMonth(today)) return undefined
@@ -668,13 +674,14 @@ function App() {
     }, MONTHLY_SETTLEMENT_DELAY_MS)
 
     return () => window.clearTimeout(id)
-  }, [nagsSilenced, limitBreakOpen, nagBubble, monthlySettlement, screen, transactions])
+  }, [nagsSilenced, limitBreakOpen, nagBubble, monthlySettlement, weeklySettlement, screen, transactions])
 
   useEffect(() => {
     if (nagsSilenced) return undefined
     if (limitBreakOpen) return undefined
     if (nagBubble != null) return undefined
     if (monthlySettlement != null) return undefined
+    if (weeklySettlement != null) return undefined
     if (screen !== 'home') return undefined
     const today = new Date()
     if (today.getDay() !== 0) return undefined
@@ -699,18 +706,18 @@ function App() {
       } catch {
         return
       }
-      const text = getWeeklySettlementNagText(transactions, new Date(), nagIntensity)
+      const content = buildWeeklySettlement(transactions, new Date(), nagIntensity)
       try {
         localStorage.setItem(key, '1')
       } catch {
         /* ignore */
       }
-      if (!text) return
-      setNagBubble({ variant: 'weekly', text })
+      if (!content) return
+      setWeeklySettlement(content)
     }, 1100)
 
     return () => window.clearTimeout(id)
-  }, [nagsSilenced, nagBubble, screen, transactions, nagIntensity])
+  }, [nagsSilenced, nagBubble, monthlySettlement, weeklySettlement, screen, transactions, nagIntensity])
 
   function showCatToast(imageSrc: string, variant: ToastVariant): void {
     if (nagsSilenced) return
@@ -967,7 +974,6 @@ function App() {
           const housingKey = resolveHousingCheerKey(normalizedMemo)
           flushSync(() =>
             setNagBubble({
-              variant: 'instant',
               text: getHousingCheerAriaLabel(housingKey),
               imageSrc: getHousingCheerImageUrl(housingKey),
               imageOnly: true,
@@ -976,7 +982,6 @@ function App() {
         } else {
           flushSync(() =>
             setNagBubble({
-              variant: 'instant',
               text: getInstantNagMessageForExpense(category, normalizedMemo, amount, nagIntensity),
             }),
           )
@@ -1202,15 +1207,15 @@ function App() {
 
   // 개발 테스트용 — 배포 전 아래 함수 삭제
   function previewMonthlySettlementForDev(tone: MonthlySettlementTone) {
+    setWeeklySettlement(null)
+    setNagBubble(null)
     setMonthlySettlement(buildMonthlySettlementDevPreview(tone, transactions))
   }
 
   function previewWeeklySettlementForDev() {
     setMonthlySettlement(null)
-    setNagBubble({
-      variant: 'weekly',
-      text: getWeeklySettlementNagTextDevPreview(transactions, new Date(), nagIntensity),
-    })
+    setNagBubble(null)
+    setWeeklySettlement(buildWeeklySettlementDevPreview(transactions, new Date(), nagIntensity))
   }
 
   return (
@@ -1229,29 +1234,33 @@ function App() {
         content={monthlySettlement}
         onClose={() => setMonthlySettlement(null)}
       />
+      <WeeklySettlementOverlay
+        content={weeklySettlement}
+        onClose={() => setWeeklySettlement(null)}
+      />
       <NagBubbleOverlay
-        variant={nagBubble?.variant ?? 'instant'}
+        variant="instant"
         text={nagBubble?.text ?? ''}
         imageSrc={nagBubble?.imageSrc}
         imageOnly={nagBubble?.imageOnly}
-        visible={Boolean(nagBubble) && !nagsSilenced && !limitBreakOpen && !monthlySettlement}
-        autoHideMs={nagBubble?.variant === 'instant' ? INSTANT_NAG_BUBBLE_MS : undefined}
-        onAutoClose={
-          nagBubble?.variant === 'instant'
-            ? () => {
-                const pending = pendingCompoundAfterInstantRef.current
-                pendingCompoundAfterInstantRef.current = null
-                setNagBubble(null)
-                if (pending) {
-                  window.setTimeout(() => {
-                    openAnalysis(pending.amount, 'expense', pending.category, pending.memo)
-                  }, 0)
-                }
-              }
-            : undefined
+        visible={
+          Boolean(nagBubble) &&
+          !nagsSilenced &&
+          !limitBreakOpen &&
+          !monthlySettlement &&
+          !weeklySettlement
         }
-        showConfirm={nagBubble?.variant === 'weekly'}
-        onConfirm={nagBubble?.variant === 'weekly' ? () => setNagBubble(null) : undefined}
+        autoHideMs={INSTANT_NAG_BUBBLE_MS}
+        onAutoClose={() => {
+          const pending = pendingCompoundAfterInstantRef.current
+          pendingCompoundAfterInstantRef.current = null
+          setNagBubble(null)
+          if (pending) {
+            window.setTimeout(() => {
+              openAnalysis(pending.amount, 'expense', pending.category, pending.memo)
+            }, 0)
+          }
+        }}
       />
       <main className="app-shell">
         <section className={`screen ${screen === 'home' ? 'active' : ''} home-screen`}>
