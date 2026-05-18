@@ -1,4 +1,5 @@
 import type { NagIntensity } from './nagIntensity'
+import { getHousingInstantNagMessage, resolveHousingCheerKey } from './housingInstantNag'
 import { resolveContentIntensity } from './nagIntensity'
 
 /** 지출 저장 직후 말풍선(say1)용 — 카테고리 우선, 메모는 같은 카테고리 안에서만 보조 (문구 풀 = 스파르탄 라이트) */
@@ -43,9 +44,9 @@ export const INSTANT_NAG_COUPLE = [
 ] as const
 
 export const INSTANT_NAG_FIXED = [
-  '고정비는 피할 순 없지만, 요금이 합리적인지는 봐야지.',
-  '매달 나가는 돈이야. 변동 없는지 한번 점검해 봐.',
-  '집세·보험은 필수지만, 더 싼 플랜은 없는지 찾아봤어?',
+  '통신·보험 고정비는 피할 순 없지만, 요금이 합리적인지는 봐야지.',
+  '매달 나가는 돈이야. 요금제·보험료 변동 없는지 한번 점검해 봐.',
+  '더 싼 통신 플랜이나 보험 상품은 없는지 찾아봤어?',
 ] as const
 
 export const INSTANT_NAG_SPECIAL = [
@@ -95,6 +96,7 @@ export type InstantNagBucket =
   | 'couple'
   | 'pet'
   | 'fixed'
+  | 'housing'
   | 'special'
   | 'self_dev'
 
@@ -135,6 +137,9 @@ export function resolveInstantNagBucket(category: string, memo: string): Instant
 
     case 'fixed':
       return 'fixed'
+
+    case 'housing':
+      return 'housing'
 
     case 'special':
       return 'special'
@@ -190,6 +195,8 @@ export function getInstantNagMessageForExpense(
       return getPetInstantNagMessage(amount, memo)
     case 'fixed':
       return pickRandom(INSTANT_NAG_FIXED)
+    case 'housing':
+      return getHousingInstantNagMessage(resolveHousingCheerKey(memo))
     case 'special':
       return pickRandom(INSTANT_NAG_SPECIAL)
     case 'self_dev':

@@ -3,6 +3,11 @@ import { SplashCatOverlay } from './components/SplashCatOverlay'
 import { NagBubbleOverlay } from './components/NagBubbleOverlay'
 import { LimitBreakOverlay } from './components/LimitBreakOverlay'
 import { getInstantNagMessageForExpense, getPetInstantNagMessage } from './data/instantNagBubbles'
+import {
+  getHousingCheerImageUrl,
+  getHousingInstantNagMessage,
+  resolveHousingCheerKey,
+} from './data/housingInstantNag'
 import { preloadNagBubbleImages } from './utils/preloadNagBubbleImages'
 import {
   applyColorModeToDocument,
@@ -77,6 +82,7 @@ import ang2GaugeUrl from '../ang2.png'
 import redCatUrl from '../red.png'
 import martCatUrl from '../mart.png'
 import houseCatUrl from '../house.png'
+import beghouseCatUrl from '../beghouse.png'
 import bookCatUrl from '../book.png'
 import tourCatUrl from '../tour.png'
 import dateCoupleCatUrl from '../date1.png'
@@ -119,7 +125,20 @@ const WEEKLY_SETTLEMENT_BUBBLE_STORAGE_PREFIX = 'weekly-settlement-bubble:v1:'
 /** 달력 연도 콤보: 거래가 없어도 선택 가능하도록 올해 기준 이전·이후 연도를 항상 포함 */
 const CALENDAR_YEAR_COMBO_PAST = 15
 const CALENDAR_YEAR_COMBO_FUTURE = 1
-const QUICK_MEMO_TAGS = ['커피', '택시', '외식', '배달', '해외여행', '이벤트', '경조사', '통신', '사료', '병원']
+const QUICK_MEMO_TAGS = [
+  '커피',
+  '택시',
+  '외식',
+  '배달',
+  '해외여행',
+  '이벤트',
+  '경조사',
+  '통신',
+  '월세',
+  '대출이자',
+  '사료',
+  '병원',
+]
 const INCOME_BUBBLE_MESSAGES = [
   '이번 달도 고생했어.',
   '오늘도 번 만큼 대단해.',
@@ -131,6 +150,7 @@ const expenseCategories = [
   'living',
   'couple',
   'fixed',
+  'housing',
   'self_dev',
   'special',
   'pet',
@@ -139,8 +159,8 @@ const incomeCategories = ['salary', 'allowance', 'carryover', 'other']
 const savingCategories = ['saving', 'other']
 const warningExpenseCategories = new Set(['red'])
 const coachingExpenseCategories = new Set(['living', 'couple', 'self_dev', 'special', 'pet'])
-const infoExpenseCategories = new Set(['fixed'])
-const essentialExpenseCategories = new Set(['living', 'fixed'])
+const infoExpenseCategories = new Set(['fixed', 'housing'])
+const essentialExpenseCategories = new Set(['living', 'fixed', 'housing'])
 
 const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
 const POPUP_IMAGE_BY_TYPE = {
@@ -153,6 +173,7 @@ const CATEGORY_ICON_BY_KEY: Record<string, string> = {
   living: martCatUrl,
   couple: dateCoupleCatUrl,
   fixed: houseCatUrl,
+  housing: beghouseCatUrl,
   self_dev: bookCatUrl,
   special: tourCatUrl,
   pet: dogCatUrl,
@@ -246,7 +267,11 @@ function App() {
   const [selectedQuickTag, setSelectedQuickTag] = useState('')
   const [selectedType, setSelectedType] = useState<TransactionType>('expense')
   const [analysisOpen, setAnalysisOpen] = useState(false)
-  const [nagBubble, setNagBubble] = useState<null | { variant: 'instant' | 'weekly'; text: string }>(null)
+  const [nagBubble, setNagBubble] = useState<null | {
+    variant: 'instant' | 'weekly'
+    text: string
+    imageSrc?: string
+  }>(null)
   const pendingCompoundAfterInstantRef = useRef<null | { amount: number; category: string; memo: string }>(null)
   const nagBubbleRef = useRef(nagBubble)
   const [chartOpen, setChartOpen] = useState(false)
@@ -878,10 +903,19 @@ function App() {
         if (!willExceeded) {
           pendingCompoundAfterInstantRef.current =
             amount >= HIGH_EXPENSE_COMPOUND_THRESHOLD ? { amount, category, memo: normalizedMemo } : null
-          setNagBubble({
-            variant: 'instant',
-            text: getInstantNagMessageForExpense(category, normalizedMemo, amount, nagIntensity),
-          })
+          if (category === 'housing') {
+            const housingKey = resolveHousingCheerKey(normalizedMemo)
+            setNagBubble({
+              variant: 'instant',
+              text: getHousingInstantNagMessage(housingKey),
+              imageSrc: getHousingCheerImageUrl(housingKey),
+            })
+          } else {
+            setNagBubble({
+              variant: 'instant',
+              text: getInstantNagMessageForExpense(category, normalizedMemo, amount, nagIntensity),
+            })
+          }
         }
       }
     }
@@ -1113,6 +1147,7 @@ function App() {
       <NagBubbleOverlay
         variant={nagBubble?.variant ?? 'instant'}
         text={nagBubble?.text ?? ''}
+        imageSrc={nagBubble?.imageSrc}
         visible={Boolean(nagBubble) && !nagsSilenced && !limitBreakOpen}
         autoHideMs={nagBubble?.variant === 'instant' ? INSTANT_NAG_BUBBLE_MS : undefined}
         onAutoClose={
@@ -1963,6 +1998,16 @@ function getCategorySpecificComment(
   if (level === 'coach') {
     return `${categoryLabel} 지출은 상황형 소비입니다. ${period === '7days' ? '이번 주' : '이번 기간'} 한도만 정해서 관리하세요.`
   }
+  if (categoryLabel.includes('주거')) {
+    const key = resolveHousingCheerKey(memo)
+    if (key === 'rent') {
+      return `월세는 매달 고정으로 나가요. ${period === '7days' ? '이번 주' : '이번 기간'} 다른 변동 지출만 같이 관리해요.`
+    }
+    if (key === 'loan') {
+      return `대출 이자·원금은 장기 부담이에요. 상환 계획표와 이번 달 이자액만 다시 확인해 봐요.`
+    }
+    return `주거비는 필수예요. 메모에 월세·대출이자·대출금을 적어 두면 맞춤 관리가 쉬워져요.`
+  }
   if (categoryLabel.includes('고정') && isTelecomMemo(memo)) {
     return `고정비 중에서도 통신 항목은 조정 여지가 큽니다. ${period === '7days' ? '이번 주' : '이번 기간'} 요금제/부가서비스를 점검하세요.`
   }
@@ -2000,6 +2045,17 @@ function getCategorySpecificBanMessage(
     return `반려동물 지출은 사랑의 표현이지만, ${period === '7days' ? '이번 주' : '이번 기간'} 예산 한도 안에서 집사 통장도 함께 지켜요.`
   }
 
+  if (category === 'housing') {
+    const key = resolveHousingCheerKey(memo)
+    if (key === 'rent') {
+      return `월세는 필수 지출입니다. ${period === '7days' ? '이번 주' : '이번 기간'} 납부 일정과 금액 변동만 점검해요.`
+    }
+    if (key === 'loan') {
+      return `대출 이자·원금 상환은 우선순위 지출입니다. 상환 일정과 잔액 추이만 함께 챙겨요.`
+    }
+    return `주거 지출은 메모에 월세·대출이자를 적어 두면 더 정확하게 관리할 수 있어요.`
+  }
+
   if (category !== 'fixed') {
     return defaultBanMessage(getCategoryLabel(category), amount, period)
   }
@@ -2008,7 +2064,7 @@ function getCategorySpecificBanMessage(
     return defaultBanMessage('통신비', amount, period)
   }
 
-  return `주거/보험 성격의 고정비는 우선 절약 권장 항목에서 제외하고, 납부 안정성과 변동 추세를 우선 점검합니다.`
+  return `통신·보험 고정비는 우선 절약 권장 항목에서 제외하고, 납부 안정성과 변동 추세를 우선 점검합니다.`
 }
 
 function isTelecomMemo(memo: string): boolean {

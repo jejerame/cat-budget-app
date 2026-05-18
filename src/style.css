@@ -3567,6 +3567,26 @@ input[type='date']::-webkit-calendar-picker-indicator {
   transform: translateY(-5%);
 }
 
+/* 주거 cheer 말풍선 — instant와 동일한 상하좌우 정중앙 */
+.nag-bubble-card--housing .nag-bubble-text-pad {
+  padding: 12% 45% 44% 12%;
+  display: flex;
+  flex-direction: column;
+}
+
+.nag-bubble-card--housing .nag-bubble-text-slot {
+  flex: 1 1 0;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  transform: translateY(-8%);
+}
+
 .nag-bubble-text {
   margin: 0;
   width: 100%;

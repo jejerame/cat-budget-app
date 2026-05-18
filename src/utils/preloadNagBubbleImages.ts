@@ -1,3 +1,4 @@
+import { HOUSING_CHEER_IMAGE_URLS } from '../data/housingInstantNag'
 import say1Url from '../../say1.png'
 import say2Url from '../../say2.png'
 
@@ -57,7 +58,9 @@ function loadOne(url: string): Promise<void> {
 
 /** PWA 첫 지출 시 말풍선 PNG(수 MB) 디코드 지연 방지 */
 export function preloadNagBubbleImages(): Promise<void> {
-  return Promise.all([loadOne(say1Url), loadOne(say2Url)]).then(() => undefined)
+  return Promise.all([loadOne(say1Url), loadOne(say2Url), ...HOUSING_CHEER_IMAGE_URLS.map(loadOne)]).then(
+    () => undefined,
+  )
 }
 
 export function isNagBubbleImageReady(variant: 'instant' | 'weekly'): boolean {
@@ -66,4 +69,12 @@ export function isNagBubbleImageReady(variant: 'instant' | 'weekly'): boolean {
 
 export function ensureNagBubbleImageReady(variant: 'instant' | 'weekly'): Promise<void> {
   return loadOne(urlForVariant(variant))
+}
+
+export function ensureBubbleImageReady(url: string): Promise<void> {
+  return loadOne(url)
+}
+
+export function isBubbleImageReady(url: string): boolean {
+  return decoded.has(url)
 }

@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useEffect, useState } from 'react'
 import say1Url from '../../say1.png'
 import say2Url from '../../say2.png'
-import { ensureNagBubbleImageReady } from '../utils/preloadNagBubbleImages'
+import { ensureBubbleImageReady, ensureNagBubbleImageReady } from '../utils/preloadNagBubbleImages'
 import { playNagBubblePop } from '../utils/nagBubblePopSound'
 
 export type NagBubbleVariant = 'instant' | 'weekly'
@@ -10,6 +10,8 @@ type NagBubbleOverlayProps = {
   variant: NagBubbleVariant
   text: string
   visible: boolean
+  /** say1/say2 대신 주거 cheer 등 커스텀 말풍선 PNG */
+  imageSrc?: string
   autoHideMs?: number
   onAutoClose?: () => void
   showConfirm?: boolean
@@ -20,6 +22,7 @@ export function NagBubbleOverlay({
   variant,
   text,
   visible,
+  imageSrc,
   autoHideMs,
   onAutoClose,
   showConfirm,
@@ -30,19 +33,24 @@ export function NagBubbleOverlay({
   const [layoutTick, setLayoutTick] = useState(0)
   const [imgReady, setImgReady] = useState(false)
 
+  const resolvedImageSrc = imageSrc ?? (variant === 'instant' ? say1Url : say2Url)
+
   useEffect(() => {
     if (!visible) {
       setImgReady(false)
       return
     }
     let cancelled = false
-    void ensureNagBubbleImageReady(variant).then(() => {
+    const ready = imageSrc
+      ? ensureBubbleImageReady(imageSrc)
+      : ensureNagBubbleImageReady(variant)
+    void ready.then(() => {
       if (!cancelled) setImgReady(true)
     })
     return () => {
       cancelled = true
     }
-  }, [visible, variant])
+  }, [visible, variant, imageSrc])
 
   useLayoutEffect(() => {
     if (!visible || !imgReady) return
@@ -82,14 +90,12 @@ export function NagBubbleOverlay({
   if (!visible) return null
   if (!imgReady) return null
 
-  const imgSrc = variant === 'instant' ? say1Url : say2Url
-
   return (
     <div className="nag-bubble-overlay nag-bubble-overlay--visible" role="dialog" aria-modal="true" aria-live="polite">
-      <div className={`nag-bubble-card nag-bubble-card--${variant}`}>
+      <div className={`nag-bubble-card nag-bubble-card--${variant}${imageSrc ? ' nag-bubble-card--housing' : ''}`}>
         <div className="nag-bubble-visual">
           <img
-            src={imgSrc}
+            src={resolvedImageSrc}
             alt=""
             className="nag-bubble-img"
             draggable={false}
