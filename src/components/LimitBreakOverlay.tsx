@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import begCatUrl from '../../beg.png'
+import malBubbleUrl from '../../mal.png'
 import { playLimitBreakBoom } from '../utils/limitBreakBoomSound'
-import { LimitBreakShoutBubble } from './LimitBreakShoutBubble'
 
-const LIMIT_BREAK_MESSAGE =
+const LIMIT_BREAK_ARIA_LABEL =
   '펑! 통장이 박살 났다. 담달 월급까지 삼시세끼 라면 먹으면서 숨만 쉬고 살아.'
 
 const EXPLOSION_MS = 1600
@@ -79,9 +79,12 @@ export function LimitBreakOverlay({ open, onClose, onExplosionPhaseChange }: Lim
 
       {phase === 'scene' ? (
         <div className="limit-break-scene-wrap">
-          <div className="limit-break-scene">
+          <div className="limit-break-scene" role="group" aria-labelledby="limit-break-title">
+            <p id="limit-break-title" className="limit-break-sr-only">
+              {LIMIT_BREAK_ARIA_LABEL}
+            </p>
             <img src={begCatUrl} alt="" className="limit-break-beg" draggable={false} />
-            <LimitBreakShoutBubble message={LIMIT_BREAK_MESSAGE} id="limit-break-title" />
+            <img src={malBubbleUrl} alt="" className="limit-break-mal" draggable={false} />
           </div>
           <div className="limit-break-actions">
             <button type="button" className="limit-break-btn" onClick={handleDismissTap}>
