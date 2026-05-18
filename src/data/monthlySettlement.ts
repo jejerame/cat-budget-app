@@ -67,3 +67,24 @@ export function buildMonthlySettlement(
     catImageUrl: over ? hwaCatUrl : ddCatUrl,
   }
 }
+
+// —— 개발 테스트용 —— 배포 전 아래 블록 전체 삭제
+export function buildMonthlySettlementDevPreview(
+  tone: MonthlySettlementTone,
+  records: TransactionRecord[],
+  today: Date = new Date(),
+): MonthlySettlementContent {
+  const monthDate = new Date(today.getFullYear(), today.getMonth(), 1)
+  const top = getTopExpenseCategoriesByMonth(records, monthDate, 1)[0]
+  const monthLabel = `${today.getFullYear()}년 ${today.getMonth() + 1}월`
+  const over = tone === 'over'
+
+  return {
+    monthLabel,
+    topCategoryLabel: top ? getCategoryLabel(top.category) : '식비 (테스트)',
+    topCategoryAmount: top?.total ?? 128_500,
+    tone,
+    message: over ? OVER_MESSAGE : GOOD_MESSAGE,
+    catImageUrl: over ? hwaCatUrl : ddCatUrl,
+  }
+}
