@@ -901,27 +901,26 @@ function App() {
           setLimitBreakOpen(true)
           return
         }
-        if (!willExceeded) {
-          pendingCompoundAfterInstantRef.current =
-            amount >= HIGH_EXPENSE_COMPOUND_THRESHOLD ? { amount, category, memo: normalizedMemo } : null
-          if (category === 'housing') {
-            const housingKey = resolveHousingCheerKey(normalizedMemo)
-            flushSync(() =>
-              setNagBubble({
-                variant: 'instant',
-                text: getHousingCheerAriaLabel(housingKey),
-                imageSrc: getHousingCheerImageUrl(housingKey),
-                imageOnly: true,
-              }),
-            )
-          } else {
-            flushSync(() =>
-              setNagBubble({
-                variant: 'instant',
-                text: getInstantNagMessageForExpense(category, normalizedMemo, amount, nagIntensity),
-              }),
-            )
-          }
+
+        pendingCompoundAfterInstantRef.current =
+          amount >= HIGH_EXPENSE_COMPOUND_THRESHOLD ? { amount, category, memo: normalizedMemo } : null
+        if (category === 'housing') {
+          const housingKey = resolveHousingCheerKey(normalizedMemo)
+          flushSync(() =>
+            setNagBubble({
+              variant: 'instant',
+              text: getHousingCheerAriaLabel(housingKey),
+              imageSrc: getHousingCheerImageUrl(housingKey),
+              imageOnly: true,
+            }),
+          )
+        } else {
+          flushSync(() =>
+            setNagBubble({
+              variant: 'instant',
+              text: getInstantNagMessageForExpense(category, normalizedMemo, amount, nagIntensity),
+            }),
+          )
         }
       }
     }
