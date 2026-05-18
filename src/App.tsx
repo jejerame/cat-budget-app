@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { SplashCatOverlay } from './components/SplashCatOverlay'
 import { NagBubbleOverlay } from './components/NagBubbleOverlay'
+import { LimitBreakOverlay } from './components/LimitBreakOverlay'
 import { getInstantNagMessageForExpense, getPetInstantNagMessage } from './data/instantNagBubbles'
 import { preloadNagBubbleImages } from './utils/preloadNagBubbleImages'
 import {
@@ -249,6 +250,9 @@ function App() {
   const [toastVariant, setToastVariant] = useState<ToastVariant>('expense')
   const [toastVisible, setToastVisible] = useState(false)
   const [redWarningPhase, setRedWarningPhase] = useState<'idle' | 'blinking' | 'steady'>('idle')
+  const [limitBreakOpen, setLimitBreakOpen] = useState(false)
+  const [limitBreakGaugeFlash, setLimitBreakGaugeFlash] = useState(false)
+  const prevDeficitRef = useRef<boolean | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [colorModePreference, setColorModePreference] = useState<ColorModePreference>(() => loadColorModePreference())
   const [colorMode, setColorMode] = useState<ColorMode>(() =>
@@ -308,6 +312,13 @@ function App() {
   /** 가용 예산을 넘긴 지출이면 적자로 간주(분모 0이면 지출만 있으면 적자 표시) */
   const isDeficitActual =
     gaugeAvailableBudget > 0 ? summary.expense > gaugeAvailableBudget : summary.expense > 0
+  const isViewingCurrentMonth = useMemo(() => {
+    const n = new Date()
+    return selectedCalendarYear === n.getFullYear() && selectedCalendarMonth === n.getMonth()
+  }, [selectedCalendarYear, selectedCalendarMonth])
+  const handleLimitBreakExplosionPhase = useCallback((active: boolean) => {
+    setLimitBreakGaugeFlash(active)
+  }, [])
   const budgetThumbLeftPercent = Math.min(budgetRatioUncapped, 100)
   const budgetGaugeTierIndex = getBudgetGaugeTierIndex(budgetRatioUncapped)
   const budgetGaugeStage = getBudgetGaugeStage(budgetGaugeTierIndex, budgetRatioUncapped)
@@ -466,6 +477,19 @@ function App() {
     transactions.forEach((item) => years.add(new Date(item.createdAt).getFullYear()))
     return [...years].sort((a, b) => a - b)
   }, [transactions, currentYear])
+
+  useEffect(() => {
+    if (!isViewingCurrentMonth) {
+      prevDeficitRef.current = isDeficitActual
+      return
+    }
+    const prev = prevDeficitRef.current
+    prevDeficitRef.current = isDeficitActual
+    if (prev === null) return
+    if (prev === false && isDeficitActual && !limitBreakOpen) {
+      setLimitBreakOpen(true)
+    }
+  }, [isDeficitActual, isViewingCurrentMonth, limitBreakOpen])
 
   useEffect(() => {
     if (!isDeficitActual) {
@@ -1046,6 +1070,11 @@ function App() {
   return (
     <>
       <SplashCatOverlay silenced={nagsSilenced} nagIntensity={nagIntensity} />
+      <LimitBreakOverlay
+        open={limitBreakOpen}
+        onClose={() => setLimitBreakOpen(false)}
+        onExplosionPhaseChange={handleLimitBreakExplosionPhase}
+      />
       <NagBubbleOverlay
         variant={nagBubble?.variant ?? 'instant'}
         text={nagBubble?.text ?? ''}
@@ -1166,6 +1195,7 @@ function App() {
                       isDeficitActual ? 'red-gauge-track--over' : '',
                       isDeficitActual && redWarningPhase === 'blinking' ? 'red-gauge-track--blink' : '',
                       isDeficitActual && redWarningPhase === 'steady' ? 'red-gauge-track--steady-warn' : '',
+                      limitBreakGaugeFlash ? 'red-gauge-track--limit-break-flash' : '',
                     ]
                       .filter(Boolean)
                       .join(' ')}
