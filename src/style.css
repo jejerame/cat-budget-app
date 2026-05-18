@@ -3648,6 +3648,121 @@ input[type='date']::-webkit-calendar-picker-indicator {
   transform: translateY(1px);
 }
 
+/* —— 월말 결산 —— */
+.monthly-settlement-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 210;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(16px, var(--safe-top)) 14px calc(24px + var(--safe-bottom));
+  box-sizing: border-box;
+  background: rgba(10, 10, 14, 0.52);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  animation: nag-bubble-backdrop-in 0.32s ease forwards;
+}
+
+.monthly-settlement-card {
+  width: min(360px, calc(100vw - 28px));
+  padding: 18px 16px 16px;
+  border-radius: 22px;
+  background: #ffffff;
+  border: 1px solid rgba(40, 40, 46, 0.18);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.22);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: nag-bubble-pop-in 0.34s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.monthly-settlement-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #101018;
+  text-align: center;
+}
+
+.monthly-settlement-top-rank {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: #f6f6f8;
+  font-size: 14px;
+  font-weight: 700;
+  color: #2a2a32;
+  text-align: center;
+  line-height: 1.35;
+}
+
+.monthly-settlement-top-rank strong {
+  font-weight: 800;
+  color: #101018;
+}
+
+.monthly-settlement-message-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 72px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: #ffffff;
+  border: 2px solid rgba(24, 24, 30, 0.12);
+  box-sizing: border-box;
+}
+
+.monthly-settlement-message-box--over {
+  border-color: rgba(220, 48, 40, 0.22);
+}
+
+.monthly-settlement-message-box--good {
+  border-color: rgba(44, 140, 90, 0.22);
+}
+
+.monthly-settlement-cat {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+}
+
+.monthly-settlement-message {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  font-family: 'Gaegu', 'Malgun Gothic', cursive;
+  font-size: clamp(17px, 4.6vw, 21px);
+  font-weight: 800;
+  line-height: 1.28;
+  letter-spacing: -0.02em;
+  color: #000000;
+  text-align: left;
+  word-break: keep-all;
+}
+
+.monthly-settlement-confirm {
+  align-self: center;
+  min-width: 120px;
+  padding: 10px 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(60, 60, 68, 0.35);
+  background: linear-gradient(180deg, #ffffff 0%, #f2f2f4 100%);
+  color: #1a1a22;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+
+.monthly-settlement-confirm:active {
+  transform: translateY(1px);
+}
+
 /* —— 한계 돌파 이벤트 (예산 100% 초과) —— */
 .limit-break-overlay {
   position: fixed;

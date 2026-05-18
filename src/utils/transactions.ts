@@ -81,3 +81,31 @@ export function isMonthBudgetExceeded(records: TransactionRecord[], date: Date):
   if (available > 0) return summary.expense > available
   return summary.expense > 0
 }
+
+export function getMonthBudgetRatioPercent(records: TransactionRecord[], date: Date): number {
+  const summary = getMonthSummary(records, date)
+  const available = Math.max(0, summary.income - summary.saving + summary.carryoverIncome)
+  if (available <= 0) return summary.expense > 0 ? 100 : 0
+  return (summary.expense / available) * 100
+}
+
+/** 선택한 달의 지출을 카테고리별 합산한 뒤 금액 내림차순 상위 limit개 */
+export function getTopExpenseCategoriesByMonth(
+  records: TransactionRecord[],
+  date: Date,
+  limit: number,
+): Array<{ category: string; total: number }> {
+  const y = date.getFullYear()
+  const m = date.getMonth()
+  const totals = new Map<string, number>()
+  records.forEach((item) => {
+    if (item.type !== 'expense') return
+    const d = new Date(item.createdAt)
+    if (d.getFullYear() !== y || d.getMonth() !== m) return
+    totals.set(item.category, (totals.get(item.category) ?? 0) + item.amount)
+  })
+  return [...totals.entries()]
+    .map(([category, total]) => ({ category, total }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, limit)
+}

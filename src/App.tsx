@@ -3,6 +3,13 @@ import { flushSync } from 'react-dom'
 import { SplashCatOverlay } from './components/SplashCatOverlay'
 import { NagBubbleOverlay } from './components/NagBubbleOverlay'
 import { NagBubbleWarmup } from './components/NagBubbleWarmup'
+import { MonthlySettlementOverlay } from './components/MonthlySettlementOverlay'
+import {
+  buildMonthlySettlement,
+  isLastDayOfMonth,
+  monthlySettlementStorageKey,
+  type MonthlySettlementContent,
+} from './data/monthlySettlement'
 import { LimitBreakOverlay } from './components/LimitBreakOverlay'
 import { getInstantNagMessageForExpense, getPetInstantNagMessage } from './data/instantNagBubbles'
 import {
@@ -58,6 +65,7 @@ import {
 import {
   createTransaction,
   getMonthSummary,
+  getTopExpenseCategoriesByMonth,
   isMonthBudgetExceeded,
   loadTransactions,
   saveTransactions,
@@ -123,6 +131,7 @@ const CALENDAR_DAY_HIGH_EXPENSE_CAT_THRESHOLD = 200_000
 const HIGH_EXPENSE_COMPOUND_THRESHOLD = 200_000
 const INSTANT_NAG_BUBBLE_MS = 2_000
 const WEEKLY_SETTLEMENT_BUBBLE_STORAGE_PREFIX = 'weekly-settlement-bubble:v1:'
+const MONTHLY_SETTLEMENT_DELAY_MS = 1200
 /** 달력 연도 콤보: 거래가 없어도 선택 가능하도록 올해 기준 이전·이후 연도를 항상 포함 */
 const CALENDAR_YEAR_COMBO_PAST = 15
 const CALENDAR_YEAR_COMBO_FUTURE = 1
@@ -289,6 +298,7 @@ function App() {
   const [redWarningPhase, setRedWarningPhase] = useState<'idle' | 'blinking' | 'steady'>('idle')
   const [limitBreakOpen, setLimitBreakOpen] = useState(false)
   const [limitBreakGaugeFlash, setLimitBreakGaugeFlash] = useState(false)
+  const [monthlySettlement, setMonthlySettlement] = useState<MonthlySettlementContent | null>(null)
   const prevDeficitRef = useRef<boolean | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [colorModePreference, setColorModePreference] = useState<ColorModePreference>(() => loadColorModePreference())
@@ -532,6 +542,7 @@ function App() {
   useEffect(() => {
     if (!limitBreakOpen) return
     setNagBubble(null)
+    setMonthlySettlement(null)
     pendingCompoundAfterInstantRef.current = null
     setAnalysisOpen(false)
   }, [limitBreakOpen])
@@ -622,10 +633,54 @@ function App() {
 
   useEffect(() => {
     if (nagsSilenced) return undefined
+    if (limitBreakOpen) return undefined
     if (nagBubble != null) return undefined
+    if (monthlySettlement != null) return undefined
+    if (screen !== 'home') return undefined
+    const today = new Date()
+    if (!isLastDayOfMonth(today)) return undefined
+    const key = monthlySettlementStorageKey(today)
+    try {
+      if (localStorage.getItem(key)) return undefined
+    } catch {
+      return undefined
+    }
+
+    const id = window.setTimeout(() => {
+      if (nagBubbleRef.current != null) return
+      try {
+        if (localStorage.getItem(key)) return
+      } catch {
+        return
+      }
+      const content = buildMonthlySettlement(transactions, today)
+      if (!content) return
+      try {
+        localStorage.setItem(key, '1')
+      } catch {
+        /* ignore */
+      }
+      setMonthlySettlement(content)
+    }, MONTHLY_SETTLEMENT_DELAY_MS)
+
+    return () => window.clearTimeout(id)
+  }, [nagsSilenced, limitBreakOpen, nagBubble, monthlySettlement, screen, transactions])
+
+  useEffect(() => {
+    if (nagsSilenced) return undefined
+    if (limitBreakOpen) return undefined
+    if (nagBubble != null) return undefined
+    if (monthlySettlement != null) return undefined
     if (screen !== 'home') return undefined
     const today = new Date()
     if (today.getDay() !== 0) return undefined
+    if (isLastDayOfMonth(today)) {
+      try {
+        if (!localStorage.getItem(monthlySettlementStorageKey(today))) return undefined
+      } catch {
+        return undefined
+      }
+    }
     const key = `${WEEKLY_SETTLEMENT_BUBBLE_STORAGE_PREFIX}${toDateKey(today)}`
     try {
       if (localStorage.getItem(key)) return undefined
@@ -1153,12 +1208,16 @@ function App() {
         }}
         onExplosionPhaseChange={handleLimitBreakExplosionPhase}
       />
+      <MonthlySettlementOverlay
+        content={monthlySettlement}
+        onClose={() => setMonthlySettlement(null)}
+      />
       <NagBubbleOverlay
         variant={nagBubble?.variant ?? 'instant'}
         text={nagBubble?.text ?? ''}
         imageSrc={nagBubble?.imageSrc}
         imageOnly={nagBubble?.imageOnly}
-        visible={Boolean(nagBubble) && !nagsSilenced && !limitBreakOpen}
+        visible={Boolean(nagBubble) && !nagsSilenced && !limitBreakOpen && !monthlySettlement}
         autoHideMs={nagBubble?.variant === 'instant' ? INSTANT_NAG_BUBBLE_MS : undefined}
         onAutoClose={
           nagBubble?.variant === 'instant'
@@ -2164,34 +2223,6 @@ function getTransactionTypeLabel(type: TransactionType): string {
   if (type === 'income') return '수입'
   if (type === 'saving') return '저축'
   return '지출'
-}
-
-function getMonthExpenseRecords(transactions: TransactionRecord[], date: Date): Array<{ category: string; amount: number }> {
-  const y = date.getFullYear()
-  const m = date.getMonth()
-  return transactions
-    .filter((item) => {
-      if (item.type !== 'expense') return false
-      const d = new Date(item.createdAt)
-      return d.getFullYear() === y && d.getMonth() === m
-    })
-    .map((item) => ({ category: item.category, amount: item.amount }))
-}
-
-/** 선택한 달의 지출을 카테고리별로 합산한 뒤 금액 내림차순 상위 limit개 */
-function getTopExpenseCategoriesByMonth(
-  transactions: TransactionRecord[],
-  date: Date,
-  limit: number,
-): Array<{ category: string; total: number }> {
-  const totals = new Map<string, number>()
-  getMonthExpenseRecords(transactions, date).forEach((item) => {
-    totals.set(item.category, (totals.get(item.category) ?? 0) + item.amount)
-  })
-  return [...totals.entries()]
-    .map(([category, total]) => ({ category, total }))
-    .sort((a, b) => b.total - a.total)
-    .slice(0, limit)
 }
 
 function buildCalendarCells(year: number, month: number): Array<null | { key: string; day: number }> {
