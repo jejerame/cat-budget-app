@@ -81,10 +81,9 @@ export function LimitBreakOverlay({ open, onClose, onExplosionPhaseChange }: Lim
           <div className="limit-break-scene">
             <img src={begCatUrl} alt="" className="limit-break-beg" draggable={false} />
             <div className="limit-break-shout" id="limit-break-title">
-              <div className="limit-break-shout__inner">
+              <div className="limit-break-shout__burst">
                 <p className="limit-break-shout__text">{LIMIT_BREAK_MESSAGE}</p>
               </div>
-              <span className="limit-break-shout__tail" aria-hidden />
             </div>
           </div>
           <div className="limit-break-actions">

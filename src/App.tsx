@@ -49,7 +49,16 @@ import {
   parseWonInput,
   wonAmountToKorean,
 } from './utils/finance'
-import { createTransaction, getMonthSummary, loadTransactions, saveTransactions, toDateKey, type TransactionRecord, type TransactionType } from './utils/transactions'
+import {
+  createTransaction,
+  getMonthSummary,
+  isMonthBudgetExceeded,
+  loadTransactions,
+  saveTransactions,
+  toDateKey,
+  type TransactionRecord,
+  type TransactionType,
+} from './utils/transactions'
 import begDayCatUrl from '../beg.png'
 import richDayCatUrl from '../rich.png'
 import tokCatUrl from '../tok.png'
@@ -492,6 +501,13 @@ function App() {
   }, [isDeficitActual, isViewingCurrentMonth, limitBreakOpen])
 
   useEffect(() => {
+    if (!limitBreakOpen) return
+    setNagBubble(null)
+    pendingCompoundAfterInstantRef.current = null
+    setAnalysisOpen(false)
+  }, [limitBreakOpen])
+
+  useEffect(() => {
     if (!isDeficitActual) {
       setRedWarningPhase('idle')
       if (redBlinkTimeoutRef.current) {
@@ -716,6 +732,7 @@ function App() {
   }
 
   function openAnalysis(amount: number, type: TransactionType, category: string, memoOverride?: string): void {
+    if (limitBreakOpen) return
     if (areNagsSilenced(banPeriod)) return
     if (amount <= 0) {
       setLastExpenseAnalysisInput(null)
@@ -842,13 +859,31 @@ function App() {
     saveTransactions(updated)
     resetEntryFormForNew()
     setScreen('home')
-    if (selectedType === 'expense' && !nagsSilenced) {
-      pendingCompoundAfterInstantRef.current =
-        amount >= HIGH_EXPENSE_COMPOUND_THRESHOLD ? { amount, category, memo: normalizedMemo } : null
-      setNagBubble({
-        variant: 'instant',
-        text: getInstantNagMessageForExpense(category, normalizedMemo, amount, nagIntensity),
-      })
+
+    if (selectedType === 'expense' && !nagsSilenced && !limitBreakOpen) {
+      const expenseMonth = dateKeyToLocalDate(entryDate)
+      const nowMonth = new Date()
+      const isCurrentMonthEntry =
+        expenseMonth.getFullYear() === nowMonth.getFullYear() &&
+        expenseMonth.getMonth() === nowMonth.getMonth()
+      if (isCurrentMonthEntry) {
+        const wasExceeded = isMonthBudgetExceeded(transactions, expenseMonth)
+        const willExceeded = isMonthBudgetExceeded(updated, expenseMonth)
+        if (!wasExceeded && willExceeded) {
+          prevDeficitRef.current = true
+          pendingCompoundAfterInstantRef.current = null
+          setLimitBreakOpen(true)
+          return
+        }
+        if (!willExceeded) {
+          pendingCompoundAfterInstantRef.current =
+            amount >= HIGH_EXPENSE_COMPOUND_THRESHOLD ? { amount, category, memo: normalizedMemo } : null
+          setNagBubble({
+            variant: 'instant',
+            text: getInstantNagMessageForExpense(category, normalizedMemo, amount, nagIntensity),
+          })
+        }
+      }
     }
   }
 
@@ -1078,7 +1113,7 @@ function App() {
       <NagBubbleOverlay
         variant={nagBubble?.variant ?? 'instant'}
         text={nagBubble?.text ?? ''}
-        visible={Boolean(nagBubble) && !nagsSilenced}
+        visible={Boolean(nagBubble) && !nagsSilenced && !limitBreakOpen}
         autoHideMs={nagBubble?.variant === 'instant' ? INSTANT_NAG_BUBBLE_MS : undefined}
         onAutoClose={
           nagBubble?.variant === 'instant'
@@ -1597,7 +1632,7 @@ function App() {
         <span>고양이 집사에게 피드백 보내기</span>
       </a>
 
-      <div className={`modal ${analysisOpen ? '' : 'hidden'}`}>
+      <div className={`modal ${analysisOpen && !limitBreakOpen ? '' : 'hidden'}`}>
         <div className="modal-card analysis-modal-card">
           <h3>🐾 잔소리의 복리 효과</h3>
           <p className="analysis-intro-hero">{analysisText.intro}</p>

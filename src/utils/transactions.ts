@@ -73,3 +73,11 @@ export function getMonthSummary(records: TransactionRecord[], date = new Date())
 
   return { income, expense, saving, balance: income - expense - saving, carryoverIncome }
 }
+
+/** 해당 월 지출이 가용 예산(수입−저축+이월)을 초과했는지 */
+export function isMonthBudgetExceeded(records: TransactionRecord[], date: Date): boolean {
+  const summary = getMonthSummary(records, date)
+  const available = Math.max(0, summary.income - summary.saving + summary.carryoverIncome)
+  if (available > 0) return summary.expense > available
+  return summary.expense > 0
+}

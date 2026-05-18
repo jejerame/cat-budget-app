@@ -3928,17 +3928,15 @@ input[type='date']::-webkit-calendar-picker-indicator {
 
 .limit-break-shout {
   position: relative;
-  flex: 1;
-  min-width: 0;
-  max-width: min(240px, 58vw);
-  filter: drop-shadow(0 6px 16px rgba(180, 20, 20, 0.45));
+  flex-shrink: 0;
+  filter: drop-shadow(0 8px 18px rgba(180, 20, 20, 0.5));
   animation: limitBreakShoutPop 0.48s cubic-bezier(0.34, 1.4, 0.5, 1) 0.12s both;
 }
 
 @keyframes limitBreakShoutPop {
   from {
     opacity: 0;
-    transform: scale(0.75) rotate(-4deg);
+    transform: scale(0.55) rotate(-8deg);
   }
   to {
     opacity: 1;
@@ -3946,50 +3944,56 @@ input[type='date']::-webkit-calendar-picker-indicator {
   }
 }
 
-.limit-break-shout__inner {
+/* 만화 비명형 둥근 폭발 말풍선 */
+.limit-break-shout__burst {
   position: relative;
-  z-index: 1;
-  min-height: 108px;
-  padding: 14px 12px;
-  background: #ff1f1f;
+  box-sizing: border-box;
+  width: min(172px, 46vw);
+  height: min(172px, 46vw);
+  padding: 20px 16px;
+  background: #ff0000;
   clip-path: polygon(
-    6% 2%,
-    14% 10%,
-    24% 0%,
-    34% 9%,
-    44% 1%,
-    54% 11%,
-    64% 2%,
-    74% 10%,
-    84% 0%,
-    94% 8%,
-    100% 16%,
-    96% 26%,
-    100% 36%,
-    94% 46%,
-    100% 56%,
-    95% 66%,
-    100% 76%,
-    94% 86%,
-    100% 96%,
-    90% 100%,
-    80% 92%,
-    70% 100%,
-    60% 91%,
-    50% 100%,
-    40% 90%,
-    30% 100%,
-    20% 92%,
-    10% 100%,
-    2% 94%,
-    0% 84%,
-    6% 74%,
-    0% 64%,
-    5% 54%,
-    0% 44%,
-    6% 34%,
-    0% 24%,
-    4% 14%
+    50% 0%,
+    58% 6%,
+    66% 1%,
+    72% 9%,
+    81% 3%,
+    86% 12%,
+    95% 8%,
+    97% 18%,
+    100% 28%,
+    94% 34%,
+    100% 44%,
+    93% 50%,
+    99% 60%,
+    90% 64%,
+    96% 74%,
+    86% 78%,
+    92% 88%,
+    82% 90%,
+    86% 98%,
+    76% 94%,
+    72% 100%,
+    62% 96%,
+    56% 100%,
+    46% 95%,
+    38% 100%,
+    30% 94%,
+    22% 99%,
+    16% 92%,
+    10% 98%,
+    4% 90%,
+    0% 82%,
+    5% 74%,
+    0% 66%,
+    6% 58%,
+    1% 50%,
+    7% 42%,
+    0% 34%,
+    6% 26%,
+    1% 18%,
+    8% 10%,
+    4% 4%
   );
   display: flex;
   flex-direction: column;
@@ -3998,32 +4002,32 @@ input[type='date']::-webkit-calendar-picker-indicator {
   text-align: center;
 }
 
-.limit-break-shout__text {
-  margin: 0;
-  font-family: 'Gaegu', 'Malgun Gothic', cursive;
-  font-size: clamp(14px, 3.8vw, 17px);
-  font-weight: 700;
-  line-height: 1.35;
-  letter-spacing: -0.02em;
-  color: #ff2b2b;
-  -webkit-text-stroke: 0.45px #8f0505;
-  paint-order: stroke fill;
-  text-shadow:
-    0 0 8px rgba(255, 220, 220, 0.65),
-    0 1px 0 #6a0000;
-  word-break: keep-all;
-  overflow-wrap: break-word;
+.limit-break-shout__burst::after {
+  content: '';
+  position: absolute;
+  left: -14px;
+  bottom: 32%;
+  width: 20px;
+  height: 24px;
+  background: #ff0000;
+  clip-path: polygon(100% 15%, 0% 50%, 100% 85%);
+  z-index: -1;
 }
 
-.limit-break-shout__tail {
-  position: absolute;
-  left: -10px;
-  bottom: 28%;
-  width: 18px;
-  height: 22px;
-  background: #ff1f1f;
-  clip-path: polygon(100% 0%, 0% 50%, 100% 100%);
-  z-index: 0;
+.limit-break-shout__text {
+  margin: 0;
+  max-width: 92%;
+  font-family: 'Gaegu', 'Malgun Gothic', cursive;
+  font-size: clamp(13px, 3.5vw, 16px);
+  font-weight: 800;
+  line-height: 1.32;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+  text-shadow:
+    0 1px 0 rgba(120, 0, 0, 0.55),
+    0 0 12px rgba(255, 255, 200, 0.35);
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 .limit-break-actions {
