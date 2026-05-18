@@ -6,9 +6,11 @@ import { preloadNagBubbleImages } from './utils/preloadNagBubbleImages'
 import {
   applyBanPeriodChange,
   areNagsSilenced,
+  BAN_PERIOD_UI_OPTIONS,
   getNagMessageBanPeriod,
-  isActiveSilencePeriod,
+  isBanPeriodLocked,
   loadInitialBanPeriod,
+  normalizeSelectableBanPeriod,
 } from './utils/nagSilence'
 import { getEtfRecommendation } from './data/etfRecommendations'
 import {
@@ -861,7 +863,8 @@ function App() {
   }
 
   function onChangeBanPeriod(value: string): void {
-    const next = value as BanPeriod
+    const next = normalizeSelectableBanPeriod(value)
+    if (isBanPeriodLocked(next)) return
     setBanPeriod(next)
     applyBanPeriodChange(next)
   }
@@ -920,14 +923,9 @@ function App() {
           localStorage.setItem(NAG_INTENSITY_STORAGE_KEY, imported)
         }
         if (parsed.settings?.banPeriod) {
-          const imported = parsed.settings.banPeriod
-          if (imported === 'none') {
-            setBanPeriod('none')
-            applyBanPeriodChange('none')
-          } else if (isActiveSilencePeriod(imported)) {
-            setBanPeriod(imported)
-            applyBanPeriodChange(imported)
-          }
+          const imported = normalizeSelectableBanPeriod(parsed.settings.banPeriod)
+          setBanPeriod(imported)
+          applyBanPeriodChange(imported)
         }
         if (parsed.settings && [20, 30, 50, 70].includes(Number(parsed.settings.savingTargetRate))) {
           const nextRate = Number(parsed.settings.savingTargetRate)
@@ -1370,10 +1368,12 @@ function App() {
                   value={banPeriod}
                   onChange={(e) => onChangeBanPeriod(e.target.value)}
                 >
-                  <option value="none">없음 (잔소리 표시)</option>
-                  <option value="7days">7일 동안 잔소리 끄기</option>
-                  <option value="this-month">이번 달 남은 기간 잔소리 끄기</option>
-                  <option value="next-month">다음 달 전체 잔소리 끄기</option>
+                  {BAN_PERIOD_UI_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value} disabled={opt.locked}>
+                      {opt.label}
+                      {opt.locked ? ' (soon)' : ''}
+                    </option>
+                  ))}
                 </select>
               </label>
               <div className="settings-data-actions" aria-label="데이터 백업 및 복원">

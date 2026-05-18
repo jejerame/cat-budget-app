@@ -4,6 +4,34 @@ export const BAN_PERIOD_STORAGE_KEY = 'compound-ban-period'
 export const BAN_SILENCED_UNTIL_KEY = 'compound-ban-period-until'
 export const BAN_PERIOD_MIGRATION_V2_KEY = 'compound-ban-period-v2'
 
+export type BanPeriodUiOption = {
+  value: BanPeriod
+  label: string
+  locked: boolean
+}
+
+/** 설정 화면 옵션 (상위 2개는 유료 예정·비활성, 로직은 유지) */
+export const BAN_PERIOD_UI_OPTIONS: BanPeriodUiOption[] = [
+  { value: 'none', label: '없음 (잔소리 표시)', locked: false },
+  { value: '7days', label: '7일 동안 잔소리 끄기', locked: false },
+  { value: 'this-month', label: '이번 달 남은 기간 잔소리 끄기', locked: true },
+  { value: 'next-month', label: '다음 달 전체 잔소리 끄기', locked: true },
+]
+
+const lockedBanPeriods = new Set(
+  BAN_PERIOD_UI_OPTIONS.filter((o) => o.locked).map((o) => o.value),
+)
+
+export function isBanPeriodLocked(period: BanPeriod): boolean {
+  return lockedBanPeriods.has(period)
+}
+
+/** 현재 버전에서 선택·저장 가능한 값만 반환 */
+export function normalizeSelectableBanPeriod(stored: string | null | undefined): BanPeriod {
+  if (stored === 'none' || stored === '7days') return stored
+  return 'none'
+}
+
 export function isActiveSilencePeriod(value: string | null | undefined): value is BanPeriod {
   return value === '7days' || value === 'this-month' || value === 'next-month'
 }
@@ -80,20 +108,25 @@ export function loadInitialBanPeriod(): BanPeriod {
 
   try {
     const stored = localStorage.getItem(BAN_PERIOD_STORAGE_KEY)
-    if (stored === 'none') return 'none'
-    if (!isActiveSilencePeriod(stored)) return 'none'
-    if (!areNagsSilenced(stored)) {
+    const selectable = normalizeSelectableBanPeriod(stored)
+    if (selectable !== stored) {
+      localStorage.setItem(BAN_PERIOD_STORAGE_KEY, selectable)
+      if (selectable === 'none') clearSilenceWindow()
+    }
+    if (selectable === 'none') return 'none'
+    if (!areNagsSilenced(selectable)) {
       localStorage.setItem(BAN_PERIOD_STORAGE_KEY, 'none')
       clearSilenceWindow()
       return 'none'
     }
-    return stored
+    return selectable
   } catch {
     return 'none'
   }
 }
 
 export function applyBanPeriodChange(next: BanPeriod): void {
+  if (isBanPeriodLocked(next)) return
   try {
     localStorage.setItem(BAN_PERIOD_STORAGE_KEY, next)
   } catch {

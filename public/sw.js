@@ -1,4 +1,4 @@
-const CACHE_NAME = 'janso-cat-cache-v48'
+const CACHE_NAME = 'janso-cat-cache-v49'
 const CORE_ASSETS = ['/manifest.webmanifest', '/favicon.svg']
 
 self.addEventListener('install', (event) => {
