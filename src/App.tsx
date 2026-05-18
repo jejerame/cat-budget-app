@@ -101,7 +101,7 @@ const WEEKLY_SETTLEMENT_BUBBLE_STORAGE_PREFIX = 'weekly-settlement-bubble:v1:'
 /** 달력 연도 콤보: 거래가 없어도 선택 가능하도록 올해 기준 이전·이후 연도를 항상 포함 */
 const CALENDAR_YEAR_COMBO_PAST = 15
 const CALENDAR_YEAR_COMBO_FUTURE = 1
-const QUICK_MEMO_TAGS = ['외식', '배달', '해외여행', '이벤트', '경조사', '통신', '사료', '병원']
+const QUICK_MEMO_TAGS = ['커피', '택시', '외식', '배달', '해외여행', '이벤트', '경조사', '통신', '사료', '병원']
 const INCOME_BUBBLE_MESSAGES = [
   '이번 달도 고생했어.',
   '오늘도 번 만큼 대단해.',
