@@ -3878,13 +3878,22 @@ input[type='date']::-webkit-calendar-picker-indicator {
   }
 }
 
+.limit-break-preload {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .limit-break-scene-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 14px;
   width: min(100%, 420px);
-  animation: limitBreakSceneIn 0.45s cubic-bezier(0.34, 1.35, 0.5, 1) forwards;
+  animation: limitBreakSceneIn 0.35s cubic-bezier(0.34, 1.35, 0.5, 1) forwards;
 }
 
 @keyframes limitBreakSceneIn {
@@ -3936,19 +3945,8 @@ input[type='date']::-webkit-calendar-picker-indicator {
   filter: drop-shadow(0 8px 22px rgba(0, 0, 0, 0.4));
   transform-origin: 18% 88%;
   animation:
-    limitBreakMalPop 0.48s cubic-bezier(0.34, 1.4, 0.5, 1) 0.12s both,
-    limitBreakMalThreat 1.15s ease-in-out 0.6s infinite;
-}
-
-@keyframes limitBreakMalPop {
-  from {
-    opacity: 0;
-    transform: scale(0.55) rotate(-4deg);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) rotate(0deg);
-  }
+    limitBreakBegPop 0.5s cubic-bezier(0.34, 1.45, 0.47, 1) 0.05s both,
+    limitBreakMalThreat 1.15s ease-in-out 0.55s infinite;
 }
 
 @keyframes limitBreakMalThreat {

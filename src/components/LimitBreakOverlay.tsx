@@ -4,7 +4,9 @@ import malBubbleUrl from '../../mal.png'
 import { playLimitBreakBoom } from '../utils/limitBreakBoomSound'
 
 const LIMIT_BREAK_ARIA_LABEL =
-  '펑! 통장이 박살 났다. 담달 월급까지 삼시세끼 라면 먹으면서 숨만 쉬고 살아.'
+  '\uD398! \uD1B5\uC7A5\uC774 \uBC15\uC0B4 \uB0AC\uB2E4. \uB2F4\uB2EC \uC6D4\uAE09\uAE4C\uC9C0 \uC0BC\uC2DC\uC138\uB07C \uB77C\uBA74 \uBA39\uC73C\uBA74\uC11C \uC228\uB9CC \uC26C\uACE0 \uC0B4\uC544.'
+
+const SCENE_ASSET_URLS = [begCatUrl, malBubbleUrl] as const
 
 const EXPLOSION_MS = 1600
 
@@ -14,6 +16,14 @@ type LimitBreakOverlayProps = {
   open: boolean
   onClose: () => void
   onExplosionPhaseChange?: (active: boolean) => void
+}
+
+function preloadSceneAssets(): void {
+  SCENE_ASSET_URLS.forEach((url) => {
+    const img = new Image()
+    img.decoding = 'async'
+    img.src = url
+  })
 }
 
 export function LimitBreakOverlay({ open, onClose, onExplosionPhaseChange }: LimitBreakOverlayProps) {
@@ -37,6 +47,7 @@ export function LimitBreakOverlay({ open, onClose, onExplosionPhaseChange }: Lim
       return undefined
     }
 
+    preloadSceneAssets()
     setPhase('explosion')
     setDismissTaps(0)
     explosionCbRef.current?.(true)
@@ -66,6 +77,11 @@ export function LimitBreakOverlay({ open, onClose, onExplosionPhaseChange }: Lim
 
   return (
     <div className="limit-break-overlay" role="dialog" aria-modal="true" aria-labelledby="limit-break-title">
+      <div className="limit-break-preload" aria-hidden="true">
+        <img src={begCatUrl} alt="" decoding="async" fetchPriority="high" />
+        <img src={malBubbleUrl} alt="" decoding="async" fetchPriority="high" />
+      </div>
+
       {phase === 'explosion' ? (
         <div className="limit-break-explosion" aria-hidden>
           <span className="limit-break-burst limit-break-burst--core" />
@@ -73,7 +89,7 @@ export function LimitBreakOverlay({ open, onClose, onExplosionPhaseChange }: Lim
           {['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'].map((id) => (
             <span key={id} className={`limit-break-spark limit-break-spark--${id}`} />
           ))}
-          <p className="limit-break-boom-text">펑!</p>
+          <p className="limit-break-boom-text">{'\uD398!'}</p>
         </div>
       ) : null}
 
@@ -83,18 +99,20 @@ export function LimitBreakOverlay({ open, onClose, onExplosionPhaseChange }: Lim
             <p id="limit-break-title" className="limit-break-sr-only">
               {LIMIT_BREAK_ARIA_LABEL}
             </p>
-            <img src={begCatUrl} alt="" className="limit-break-beg" draggable={false} />
-            <img src={malBubbleUrl} alt="" className="limit-break-mal" draggable={false} />
+            <img src={begCatUrl} alt="" className="limit-break-beg" draggable={false} decoding="async" />
+            <img src={malBubbleUrl} alt="" className="limit-break-mal" draggable={false} decoding="async" />
           </div>
           <div className="limit-break-actions">
             <button type="button" className="limit-break-btn" onClick={handleDismissTap}>
-              정신 차리기
+              {'\uC815\uC2E0 \uCC28\uB9AC\uAE30'}
             </button>
             <button type="button" className="limit-break-btn limit-break-btn--alt" onClick={handleDismissTap}>
-              반성합니다
+              {'\uBC18\uC131\uD569\uB2C8\uB2E4'}
             </button>
           </div>
-          {dismissTaps === 1 ? <p className="limit-break-hint">한 번 더 눌러야 닫혀요</p> : null}
+          {dismissTaps === 1 ? (
+            <p className="limit-break-hint">{'\uD55C \uBC88 \uB354 \uB204\uB974\uC57C \uB2EB\uD600\uC694'}</p>
+          ) : null}
         </div>
       ) : null}
     </div>
