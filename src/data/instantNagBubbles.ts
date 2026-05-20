@@ -4,7 +4,7 @@ import { resolveContentIntensity } from './nagIntensity'
 /** 지출 저장 직후 말풍선(say1)용 — 카테고리 우선, 메모는 같은 카테고리 안에서만 보조 (문구 풀 = 스파르탄 라이트) */
 
 export const INSTANT_NAG_COFFEE = [
-  '또 마셨구나?',
+  '또 마셨어?',
   '또야? 내일 지켜본다',
   '차라리 커피숍을 차려라',
   '이 정도면 네 몸속에 피 대신 아메리카노가 흐르겠어.',
@@ -23,6 +23,7 @@ export const INSTANT_NAG_DELIVERY = [
   '치킨은 살 안 쪄. 너만 쪄.',
   '또 배달 시켰어? 배가 많이 고팠구나.',
   '라이더 분들이 너희 집 주소 외웠겠다. 그만 좀 불러라.',
+  '배달 끊어!',
 ] as const
 
 export const INSTANT_NAG_DINING = [

@@ -3240,9 +3240,18 @@ input[type='date']::-webkit-calendar-picker-indicator {
   transform-origin: 18% 100%;
 }
 
+.splash-cat-bubble-wrap--idle {
+  visibility: hidden;
+}
+
 .splash-cat-bubble-wrap--idle .splash-cat-bubble {
   opacity: 0;
   transform: scale(0.38);
+}
+
+.splash-cat-bubble-wrap--peak,
+.splash-cat-bubble-wrap--out {
+  visibility: visible;
 }
 
 .splash-cat-bubble-wrap--peak .splash-cat-bubble {
@@ -3804,57 +3813,6 @@ input[type='date']::-webkit-calendar-picker-indicator {
 
 .nag-bubble-card--embedded .nag-bubble-img {
   box-shadow: none;
-}
-
-/* —— 개발 테스트용 버튼 (배포 전 이 블록 삭제) —— */
-.monthly-settlement-dev-test {
-  position: fixed;
-  right: max(10px, env(safe-area-inset-right, 0px));
-  bottom: max(72px, calc(56px + env(safe-area-inset-bottom, 0px)));
-  z-index: 9999;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 6px;
-  max-width: min(100vw - 20px, 340px);
-  pointer-events: auto;
-}
-
-.monthly-settlement-dev-test__btn {
-  padding: 6px 9px;
-  border-radius: 999px;
-  border: 1px solid transparent;
-  font-size: 11px;
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-  white-space: nowrap;
-  cursor: pointer;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18);
-}
-
-.monthly-settlement-dev-test__btn--over {
-  color: #fff;
-  background: linear-gradient(180deg, #ff5a52 0%, #d62828 100%);
-  border-color: rgba(120, 12, 12, 0.45);
-}
-
-.monthly-settlement-dev-test__btn--good {
-  color: #fff;
-  background: linear-gradient(180deg, #3ecf7a 0%, #1f9d55 100%);
-  border-color: rgba(12, 90, 48, 0.45);
-}
-
-.monthly-settlement-dev-test__btn--weekly {
-  color: #fff;
-  background: linear-gradient(180deg, #6eb0ff 0%, #2f6fd4 100%);
-  border-color: rgba(18, 58, 120, 0.45);
-}
-
-.monthly-settlement-dev-test__btn:active {
-  transform: translateY(1px);
 }
 
 /* —— 한계 돌파 이벤트 (예산 100% 초과) —— */

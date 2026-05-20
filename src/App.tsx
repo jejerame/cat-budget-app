@@ -5,14 +5,11 @@ import { NagBubbleOverlay } from './components/NagBubbleOverlay'
 import { NagBubbleWarmup } from './components/NagBubbleWarmup'
 import { MonthlySettlementOverlay } from './components/MonthlySettlementOverlay'
 import { WeeklySettlementOverlay } from './components/WeeklySettlementOverlay'
-import { MonthlySettlementDevTestButtons } from './components/MonthlySettlementDevTestButtons'
 import {
   buildMonthlySettlement,
-  buildMonthlySettlementDevPreview,
   isLastDayOfMonth,
   monthlySettlementStorageKey,
   type MonthlySettlementContent,
-  type MonthlySettlementTone,
 } from './data/monthlySettlement'
 import { LimitBreakOverlay } from './components/LimitBreakOverlay'
 import { getInstantNagMessageForExpense, getPetInstantNagMessage } from './data/instantNagBubbles'
@@ -56,11 +53,7 @@ import {
   getRandomNagByAmount,
   getRedReflectionComment,
 } from './data/nagMessages'
-import {
-  buildWeeklySettlement,
-  buildWeeklySettlementDevPreview,
-  type WeeklySettlementContent,
-} from './data/weeklySettlement'
+import { buildWeeklySettlement, type WeeklySettlementContent } from './data/weeklySettlement'
 import { getCategoryLabel } from './data/spendingCategories'
 import {
   calculateTenYearCompoundValue,
@@ -1205,19 +1198,6 @@ function App() {
           return `conic-gradient(from -90deg, #2cd3a0 0deg ${t1}deg, #ff4d8d ${t1}deg ${t2}deg, #4e7bff ${t2}deg 360deg)`
         })()
 
-  // 개발 테스트용 — 배포 전 아래 함수 삭제
-  function previewMonthlySettlementForDev(tone: MonthlySettlementTone) {
-    setWeeklySettlement(null)
-    setNagBubble(null)
-    setMonthlySettlement(buildMonthlySettlementDevPreview(tone, transactions))
-  }
-
-  function previewWeeklySettlementForDev() {
-    setMonthlySettlement(null)
-    setNagBubble(null)
-    setWeeklySettlement(buildWeeklySettlementDevPreview(transactions, new Date(), nagIntensity))
-  }
-
   return (
     <>
       <NagBubbleWarmup />
@@ -1610,11 +1590,6 @@ function App() {
               )}
             </div>
             <p className="month-end-card__nag petty-nag-card__quote">{pettyNagQuote}</p>
-            {/* 개발 테스트용 버튼 — 배포 전 MonthlySettlementDevTestButtons 및 previewMonthlySettlementForDev 삭제 */}
-            <MonthlySettlementDevTestButtons
-              onPreviewMonthly={previewMonthlySettlementForDev}
-              onPreviewWeekly={previewWeeklySettlementForDev}
-            />
           </section>
           <footer className="app-disclaimer app-disclaimer--in-home" aria-label="투자 면책 조항">
             <span className="app-disclaimer-icon" aria-hidden="true">ⓘ</span>

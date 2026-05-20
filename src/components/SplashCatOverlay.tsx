@@ -89,7 +89,9 @@ export function SplashCatOverlay({ silenced = false, nagIntensity = 'spartian-li
           <img src={splashCatUrl} alt="" className={imgClass} draggable={false} />
           <div className={bubblePhaseClass}>
             <div className="splash-cat-bubble">
-              <p className="splash-cat-bubble-text">{bubbleTextRef.current}</p>
+              {phase !== 'idle' ? (
+                <p className="splash-cat-bubble-text">{bubbleTextRef.current}</p>
+              ) : null}
             </div>
           </div>
         </div>
