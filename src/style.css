@@ -3199,6 +3199,7 @@ input[type='date']::-webkit-calendar-picker-indicator {
   inset: 0;
   z-index: 199;
   pointer-events: none;
+  overflow: hidden;
 }
 
 .splash-cat-cluster {
@@ -3208,18 +3209,22 @@ input[type='date']::-webkit-calendar-picker-indicator {
   transform: translate(-50%, -50%);
   box-sizing: border-box;
   width: min(430px, calc(100vw - 20px));
-  max-width: 100%;
+  max-width: calc(100vw - 20px);
+  max-height: 90vh;
+  max-height: 90dvh;
   padding: 0 10px;
   display: flex;
   justify-content: center;
   align-items: flex-start;
+  overflow: hidden;
 }
 
 .splash-cat-figure {
   position: relative;
   display: block;
-  width: min(90%, clamp(200px, min(87vw, calc(min(430px, 100vw - 20px) * 0.88)), 400px));
-  max-width: min(90vw, 400px);
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto;
   line-height: 0;
   z-index: 0;
   isolation: isolate;
@@ -3324,9 +3329,10 @@ input[type='date']::-webkit-calendar-picker-indicator {
   z-index: 1;
   display: block;
   width: 100%;
-  max-width: 100%;
+  max-width: 360px;
   height: auto;
-  max-height: min(52dvh, 420px);
+  max-height: 420px;
+  max-height: min(52vh, 52dvh, 420px);
   margin: 0 auto;
   opacity: 0;
   transition: opacity 0.5s ease;
