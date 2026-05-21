@@ -3495,6 +3495,33 @@ input[type='date']::-webkit-calendar-picker-indicator {
   pointer-events: none;
 }
 
+/* 월세·대출이자·주거 cheer 3종 — 달력 영역 세로 중앙(전체 화면 중앙 X) */
+.nag-bubble-overlay.nag-bubble-overlay--calendar-center {
+  inset: auto;
+  left: 0;
+  right: 0;
+  top: clamp(176px, 32vh, 292px);
+  bottom: clamp(148px, 25vh, 248px);
+  width: 100%;
+  height: auto;
+  padding: 6px 12px;
+  align-items: center;
+  justify-content: center;
+}
+
+.nag-bubble-overlay--calendar-center .nag-bubble-card--cheer-only {
+  width: min(280px, calc(100vw - 24px));
+}
+
+.nag-bubble-overlay--calendar-center .nag-bubble-card--cheer-only .nag-bubble-visual {
+  max-height: min(56vh, 360px);
+}
+
+.nag-bubble-overlay--calendar-center .nag-bubble-card--cheer-only .nag-bubble-img {
+  max-height: min(56vh, 360px);
+  border-radius: 0;
+}
+
 .nag-bubble-card--ready .nag-bubble-img {
   opacity: 1;
 }

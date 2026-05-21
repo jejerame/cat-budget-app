@@ -41,6 +41,7 @@ export function NagBubbleOverlay({
   const [imagePainted, setImagePainted] = useState(false)
 
   const resolvedImageSrc = imageSrc ?? (variant === 'instant' ? say1Url : say2Url)
+  const isHousingCheer = imageOnly && Boolean(imageSrc)
   const housingClass = imageSrc || imageOnly ? ' nag-bubble-card--housing' : ''
   const cheerOnlyClass = imageOnly ? ' nag-bubble-card--cheer-only' : ''
   const showTextOverlay = !imageOnly && imagePainted
@@ -170,7 +171,7 @@ export function NagBubbleOverlay({
 
   return (
     <div
-      className={`nag-bubble-overlay nag-bubble-transparent nag-bubble-overlay--visible${showCardContent ? '' : ' nag-bubble-overlay--loading'}`}
+      className={`nag-bubble-overlay nag-bubble-transparent nag-bubble-overlay--visible${isHousingCheer ? ' nag-bubble-overlay--calendar-center' : ''}${showCardContent ? '' : ' nag-bubble-overlay--loading'}`}
       role="dialog"
       aria-modal="true"
       aria-live="polite"
