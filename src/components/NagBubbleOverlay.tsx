@@ -45,7 +45,9 @@ export function NagBubbleOverlay({
   const cheerOnlyClass = imageOnly ? ' nag-bubble-card--cheer-only' : ''
   const showTextOverlay = !imageOnly && imagePainted
   const showCardContent = imagePainted
-  const isLongText = text.length >= 34
+  const displayText = text.replace(/\s+/g, ' ').trim()
+  const isLongText = displayText.length >= 34
+  const isVeryLongText = displayText.length >= 58
 
   const showActive = visible || embedded
 
@@ -85,21 +87,32 @@ export function NagBubbleOverlay({
     const el = textRef.current
     if (!wrap || !el) return
 
-    const maxPx = isLongText ? (variant === 'instant' ? 20 : 21) : variant === 'instant' ? 22 : 23
-    const minPx = isLongText ? 10 : 11
+    const maxPx = isVeryLongText
+      ? variant === 'instant'
+        ? 17
+        : 18
+      : isLongText
+        ? variant === 'instant'
+          ? 19
+          : 20
+        : variant === 'instant'
+          ? 22
+          : 23
+    const minPx = isVeryLongText ? 8 : isLongText ? 9 : 11
     let size = maxPx
     el.style.fontSize = `${size}px`
-    el.style.lineHeight = '1.16'
+    el.style.lineHeight = isLongText ? '1.12' : '1.16'
     el.style.textAlign = 'center'
+    el.style.width = '100%'
 
-    for (let i = 0; i < 100 && size > minPx; i += 1) {
+    for (let i = 0; i < 120 && size > minPx; i += 1) {
       const overY = el.scrollHeight > wrap.clientHeight + 0.5
       const overX = el.scrollWidth > wrap.clientWidth + 0.5
       if (!overY && !overX) break
-      size -= 0.4
+      size -= isLongText ? 0.35 : 0.4
       el.style.fontSize = `${size}px`
     }
-  }, [showActive, showTextOverlay, text, variant, layoutTick, isLongText])
+  }, [showActive, showTextOverlay, displayText, variant, layoutTick, isLongText, isVeryLongText])
 
   useEffect(() => {
     if (!showActive || !imagePainted) return
@@ -119,14 +132,14 @@ export function NagBubbleOverlay({
 
   const card = (
     <div
-      className={`nag-bubble-card nag-bubble-transparent nag-bubble-card--${variant}${housingClass}${cheerOnlyClass}${isLongText ? ' nag-bubble-card--long-text' : ''}${showCardContent ? ' nag-bubble-card--ready' : ''}${embedded ? ' nag-bubble-card--embedded' : ''}`}
+      className={`nag-bubble-card nag-bubble-transparent nag-bubble-card--${variant}${housingClass}${cheerOnlyClass}${isLongText ? ' nag-bubble-card--long-text' : ''}${isVeryLongText ? ' nag-bubble-card--very-long-text' : ''}${showCardContent ? ' nag-bubble-card--ready' : ''}${embedded ? ' nag-bubble-card--embedded' : ''}`}
     >
       <div className="nag-bubble-visual nag-bubble-transparent">
         {showTextOverlay ? (
           <div ref={padRef} className="nag-bubble-text-layer">
             <div className="nag-bubble-text-inner">
               <p ref={textRef} className="nag-bubble-text text-center">
-                {text}
+                {displayText}
               </p>
             </div>
           </div>

@@ -3531,25 +3531,48 @@ input[type='date']::-webkit-calendar-picker-indicator {
 
 /* 긴 잔소리 문구 — 말풍선·텍스트 영역 확대 */
 .nag-bubble-card--long-text {
-  width: min(420px, calc(100vw - 16px));
+  width: min(440px, calc(100vw - 12px));
+}
+
+.nag-bubble-card--very-long-text {
+  width: min(480px, calc(100vw - 8px));
 }
 
 .nag-bubble-card--long-text .nag-bubble-visual {
-  aspect-ratio: 1 / 1.1;
+  aspect-ratio: 1 / 1.08;
+}
+
+.nag-bubble-card--very-long-text .nag-bubble-visual {
+  aspect-ratio: 1 / 1.02;
+  min-height: min(400px, 88vw);
 }
 
 .nag-bubble-card--long-text.nag-bubble-card--instant .nag-bubble-text-layer {
-  top: 7%;
-  right: 42%;
-  bottom: 46%;
-  left: 11%;
+  top: 5%;
+  right: 36%;
+  bottom: 44%;
+  left: 9%;
+}
+
+.nag-bubble-card--very-long-text.nag-bubble-card--instant .nag-bubble-text-layer {
+  top: 4%;
+  right: 34%;
+  bottom: 42%;
+  left: 8%;
 }
 
 .nag-bubble-card--long-text.nag-bubble-card--weekly .nag-bubble-text-layer {
-  top: 5%;
-  right: 10%;
-  bottom: 42%;
-  left: 10%;
+  top: 4%;
+  right: 9%;
+  bottom: 40%;
+  left: 9%;
+}
+
+.nag-bubble-card--very-long-text.nag-bubble-card--weekly .nag-bubble-text-layer {
+  top: 3%;
+  right: 8%;
+  bottom: 38%;
+  left: 8%;
 }
 
 .nag-bubble-card--instant:not(.nag-bubble-card--ready) {
@@ -3610,20 +3633,24 @@ input[type='date']::-webkit-calendar-picker-indicator {
 }
 
 .nag-bubble-card--long-text .nag-bubble-text-layer {
-  padding: clamp(12px, 4%, 22px) clamp(16px, 6%, 30px);
+  padding: clamp(10px, 3.5%, 18px) clamp(12px, 5%, 24px);
+}
+
+.nag-bubble-card--very-long-text .nag-bubble-text-layer {
+  padding: clamp(8px, 3%, 16px) clamp(10px, 4.5%, 20px);
 }
 
 .nag-bubble-card--instant .nag-bubble-text-layer {
-  top: 9%;
+  top: 8%;
   right: 44%;
-  bottom: 51%;
+  bottom: 52%;
   left: 12%;
 }
 
 .nag-bubble-card--weekly .nag-bubble-text-layer {
-  top: 6%;
+  top: 5%;
   right: 12%;
-  bottom: 46%;
+  bottom: 47%;
   left: 12%;
 }
 
@@ -3636,6 +3663,7 @@ input[type='date']::-webkit-calendar-picker-indicator {
   align-items: center;
   text-align: center;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* 주거 cheer PNG — 지출 토스트(cat-toast)와 비슷한 크기로 화면 안에 수납 */
@@ -3669,11 +3697,17 @@ input[type='date']::-webkit-calendar-picker-indicator {
   text-align: center;
 }
 
+.nag-bubble-card--long-text .nag-bubble-text,
+.nag-bubble-card--very-long-text .nag-bubble-text {
+  width: 100%;
+  line-height: 1.12;
+}
+
 .nag-bubble-text {
   position: relative;
   z-index: 1;
   margin: 0;
-  width: auto;
+  width: 100%;
   max-width: 100%;
   min-width: 0;
   max-height: 100%;
