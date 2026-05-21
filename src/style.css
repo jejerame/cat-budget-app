@@ -3503,7 +3503,48 @@ input[type='date']::-webkit-calendar-picker-indicator {
   pointer-events: none;
 }
 
-/* 월세·대출이자 cheer — .calendar-zone 프레임 안 정중앙 */
+/* 월세·대출이자 cheer — 달력 프레임 rect 기준 정중앙 (PWA·앱) */
+.nag-bubble-overlay.nag-bubble-overlay--calendar-frame {
+  position: fixed;
+  inset: unset;
+  z-index: 206;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 6px;
+  box-sizing: border-box;
+}
+
+.nag-bubble-overlay--calendar-frame:not(.nag-bubble-overlay--loading) {
+  pointer-events: auto;
+}
+
+.nag-bubble-overlay--calendar-frame .nag-bubble-card--cheer-only {
+  width: min(100%, 268px);
+  max-height: 100%;
+}
+
+.nag-bubble-overlay--calendar-frame .nag-bubble-card--cheer-only .nag-bubble-visual {
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  aspect-ratio: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nag-bubble-overlay--calendar-frame .nag-bubble-card--cheer-only .nag-bubble-img {
+  position: static;
+  inset: auto;
+  width: auto;
+  max-width: 100%;
+  max-height: 100%;
+  height: auto;
+  border-radius: 0;
+}
+
+/* 월세·대출이자 cheer — .calendar-zone 자식 절대 위치 (폴백) */
 .nag-bubble-overlay.nag-bubble-overlay--in-calendar-frame {
   position: absolute;
   inset: 0;

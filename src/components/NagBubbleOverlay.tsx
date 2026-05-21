@@ -6,6 +6,13 @@ import { playNagBubblePop } from '../utils/nagBubblePopSound'
 
 export type NagBubbleVariant = 'instant' | 'weekly'
 
+export type CalendarFrameRect = {
+  top: number
+  left: number
+  width: number
+  height: number
+}
+
 type NagBubbleOverlayProps = {
   variant: NagBubbleVariant
   text: string
@@ -18,6 +25,8 @@ type NagBubbleOverlayProps = {
   embedded?: boolean
   /** `.calendar-zone` 안에 절대 위치 — 달력 프레임 정중앙 */
   calendarAnchored?: boolean
+  /** 달력 프레임 getBoundingClientRect — PWA에서 홈 화면 달력 정중앙 고정 */
+  calendarFrameRect?: CalendarFrameRect | null
   autoHideMs?: number
   onAutoClose?: () => void
   showConfirm?: boolean
@@ -32,6 +41,7 @@ export function NagBubbleOverlay({
   imageOnly = false,
   embedded = false,
   calendarAnchored = false,
+  calendarFrameRect = null,
   autoHideMs,
   onAutoClose,
   showConfirm,
@@ -171,9 +181,20 @@ export function NagBubbleOverlay({
     return card
   }
 
+  const calendarFrameStyle =
+    calendarFrameRect && calendarFrameRect.width > 0 && calendarFrameRect.height > 0
+      ? {
+          top: `${calendarFrameRect.top}px`,
+          left: `${calendarFrameRect.left}px`,
+          width: `${calendarFrameRect.width}px`,
+          height: `${calendarFrameRect.height}px`,
+        }
+      : undefined
+
   return (
     <div
-      className={`nag-bubble-overlay nag-bubble-transparent nag-bubble-overlay--visible${calendarAnchored ? ' nag-bubble-overlay--in-calendar-frame' : ''}${showCardContent ? '' : ' nag-bubble-overlay--loading'}`}
+      className={`nag-bubble-overlay nag-bubble-transparent nag-bubble-overlay--visible${calendarFrameRect ? ' nag-bubble-overlay--calendar-frame' : ''}${calendarAnchored ? ' nag-bubble-overlay--in-calendar-frame' : ''}${showCardContent ? '' : ' nag-bubble-overlay--loading'}`}
+      style={calendarFrameStyle}
       role="dialog"
       aria-modal="true"
       aria-live="polite"

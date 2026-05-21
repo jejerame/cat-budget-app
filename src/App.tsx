@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { flushSync } from 'react-dom'
 import { SplashCatOverlay } from './components/SplashCatOverlay'
-import { NagBubbleOverlay } from './components/NagBubbleOverlay'
+import { CatToastWarmup } from './components/CatToastWarmup'
+import { NagBubbleOverlay, type CalendarFrameRect } from './components/NagBubbleOverlay'
 import { NagBubbleWarmup } from './components/NagBubbleWarmup'
 import { MonthlySettlementOverlay } from './components/MonthlySettlementOverlay'
 import { WeeklySettlementOverlay } from './components/WeeklySettlementOverlay'
@@ -97,9 +98,12 @@ import bookCatUrl from '../book.png'
 import tourCatUrl from '../tour.png'
 import dateCoupleCatUrl from '../date1.png'
 import dogCatUrl from '../dog.png'
-import popupExpenseUrl from '../popup1.png'
-import popupSavingGoodUrl from '../popup2.png'
-import popupSavingBadUrl from '../popup3.png'
+import {
+  popupExpenseUrl,
+  popupSavingBadUrl,
+  popupSavingGoodUrl,
+  ensurePopupToastImageReady,
+} from './utils/preloadPopupToastImages'
 import delBtnUrl from '../del.png'
 import canBtnUrl from '../can.png'
 import checkCatUrl from '../check.png'
@@ -390,6 +394,9 @@ function App() {
   const categories = selectedType === 'expense' ? expenseCategories : selectedType === 'income' ? incomeCategories : savingCategories
   const redBlinkTimeoutRef = useRef<number | null>(null)
   const toastTimeoutRef = useRef<number | null>(null)
+  const toastShowTokenRef = useRef(0)
+  const calendarZoneRef = useRef<HTMLElement | null>(null)
+  const [calendarFrameRect, setCalendarFrameRect] = useState<CalendarFrameRect | null>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
   const expenseSelectStreakRef = useRef(0)
   const importFileInputRef = useRef<HTMLInputElement | null>(null)
@@ -714,17 +721,27 @@ function App() {
 
   function showCatToast(imageSrc: string, variant: ToastVariant): void {
     if (nagsSilenced) return
-    setToastImageSrc(imageSrc)
-    setToastVariant(variant)
-    setToastVisible(true)
-    playToastSound('in')
-    if (toastTimeoutRef.current) {
-      window.clearTimeout(toastTimeoutRef.current)
-    }
-    toastTimeoutRef.current = window.setTimeout(() => {
-      setToastVisible(false)
-      playToastSound('out')
-    }, 1500)
+    const token = toastShowTokenRef.current + 1
+    toastShowTokenRef.current = token
+    setToastVisible(false)
+    void ensurePopupToastImageReady(imageSrc).then(() => {
+      if (toastShowTokenRef.current !== token) return
+      setToastImageSrc(imageSrc)
+      setToastVariant(variant)
+      requestAnimationFrame(() => {
+        if (toastShowTokenRef.current !== token) return
+        setToastVisible(true)
+        playToastSound('in')
+      })
+      if (toastTimeoutRef.current) {
+        window.clearTimeout(toastTimeoutRef.current)
+      }
+      toastTimeoutRef.current = window.setTimeout(() => {
+        if (toastShowTokenRef.current !== token) return
+        setToastVisible(false)
+        playToastSound('out')
+      }, 1500)
+    })
   }
 
   function getAudioContext(): AudioContext | null {
@@ -942,7 +959,6 @@ function App() {
     setTransactions(updated)
     saveTransactions(updated)
     resetEntryFormForNew()
-    setScreen('home')
 
     if (selectedType === 'expense' && !nagsSilenced && !limitBreakOpen) {
       const expenseMonth = dateKeyToLocalDate(entryDate)
@@ -963,24 +979,26 @@ function App() {
 
         pendingCompoundAfterInstantRef.current =
           amount >= HIGH_EXPENSE_COMPOUND_THRESHOLD ? { amount, category, memo: normalizedMemo } : null
-        if (category === 'housing') {
-          const housingKey = resolveHousingCheerKey(normalizedMemo)
-          flushSync(() =>
+        const housingKey = category === 'housing' ? resolveHousingCheerKey(normalizedMemo) : null
+        flushSync(() => {
+          setScreen('home')
+          if (housingKey) {
             setNagBubble({
               text: getHousingCheerAriaLabel(housingKey),
               imageSrc: getHousingCheerImageUrl(housingKey),
               imageOnly: true,
-            }),
-          )
-        } else {
-          flushSync(() =>
+            })
+          } else {
             setNagBubble({
               text: getInstantNagMessageForExpense(category, normalizedMemo, amount, nagIntensity),
-            }),
-          )
-        }
+            })
+          }
+        })
+        return
       }
     }
+
+    flushSync(() => setScreen('home'))
   }
 
   function openEntryForDate(dateKey: string): void {
@@ -1210,7 +1228,40 @@ function App() {
 
   const sayNagBubbleVisible = instantNagOverlayVisible && !housingCheerNagActive
 
-  const housingCheerInCalendar = housingCheerNagActive && screen === 'home'
+  const housingCheerOnHome = housingCheerNagActive && screen === 'home'
+
+  useLayoutEffect(() => {
+    if (!housingCheerOnHome) {
+      setCalendarFrameRect(null)
+      return
+    }
+
+    const update = (): void => {
+      const el = calendarZoneRef.current
+      if (!el) return
+      const rect = el.getBoundingClientRect()
+      if (rect.width < 8 || rect.height < 8) return
+      setCalendarFrameRect({
+        top: rect.top,
+        left: rect.left,
+        width: rect.width,
+        height: rect.height,
+      })
+    }
+
+    update()
+    const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(update) : null
+    const zone = calendarZoneRef.current
+    if (zone && observer) observer.observe(zone)
+    window.addEventListener('resize', update)
+    window.addEventListener('scroll', update, true)
+
+    return () => {
+      observer?.disconnect()
+      window.removeEventListener('resize', update)
+      window.removeEventListener('scroll', update, true)
+    }
+  }, [housingCheerOnHome, selectedCalendarYear, selectedCalendarMonth, settingsOpen])
 
   function closeInstantNagBubble(): void {
     const pending = pendingCompoundAfterInstantRef.current
@@ -1226,6 +1277,7 @@ function App() {
   return (
     <>
       <NagBubbleWarmup />
+      <CatToastWarmup />
       <SplashCatOverlay silenced={nagsSilenced} nagIntensity={nagIntensity} />
       <LimitBreakOverlay
         open={limitBreakOpen}
@@ -1248,10 +1300,22 @@ function App() {
         text={nagBubble?.text ?? ''}
         imageSrc={nagBubble?.imageSrc}
         imageOnly={nagBubble?.imageOnly}
-        visible={sayNagBubbleVisible || (housingCheerNagActive && screen !== 'home')}
+        visible={sayNagBubbleVisible}
         autoHideMs={INSTANT_NAG_BUBBLE_MS}
         onAutoClose={closeInstantNagBubble}
       />
+      {housingCheerOnHome ? (
+        <NagBubbleOverlay
+          variant="instant"
+          text={nagBubble?.text ?? ''}
+          imageSrc={nagBubble?.imageSrc}
+          imageOnly={nagBubble?.imageOnly}
+          calendarFrameRect={calendarFrameRect}
+          visible={Boolean(calendarFrameRect)}
+          autoHideMs={INSTANT_NAG_BUBBLE_MS}
+          onAutoClose={closeInstantNagBubble}
+        />
+      ) : null}
       <main className="app-shell">
         <section className={`screen ${screen === 'home' ? 'active' : ''} home-screen`}>
           <div className="home-sticky-through-settings">
@@ -1377,7 +1441,7 @@ function App() {
 
           </section>
 
-          <section className="calendar-zone">
+          <section className="calendar-zone" ref={calendarZoneRef}>
             <section className="monthly-calendar" aria-label="월간 캘린더">
               <div className="calendar-weekdays">
                 {WEEKDAY_LABELS.map((label) => (
@@ -1474,18 +1538,6 @@ function App() {
                 })}
               </div>
             </section>
-            {housingCheerInCalendar ? (
-              <NagBubbleOverlay
-                variant="instant"
-                calendarAnchored
-                text={nagBubble?.text ?? ''}
-                imageSrc={nagBubble?.imageSrc}
-                imageOnly={nagBubble?.imageOnly}
-                visible={housingCheerInCalendar}
-                autoHideMs={INSTANT_NAG_BUBBLE_MS}
-                onAutoClose={closeInstantNagBubble}
-              />
-            ) : null}
           </section>
           <div className="settings-toggle-bar" aria-label="설정 및 화면 모드">
             <button
