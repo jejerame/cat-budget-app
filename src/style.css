@@ -1913,8 +1913,24 @@ input[type='date']::-webkit-calendar-picker-indicator {
   }
 }
 
+.cat-toast-preload {
+  position: fixed;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.cat-toast-preload img {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+}
+
 /* 지출·저축 입력 잔소리(popup1~3) — 누끼 PNG만 표시, 컨테이너 완전 투명 */
-.cat-toast {
+.cat-toast,
+.cat-toast-transparent {
   position: fixed;
   left: 50%;
   top: 50%;
@@ -3778,7 +3794,7 @@ input[type='date']::-webkit-calendar-picker-indicator {
   width: 100%;
   height: auto;
   max-height: min(52vh, 320px);
-  border-radius: 18px;
+  border-radius: 0;
   object-fit: contain;
   box-shadow: none;
   background: transparent;

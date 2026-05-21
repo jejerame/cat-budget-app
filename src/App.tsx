@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { flushSync } from 'react-dom'
 import { SplashCatOverlay } from './components/SplashCatOverlay'
+import { CatToast, type CatToastVariant } from './components/CatToast'
 import { CatToastWarmup } from './components/CatToastWarmup'
 import { NagBubbleOverlay, type CalendarFrameRect } from './components/NagBubbleOverlay'
 import { NagBubbleWarmup } from './components/NagBubbleWarmup'
@@ -103,6 +104,7 @@ import {
   popupSavingBadUrl,
   popupSavingGoodUrl,
   ensurePopupToastImageReady,
+  preloadPopupToastImages,
 } from './utils/preloadPopupToastImages'
 import delBtnUrl from '../del.png'
 import canBtnUrl from '../can.png'
@@ -206,7 +208,6 @@ function isRedTransaction(item: TransactionRecord): boolean {
 }
 type Screen = 'home' | 'entry' | 'category'
 type DashboardCardType = 'income' | 'expense' | 'saving' | 'balance'
-type ToastVariant = 'expense' | 'saving'
 type AnalysisContent = {
   intro: string
   expenseAmount: string
@@ -297,8 +298,8 @@ function App() {
   const [typeNagMessage, setTypeNagMessage] = useState('')
   const [pendingTypeAfterNag, setPendingTypeAfterNag] = useState<TransactionType | null>(null)
   const [toastImageSrc, setToastImageSrc] = useState('')
-  const [toastVariant, setToastVariant] = useState<ToastVariant>('expense')
-  const [toastVisible, setToastVisible] = useState(false)
+  const [toastVariant, setToastVariant] = useState<CatToastVariant>('expense')
+  const [toastOpen, setToastOpen] = useState(false)
   const [redWarningPhase, setRedWarningPhase] = useState<'idle' | 'blinking' | 'steady'>('idle')
   const [limitBreakOpen, setLimitBreakOpen] = useState(false)
   const [limitBreakGaugeFlash, setLimitBreakGaugeFlash] = useState(false)
@@ -632,7 +633,7 @@ function App() {
     pendingCompoundAfterInstantRef.current = null
     setAnalysisOpen(false)
     setRedReflectionOpen(false)
-    setToastVisible(false)
+    setToastOpen(false)
     setToastImageSrc('')
   }, [nagsSilenced])
 
@@ -719,29 +720,29 @@ function App() {
     return () => window.clearTimeout(id)
   }, [nagsSilenced, nagBubble, monthlySettlement, weeklySettlement, screen, transactions, nagIntensity])
 
-  function showCatToast(imageSrc: string, variant: ToastVariant): void {
+  function showCatToast(imageSrc: string, variant: CatToastVariant): void {
     if (nagsSilenced) return
     const token = toastShowTokenRef.current + 1
     toastShowTokenRef.current = token
-    setToastVisible(false)
+    setToastOpen(false)
+    setToastImageSrc(imageSrc)
+    setToastVariant(variant)
     void ensurePopupToastImageReady(imageSrc).then(() => {
       if (toastShowTokenRef.current !== token) return
-      setToastImageSrc(imageSrc)
-      setToastVariant(variant)
-      requestAnimationFrame(() => {
-        if (toastShowTokenRef.current !== token) return
-        setToastVisible(true)
-        playToastSound('in')
-      })
+      setToastOpen(true)
       if (toastTimeoutRef.current) {
         window.clearTimeout(toastTimeoutRef.current)
       }
       toastTimeoutRef.current = window.setTimeout(() => {
         if (toastShowTokenRef.current !== token) return
-        setToastVisible(false)
+        setToastOpen(false)
         playToastSound('out')
       }, 1500)
     })
+  }
+
+  function handleCatToastPaint(): void {
+    playToastSound('in')
   }
 
   function getAudioContext(): AudioContext | null {
@@ -1229,6 +1230,12 @@ function App() {
   const sayNagBubbleVisible = instantNagOverlayVisible && !housingCheerNagActive
 
   const housingCheerOnHome = housingCheerNagActive && screen === 'home'
+
+  useEffect(() => {
+    if (screen === 'entry' || screen === 'category') {
+      void preloadPopupToastImages()
+    }
+  }, [screen])
 
   useLayoutEffect(() => {
     if (!housingCheerOnHome) {
@@ -2073,9 +2080,12 @@ function App() {
         </div>
       </div>
 
-      <div className={`cat-toast ${toastVariant === 'saving' ? 'cat-toast-saving' : ''} ${toastImageSrc ? '' : 'hidden'} ${toastVisible ? 'show' : 'hide'}`} aria-live="polite">
-        {toastImageSrc && <img src={toastImageSrc} alt="" aria-hidden="true" />}
-      </div>
+      <CatToast
+        imageSrc={toastImageSrc}
+        variant={toastVariant}
+        open={toastOpen && Boolean(toastImageSrc)}
+        onPaint={handleCatToastPaint}
+      />
 
       <div className={`modal ${redReflectionOpen ? '' : 'hidden'}`}>
         <div className="modal-card dashboard-modal red-reflection-modal">
