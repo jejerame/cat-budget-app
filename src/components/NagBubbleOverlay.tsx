@@ -90,6 +90,7 @@ export function NagBubbleOverlay({
     let size = maxPx
     el.style.fontSize = `${size}px`
     el.style.lineHeight = '1.16'
+    el.style.textAlign = 'center'
 
     for (let i = 0; i < 100 && size > minPx; i += 1) {
       const overY = el.scrollHeight > wrap.clientHeight + 0.5
@@ -118,20 +119,17 @@ export function NagBubbleOverlay({
 
   const card = (
     <div
-      className={`nag-bubble-card nag-bubble-card--${variant}${housingClass}${cheerOnlyClass}${isLongText ? ' nag-bubble-card--long-text' : ''}${showCardContent ? ' nag-bubble-card--ready' : ''}${embedded ? ' nag-bubble-card--embedded' : ''}`}
+      className={`nag-bubble-card nag-bubble-transparent nag-bubble-card--${variant}${housingClass}${cheerOnlyClass}${isLongText ? ' nag-bubble-card--long-text' : ''}${showCardContent ? ' nag-bubble-card--ready' : ''}${embedded ? ' nag-bubble-card--embedded' : ''}`}
     >
-      <div className="nag-bubble-visual">
+      <div className="nag-bubble-visual nag-bubble-transparent">
         {showTextOverlay ? (
-          <>
-            <div className="nag-bubble-text-pad" aria-hidden>
-              <div className="nag-bubble-text-fill" />
-            </div>
-            <div ref={padRef} className="nag-bubble-text-layer">
+          <div ref={padRef} className="nag-bubble-text-layer">
+            <div className="nag-bubble-text-inner">
               <p ref={textRef} className="nag-bubble-text text-center">
                 {text}
               </p>
             </div>
-          </>
+          </div>
         ) : null}
         <img
           ref={imgElRef}
@@ -159,7 +157,7 @@ export function NagBubbleOverlay({
 
   return (
     <div
-      className={`nag-bubble-overlay nag-bubble-overlay--visible${showCardContent ? '' : ' nag-bubble-overlay--loading'}`}
+      className={`nag-bubble-overlay nag-bubble-transparent nag-bubble-overlay--visible${showCardContent ? '' : ' nag-bubble-overlay--loading'}`}
       role="dialog"
       aria-modal="true"
       aria-live="polite"

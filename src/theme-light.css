@@ -172,8 +172,14 @@
 }
 
 [data-theme='light'] .nag-bubble-overlay,
+[data-theme='light'] .nag-bubble-card,
+[data-theme='light'] .nag-bubble-visual,
+[data-theme='light'] .nag-bubble-img,
 [data-theme='light'] .monthly-settlement-overlay {
   background: transparent;
+  border: none;
+  box-shadow: none;
+  filter: none;
 }
 
 [data-theme='light'] .app-disclaimer {
