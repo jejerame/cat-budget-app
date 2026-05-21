@@ -16,6 +16,8 @@ type NagBubbleOverlayProps = {
   imageOnly?: boolean
   /** 주간 결산 카드 안에 말풍선만 삽입 */
   embedded?: boolean
+  /** `.calendar-zone` 안에 절대 위치 — 달력 프레임 정중앙 */
+  calendarAnchored?: boolean
   autoHideMs?: number
   onAutoClose?: () => void
   showConfirm?: boolean
@@ -29,6 +31,7 @@ export function NagBubbleOverlay({
   imageSrc,
   imageOnly = false,
   embedded = false,
+  calendarAnchored = false,
   autoHideMs,
   onAutoClose,
   showConfirm,
@@ -41,7 +44,6 @@ export function NagBubbleOverlay({
   const [imagePainted, setImagePainted] = useState(false)
 
   const resolvedImageSrc = imageSrc ?? (variant === 'instant' ? say1Url : say2Url)
-  const isHousingCheer = imageOnly && Boolean(imageSrc)
   const housingClass = imageSrc || imageOnly ? ' nag-bubble-card--housing' : ''
   const cheerOnlyClass = imageOnly ? ' nag-bubble-card--cheer-only' : ''
   const showTextOverlay = !imageOnly && imagePainted
@@ -171,7 +173,7 @@ export function NagBubbleOverlay({
 
   return (
     <div
-      className={`nag-bubble-overlay nag-bubble-transparent nag-bubble-overlay--visible${isHousingCheer ? ' nag-bubble-overlay--calendar-center' : ''}${showCardContent ? '' : ' nag-bubble-overlay--loading'}`}
+      className={`nag-bubble-overlay nag-bubble-transparent nag-bubble-overlay--visible${calendarAnchored ? ' nag-bubble-overlay--in-calendar-frame' : ''}${showCardContent ? '' : ' nag-bubble-overlay--loading'}`}
       role="dialog"
       aria-modal="true"
       aria-live="polite"

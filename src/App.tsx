@@ -1198,6 +1198,31 @@ function App() {
           return `conic-gradient(from -90deg, #2cd3a0 0deg ${t1}deg, #ff4d8d ${t1}deg ${t2}deg, #4e7bff ${t2}deg 360deg)`
         })()
 
+  const instantNagOverlayVisible =
+    Boolean(nagBubble) &&
+    !nagsSilenced &&
+    !limitBreakOpen &&
+    !monthlySettlement &&
+    !weeklySettlement
+
+  const housingCheerNagActive =
+    instantNagOverlayVisible && Boolean(nagBubble?.imageOnly && nagBubble?.imageSrc)
+
+  const sayNagBubbleVisible = instantNagOverlayVisible && !housingCheerNagActive
+
+  const housingCheerInCalendar = housingCheerNagActive && screen === 'home'
+
+  function closeInstantNagBubble(): void {
+    const pending = pendingCompoundAfterInstantRef.current
+    pendingCompoundAfterInstantRef.current = null
+    setNagBubble(null)
+    if (pending) {
+      window.setTimeout(() => {
+        openAnalysis(pending.amount, 'expense', pending.category, pending.memo)
+      }, 0)
+    }
+  }
+
   return (
     <>
       <NagBubbleWarmup />
@@ -1223,24 +1248,9 @@ function App() {
         text={nagBubble?.text ?? ''}
         imageSrc={nagBubble?.imageSrc}
         imageOnly={nagBubble?.imageOnly}
-        visible={
-          Boolean(nagBubble) &&
-          !nagsSilenced &&
-          !limitBreakOpen &&
-          !monthlySettlement &&
-          !weeklySettlement
-        }
+        visible={sayNagBubbleVisible || (housingCheerNagActive && screen !== 'home')}
         autoHideMs={INSTANT_NAG_BUBBLE_MS}
-        onAutoClose={() => {
-          const pending = pendingCompoundAfterInstantRef.current
-          pendingCompoundAfterInstantRef.current = null
-          setNagBubble(null)
-          if (pending) {
-            window.setTimeout(() => {
-              openAnalysis(pending.amount, 'expense', pending.category, pending.memo)
-            }, 0)
-          }
-        }}
+        onAutoClose={closeInstantNagBubble}
       />
       <main className="app-shell">
         <section className={`screen ${screen === 'home' ? 'active' : ''} home-screen`}>
@@ -1464,6 +1474,18 @@ function App() {
                 })}
               </div>
             </section>
+            {housingCheerInCalendar ? (
+              <NagBubbleOverlay
+                variant="instant"
+                calendarAnchored
+                text={nagBubble?.text ?? ''}
+                imageSrc={nagBubble?.imageSrc}
+                imageOnly={nagBubble?.imageOnly}
+                visible={housingCheerInCalendar}
+                autoHideMs={INSTANT_NAG_BUBBLE_MS}
+                onAutoClose={closeInstantNagBubble}
+              />
+            ) : null}
           </section>
           <div className="settings-toggle-bar" aria-label="설정 및 화면 모드">
             <button
