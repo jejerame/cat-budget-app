@@ -3508,6 +3508,9 @@ input[type='date']::-webkit-calendar-picker-indicator {
   flex-direction: column;
   align-items: center;
   gap: 12px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 /* 긴 잔소리 문구 — 말풍선·텍스트 영역 확대 */
@@ -3519,12 +3522,20 @@ input[type='date']::-webkit-calendar-picker-indicator {
   aspect-ratio: 1 / 1.1;
 }
 
-.nag-bubble-card--long-text.nag-bubble-card--instant .nag-bubble-text-pad {
-  padding: 7% 46% 44% 5%;
+.nag-bubble-card--long-text.nag-bubble-card--instant .nag-bubble-text-pad,
+.nag-bubble-card--long-text.nag-bubble-card--instant .nag-bubble-text-layer {
+  top: 8%;
+  right: 48%;
+  bottom: 46%;
+  left: 6%;
 }
 
-.nag-bubble-card--long-text.nag-bubble-card--weekly .nag-bubble-text-pad {
-  padding: 6% 9% 38% 9%;
+.nag-bubble-card--long-text.nag-bubble-card--weekly .nag-bubble-text-pad,
+.nag-bubble-card--long-text.nag-bubble-card--weekly .nag-bubble-text-layer {
+  top: 7%;
+  right: 10%;
+  bottom: 40%;
+  left: 10%;
 }
 
 .nag-bubble-card--instant:not(.nag-bubble-card--ready) {
@@ -3555,8 +3566,9 @@ input[type='date']::-webkit-calendar-picker-indicator {
 }
 
 .nag-bubble-img {
-  position: relative;
-  z-index: 3;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
   width: 100%;
   height: 100%;
   display: block;
@@ -3564,60 +3576,75 @@ input[type='date']::-webkit-calendar-picker-indicator {
   border-radius: 0;
   background: transparent;
   box-shadow: none;
+  pointer-events: none;
 }
 
 /*
- * say1/say2 누끼 PNG: padding으로 말풍선 내부 사각형만 남기고, 그 영역 전체를 흰색으로 채움.
- * (text-slot에 따로 박스를 두면 말풍선 테두리와 분리되어 '동동 뜸')
+ * say1/say2 누끼: 바깥 pad는 투명, padding 안쪽(text-fill)만 흰색 → 거대 흰 박스 방지
+ * 텍스트 레이어(z-index 3)는 PNG 위 최상단
  */
 .nag-bubble-text-pad {
   position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 2;
-  width: 100%;
-  height: 100%;
+  z-index: 1;
   box-sizing: border-box;
   pointer-events: none;
   overflow: hidden;
-  background: #ffffff;
+  background: transparent;
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  justify-content: center;
+  justify-content: stretch;
 }
 
-/* say1 — 말풍선 좌상, 고양이 우하 */
 .nag-bubble-card--instant .nag-bubble-text-pad {
-  padding: 9% 50% 48% 7%;
-  border-radius: 26% 10% 8% 12%;
+  top: 10%;
+  right: 52%;
+  bottom: 50%;
+  left: 8%;
 }
 
-/* say2 — 말풍선 상단 가로형, 고양이 하단 중앙 */
 .nag-bubble-card--weekly .nag-bubble-text-pad {
-  padding: 7% 11% 42% 11%;
-  border-radius: 20% 20% 10% 10%;
+  top: 8%;
+  right: 12%;
+  bottom: 44%;
+  left: 12%;
 }
 
-.nag-bubble-text-slot {
+.nag-bubble-text-fill {
   flex: 1 1 auto;
   min-height: 0;
   min-width: 0;
   width: 100%;
-  height: 100%;
+  background: #ffffff;
+  border-radius: 6px;
+  box-shadow: none;
+}
+
+.nag-bubble-text-layer {
+  position: absolute;
+  z-index: 3;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   text-align: center;
   overflow: hidden;
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  padding: 2% 4%;
   box-sizing: border-box;
-  box-shadow: none;
-  transform: none;
+  pointer-events: none;
+}
+
+.nag-bubble-card--instant .nag-bubble-text-layer {
+  top: 10%;
+  right: 52%;
+  bottom: 50%;
+  left: 8%;
+}
+
+.nag-bubble-card--weekly .nag-bubble-text-layer {
+  top: 8%;
+  right: 12%;
+  bottom: 44%;
+  left: 12%;
 }
 
 /* 주거 cheer PNG — 지출 토스트(cat-toast)와 비슷한 크기로 화면 안에 수납 */
@@ -3648,6 +3675,8 @@ input[type='date']::-webkit-calendar-picker-indicator {
 }
 
 .nag-bubble-text {
+  position: relative;
+  z-index: 1;
   margin: 0;
   width: 100%;
   max-width: 100%;
@@ -3656,14 +3685,15 @@ input[type='date']::-webkit-calendar-picker-indicator {
   flex: 0 1 auto;
   box-sizing: border-box;
   font-family: 'Gaegu', 'Malgun Gothic', 'Noto Sans KR', sans-serif;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: -0.01em;
-  line-height: 1.16;
-  color: #101018;
+  line-height: 1.18;
+  color: #000000;
   text-align: center;
   word-break: keep-all;
   overflow-wrap: break-word;
   hyphens: manual;
+  text-shadow: 0 0 1px rgba(255, 255, 255, 0.85);
 }
 
 .nag-bubble-confirm {

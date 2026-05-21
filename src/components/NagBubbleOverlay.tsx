@@ -121,6 +121,18 @@ export function NagBubbleOverlay({
       className={`nag-bubble-card nag-bubble-card--${variant}${housingClass}${cheerOnlyClass}${isLongText ? ' nag-bubble-card--long-text' : ''}${showCardContent ? ' nag-bubble-card--ready' : ''}${embedded ? ' nag-bubble-card--embedded' : ''}`}
     >
       <div className="nag-bubble-visual">
+        {showTextOverlay ? (
+          <>
+            <div className="nag-bubble-text-pad" aria-hidden>
+              <div className="nag-bubble-text-fill" />
+            </div>
+            <div ref={padRef} className="nag-bubble-text-layer">
+              <p ref={textRef} className="nag-bubble-text">
+                {text}
+              </p>
+            </div>
+          </>
+        ) : null}
         <img
           ref={imgElRef}
           src={resolvedImageSrc}
@@ -132,15 +144,6 @@ export function NagBubbleOverlay({
           onLoad={handleImageReady}
           onError={handleImageReady}
         />
-        {showTextOverlay ? (
-          <div className="nag-bubble-text-pad">
-            <div ref={padRef} className="nag-bubble-text-slot">
-              <p ref={textRef} className="nag-bubble-text">
-                {text}
-              </p>
-            </div>
-          </div>
-        ) : null}
       </div>
       {!embedded && showConfirm && showCardContent ? (
         <button type="button" className="nag-bubble-confirm" onClick={onConfirm}>
