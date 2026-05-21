@@ -3517,6 +3517,23 @@ input[type='date']::-webkit-calendar-picker-indicator {
   gap: 12px;
 }
 
+/* 긴 잔소리 문구 — 말풍선·텍스트 영역 확대 */
+.nag-bubble-card--long-text {
+  width: min(420px, calc(100vw - 16px));
+}
+
+.nag-bubble-card--long-text .nag-bubble-visual {
+  aspect-ratio: 1 / 1.1;
+}
+
+.nag-bubble-card--long-text.nag-bubble-card--instant .nag-bubble-text-pad {
+  padding: 8% 38% 38% 8%;
+}
+
+.nag-bubble-card--long-text.nag-bubble-card--weekly .nag-bubble-text-pad {
+  padding: 9% 12% 40% 12%;
+}
+
 .nag-bubble-card--instant:not(.nag-bubble-card--ready) {
   animation: none;
 }

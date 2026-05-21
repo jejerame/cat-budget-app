@@ -45,6 +45,7 @@ export function NagBubbleOverlay({
   const cheerOnlyClass = imageOnly ? ' nag-bubble-card--cheer-only' : ''
   const showTextOverlay = !imageOnly && imagePainted
   const showCardContent = imagePainted
+  const isLongText = text.length >= 34
 
   const showActive = visible || embedded
 
@@ -84,8 +85,8 @@ export function NagBubbleOverlay({
     const el = textRef.current
     if (!wrap || !el) return
 
-    const maxPx = variant === 'instant' ? 22 : 23
-    const minPx = 11
+    const maxPx = isLongText ? (variant === 'instant' ? 20 : 21) : variant === 'instant' ? 22 : 23
+    const minPx = isLongText ? 10 : 11
     let size = maxPx
     el.style.fontSize = `${size}px`
     el.style.lineHeight = '1.16'
@@ -97,7 +98,7 @@ export function NagBubbleOverlay({
       size -= 0.4
       el.style.fontSize = `${size}px`
     }
-  }, [showActive, showTextOverlay, text, variant, layoutTick])
+  }, [showActive, showTextOverlay, text, variant, layoutTick, isLongText])
 
   useEffect(() => {
     if (!showActive || !imagePainted) return
@@ -117,7 +118,7 @@ export function NagBubbleOverlay({
 
   const card = (
     <div
-      className={`nag-bubble-card nag-bubble-card--${variant}${housingClass}${cheerOnlyClass}${showCardContent ? ' nag-bubble-card--ready' : ''}${embedded ? ' nag-bubble-card--embedded' : ''}`}
+      className={`nag-bubble-card nag-bubble-card--${variant}${housingClass}${cheerOnlyClass}${isLongText ? ' nag-bubble-card--long-text' : ''}${showCardContent ? ' nag-bubble-card--ready' : ''}${embedded ? ' nag-bubble-card--embedded' : ''}`}
     >
       <div className="nag-bubble-visual">
         <img

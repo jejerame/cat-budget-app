@@ -84,7 +84,15 @@ const PET_INSTANT_GROOMING = [
   '댕댕이 미용은 풀코스로, 집사님 머리는 셀프 컷? 적당히 합시다. 같이 오래 살려면 집사 통장도 지켜야죠.',
 ] as const
 
-const PET_INSTANT_DEFAULT = '아이를 챙기는 마음은 최고예요. 다만 집사 통장 체력도 같이 관리해요.'
+/** 메모 키워드·고액 조건에 안 맞을 때 — 반려동물 잔소리 풀에서 랜덤 */
+const PET_INSTANT_FALLBACK_POOL = [
+  '아이를 챙기는 마음은 최고예요. 다만 집사 통장 체력도 같이 관리해요.',
+  ...PET_INSTANT_LARGE,
+  ...PET_INSTANT_TREATS,
+  ...PET_INSTANT_TOY,
+  ...PET_INSTANT_MEDICAL,
+  ...PET_INSTANT_GROOMING,
+] as const
 
 export type InstantNagBucket =
   | 'coffee'
@@ -167,7 +175,7 @@ export function getPetInstantNagMessage(amount: number, memo: string): string {
   if (['미용', '스파', '향수', '악세', '액세'].some((kw) => normalized.includes(kw))) {
     return pickRandom(PET_INSTANT_GROOMING)
   }
-  return PET_INSTANT_DEFAULT
+  return pickRandom(PET_INSTANT_FALLBACK_POOL)
 }
 
 export function getInstantNagMessageForExpense(
