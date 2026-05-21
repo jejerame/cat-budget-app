@@ -171,8 +171,9 @@
   color: #222222;
 }
 
-[data-theme='light'] .nag-bubble-overlay {
-  background: rgba(255, 255, 255, 0.52);
+[data-theme='light'] .nag-bubble-overlay,
+[data-theme='light'] .monthly-settlement-overlay {
+  background: transparent;
 }
 
 [data-theme='light'] .app-disclaimer {
