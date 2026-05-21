@@ -127,7 +127,7 @@ export function NagBubbleOverlay({
               <div className="nag-bubble-text-fill" />
             </div>
             <div ref={padRef} className="nag-bubble-text-layer">
-              <p ref={textRef} className="nag-bubble-text">
+              <p ref={textRef} className="nag-bubble-text text-center">
                 {text}
               </p>
             </div>

@@ -3628,9 +3628,15 @@ input[type='date']::-webkit-calendar-picker-indicator {
   justify-content: center;
   align-items: center;
   text-align: center;
+  /* 말풍선 테두리와 간격 — px-8 py-6 상당 */
+  padding: clamp(14px, 5%, 26px) clamp(18px, 7%, 36px);
   overflow: hidden;
   box-sizing: border-box;
   pointer-events: none;
+}
+
+.nag-bubble-card--long-text .nag-bubble-text-layer {
+  padding: clamp(12px, 4%, 22px) clamp(16px, 6%, 30px);
 }
 
 .nag-bubble-card--instant .nag-bubble-text-layer {
@@ -3674,15 +3680,20 @@ input[type='date']::-webkit-calendar-picker-indicator {
   background: transparent;
 }
 
+.text-center {
+  text-align: center;
+}
+
 .nag-bubble-text {
   position: relative;
   z-index: 1;
-  margin: 0;
+  margin: 0 auto;
   width: 100%;
   max-width: 100%;
   min-width: 0;
   max-height: 100%;
   flex: 0 1 auto;
+  align-self: center;
   box-sizing: border-box;
   font-family: 'Gaegu', 'Malgun Gothic', 'Noto Sans KR', sans-serif;
   font-weight: 800;
@@ -3694,6 +3705,10 @@ input[type='date']::-webkit-calendar-picker-indicator {
   overflow-wrap: break-word;
   hyphens: manual;
   text-shadow: 0 0 1px rgba(255, 255, 255, 0.85);
+}
+
+.nag-bubble-text.text-center {
+  text-align: center;
 }
 
 .nag-bubble-confirm {
