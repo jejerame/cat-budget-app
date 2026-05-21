@@ -1913,18 +1913,21 @@ input[type='date']::-webkit-calendar-picker-indicator {
   }
 }
 
+/* 지출·저축 입력 잔소리(popup1~3) — 누끼 PNG만 표시, 컨테이너 완전 투명 */
 .cat-toast {
   position: fixed;
   left: 50%;
   top: 50%;
   z-index: 60;
   pointer-events: none;
-  width: min(240px, calc(100vw - 36px));
-  padding: 8px;
-  border-radius: 18px;
-  border: 1px solid rgba(40, 40, 46, 0.35);
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 12px 28px rgba(24, 24, 30, 0.2);
+  width: min(280px, calc(100vw - 28px));
+  padding: 0;
+  border: none;
+  outline: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  filter: none;
   opacity: 0;
   transform: translate(-50%, calc(-50% + 18px)) scale(0.72);
   transition: opacity 0.28s ease, transform 0.28s ease;
@@ -1934,7 +1937,11 @@ input[type='date']::-webkit-calendar-picker-indicator {
   display: block;
   width: 100%;
   height: auto;
-  border-radius: 12px;
+  border: none;
+  outline: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .cat-toast-saving img {
