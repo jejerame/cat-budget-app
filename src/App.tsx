@@ -69,7 +69,8 @@ import {
   createTransaction,
   getMonthSummary,
   getTopExpenseCategoriesByMonth,
-  isMonthBudgetExceeded,
+  didMonthBudgetJustExceedWithAvailableBudget,
+  isMonthBudgetExceededWithAvailable,
   loadTransactions,
   saveTransactions,
   toDateKey,
@@ -366,6 +367,11 @@ function App() {
   /** 가용 예산을 넘긴 지출이면 적자로 간주(분모 0이면 지출만 있으면 적자 표시) */
   const isDeficitActual =
     gaugeAvailableBudget > 0 ? summary.expense > gaugeAvailableBudget : summary.expense > 0
+  /** 한계 돌파(펑): 가용 예산이 있을 때만 넘긴 경우 */
+  const isLimitBreakDeficit = useMemo(
+    () => isMonthBudgetExceededWithAvailable(transactions, selectedCalendarDate),
+    [transactions, selectedCalendarDate],
+  )
   const isViewingCurrentMonth = useMemo(() => {
     const n = new Date()
     return selectedCalendarYear === n.getFullYear() && selectedCalendarMonth === n.getMonth()
@@ -537,17 +543,17 @@ function App() {
 
   useEffect(() => {
     if (!isViewingCurrentMonth) {
-      prevDeficitRef.current = isDeficitActual
+      prevDeficitRef.current = isLimitBreakDeficit
       return
     }
     const prev = prevDeficitRef.current
-    prevDeficitRef.current = isDeficitActual
+    prevDeficitRef.current = isLimitBreakDeficit
     if (prev === null) return
-    if (prev === false && isDeficitActual && !limitBreakOpen) {
+    if (prev === false && isLimitBreakDeficit && !limitBreakOpen) {
       setLimitBreakGaugeFlash(true)
       setLimitBreakOpen(true)
     }
-  }, [isDeficitActual, isViewingCurrentMonth, limitBreakOpen])
+  }, [isLimitBreakDeficit, isViewingCurrentMonth, limitBreakOpen])
 
   useEffect(() => {
     if (!limitBreakOpen) return
@@ -969,9 +975,7 @@ function App() {
         expenseMonth.getFullYear() === nowMonth.getFullYear() &&
         expenseMonth.getMonth() === nowMonth.getMonth()
       if (isCurrentMonthEntry) {
-        const wasExceeded = isMonthBudgetExceeded(transactions, expenseMonth)
-        const willExceeded = isMonthBudgetExceeded(updated, expenseMonth)
-        if (!wasExceeded && willExceeded) {
+        if (didMonthBudgetJustExceedWithAvailableBudget(transactions, updated, expenseMonth)) {
           prevDeficitRef.current = true
           pendingCompoundAfterInstantRef.current = null
           setLimitBreakGaugeFlash(true)

@@ -82,6 +82,29 @@ export function isMonthBudgetExceeded(records: TransactionRecord[], date: Date):
   return summary.expense > 0
 }
 
+/** 가용 예산(>0)이 있을 때 지출이 그 예산을 넘었는지 — 한계 돌파(펑) 연출용 */
+export function isMonthBudgetExceededWithAvailable(records: TransactionRecord[], date: Date): boolean {
+  const summary = getMonthSummary(records, date)
+  const available = Math.max(0, summary.income - summary.saving + summary.carryoverIncome)
+  if (available <= 0) return false
+  return summary.expense > available
+}
+
+/** 가용 예산이 있었는데 이번 변경으로 처음 넘김(수입 0·첫 지출은 false) */
+export function didMonthBudgetJustExceedWithAvailableBudget(
+  recordsBefore: TransactionRecord[],
+  recordsAfter: TransactionRecord[],
+  date: Date,
+): boolean {
+  const before = getMonthSummary(recordsBefore, date)
+  const availableBefore = Math.max(0, before.income - before.saving + before.carryoverIncome)
+  if (availableBefore <= 0) return false
+  return (
+    !isMonthBudgetExceeded(recordsBefore, date) &&
+    isMonthBudgetExceeded(recordsAfter, date)
+  )
+}
+
 export function getMonthBudgetRatioPercent(records: TransactionRecord[], date: Date): number {
   const summary = getMonthSummary(records, date)
   const available = Math.max(0, summary.income - summary.saving + summary.carryoverIncome)
