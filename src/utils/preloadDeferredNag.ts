@@ -17,4 +17,10 @@ export function preloadInstantNagSay1(): void {
   void loadImageAsset(say1Url)
 }
 
+/** 카테고리 화면에서 지출 잔소리 PNG 미리 디코드 (모바일 선행 텍스트 방지) */
+export function preloadInstantNagForCategory(): void {
+  void loadImageAsset(say1Url)
+  void Promise.all(HOUSING_CHEER_IMAGE_URLS.map((url) => loadImageAsset(url)))
+}
+
 export { say1Url, say2Url }

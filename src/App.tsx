@@ -106,6 +106,7 @@ import {
   ensurePopupToastImageReady,
   preloadPopupToastImages,
 } from './utils/preloadPopupToastImages'
+import { preloadInstantNagForCategory } from './utils/preloadDeferredNag'
 import delBtnUrl from '../del.png'
 import canBtnUrl from '../can.png'
 import checkCatUrl from '../check.png'
@@ -1235,7 +1236,10 @@ function App() {
     if (screen === 'entry' || screen === 'category') {
       void preloadPopupToastImages()
     }
-  }, [screen])
+    if (screen === 'category' && selectedType === 'expense') {
+      preloadInstantNagForCategory()
+    }
+  }, [screen, selectedType])
 
   useLayoutEffect(() => {
     if (!housingCheerOnHome) {

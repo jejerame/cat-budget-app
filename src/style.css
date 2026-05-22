@@ -3530,6 +3530,11 @@ input[type='date']::-webkit-calendar-picker-indicator {
   pointer-events: none;
 }
 
+.nag-bubble-overlay--loading .nag-bubble-card {
+  opacity: 0;
+  visibility: hidden;
+}
+
 /* 월세·대출이자 cheer — 달력 프레임 rect 기준 정중앙 (PWA·앱) */
 .nag-bubble-overlay.nag-bubble-overlay--calendar-frame {
   position: fixed;
