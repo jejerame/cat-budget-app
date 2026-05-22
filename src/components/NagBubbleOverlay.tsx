@@ -33,6 +33,52 @@ function paintImageElement(img: HTMLImageElement): Promise<void> {
   return (typeof img.decode === 'function' ? img.decode() : Promise.resolve()).catch(() => undefined)
 }
 
+function nagTextOverflows(textEl: HTMLElement, box: HTMLElement): boolean {
+  return textEl.scrollHeight > box.clientHeight + 1 || textEl.scrollWidth > box.clientWidth + 1
+}
+
+/** 말풍선 안에 전체 문장이 들어가도록 글자 크기만 조절 */
+function fitNagBubbleText(
+  box: HTMLElement,
+  textEl: HTMLElement,
+  opts: { maxPx: number; minPx: number; lineHeight: number },
+): void {
+  const { maxPx, minPx, lineHeight } = opts
+  textEl.style.width = '100%'
+  textEl.style.textAlign = 'center'
+  textEl.style.lineHeight = String(lineHeight)
+  textEl.style.maxHeight = 'none'
+  textEl.style.overflow = 'visible'
+
+  let size = maxPx
+  textEl.style.fontSize = `${size}px`
+
+  for (let i = 0; i < 240 && size > minPx; i += 1) {
+    if (!nagTextOverflows(textEl, box)) {
+      textEl.style.maxHeight = '100%'
+      return
+    }
+    size -= size > 14 ? 0.45 : 0.25
+    textEl.style.fontSize = `${size}px`
+  }
+
+  if (!nagTextOverflows(textEl, box)) {
+    textEl.style.maxHeight = '100%'
+    return
+  }
+
+  let lo = minPx
+  let hi = size
+  while (hi - lo > 0.2) {
+    const mid = (lo + hi) / 2
+    textEl.style.fontSize = `${mid}px`
+    if (nagTextOverflows(textEl, box)) hi = mid
+    else lo = mid
+  }
+  textEl.style.fontSize = `${lo}px`
+  textEl.style.maxHeight = '100%'
+}
+
 export function NagBubbleOverlay({
   variant,
   text,
@@ -60,8 +106,9 @@ export function NagBubbleOverlay({
   const showCardContent = imagePainted
   const showTextOverlay = !imageOnly && imagePainted
   const displayText = text.replace(/\s+/g, ' ').trim()
-  const isLongText = displayText.length >= 34
-  const isVeryLongText = displayText.length >= 58
+  /** 26자+ 잔소리(배달·택시 등)도 긴 말풍선 레이아웃·축소 적용 */
+  const isLongText = displayText.length >= 26
+  const isVeryLongText = displayText.length >= 42
 
   useEffect(() => {
     if (!showActive) {
@@ -97,29 +144,20 @@ export function NagBubbleOverlay({
 
     const maxPx = isVeryLongText
       ? variant === 'instant'
-        ? 17
-        : 18
+        ? 16
+        : 17
       : isLongText
         ? variant === 'instant'
-          ? 19
-          : 20
+          ? 18
+          : 19
         : variant === 'instant'
           ? 22
           : 23
-    const minPx = isVeryLongText ? 8 : isLongText ? 9 : 11
-    let size = maxPx
-    el.style.fontSize = `${size}px`
-    el.style.lineHeight = isLongText ? '1.12' : '1.16'
-    el.style.textAlign = 'center'
-    el.style.width = '100%'
-
-    for (let i = 0; i < 120 && size > minPx; i += 1) {
-      const overY = el.scrollHeight > wrap.clientHeight + 0.5
-      const overX = el.scrollWidth > wrap.clientWidth + 0.5
-      if (!overY && !overX) break
-      size -= isLongText ? 0.35 : 0.4
-      el.style.fontSize = `${size}px`
-    }
+    const minPx = isVeryLongText ? 5.5 : isLongText ? 6.5 : 10
+    const lineHeight = isLongText ? 1.1 : 1.16
+    const inner = wrap.querySelector('.nag-bubble-text-inner')
+    const box = inner instanceof HTMLElement ? inner : wrap
+    fitNagBubbleText(box, el, { maxPx, minPx, lineHeight })
   }, [showActive, showTextOverlay, displayText, variant, layoutTick, isLongText, isVeryLongText])
 
   useEffect(() => {

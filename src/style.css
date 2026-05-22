@@ -3682,15 +3682,15 @@ input[type='date']::-webkit-calendar-picker-indicator {
 
 .nag-bubble-card--long-text.nag-bubble-card--instant .nag-bubble-text-layer {
   top: 5%;
-  right: 36%;
-  bottom: 44%;
+  right: 35%;
+  bottom: 40%;
   left: 9%;
 }
 
 .nag-bubble-card--very-long-text.nag-bubble-card--instant .nag-bubble-text-layer {
   top: 4%;
-  right: 34%;
-  bottom: 42%;
+  right: 33%;
+  bottom: 38%;
   left: 8%;
 }
 
