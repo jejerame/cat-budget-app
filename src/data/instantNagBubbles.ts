@@ -61,6 +61,12 @@ export const INSTANT_NAG_SELF_DEV = [
   '나를 위한 지출이지만, 반복되면 습관이 돼.',
 ] as const
 
+export const INSTANT_NAG_SUBSCRIPTION = [
+  '인간적으로 OTT 하나는 끊자.',
+  '너 지금 구독하는 거 다 합치면 뭐게?',
+  '구독 정리 앱을 구독해야 할 수준인데?',
+] as const
+
 export const PET_INSTANT_LARGE_THRESHOLD = 150_000
 
 const PET_INSTANT_LARGE = [
@@ -107,6 +113,7 @@ export type InstantNagBucket =
   | 'housing'
   | 'special'
   | 'self_dev'
+  | 'subscription'
 
 const COFFEE_RE = /커피|아메리카노|카페|라떼|스타벅스|americano|espresso|에스프레소/i
 const TAXI_RE = /택시|taxi|우버|uber/i
@@ -154,6 +161,9 @@ export function resolveInstantNagBucket(category: string, memo: string): Instant
 
     case 'self_dev':
       return 'self_dev'
+
+    case 'subscription':
+      return 'subscription'
 
     default:
       return 'impulse'
@@ -209,6 +219,8 @@ export function getInstantNagMessageForExpense(
       return pickRandom(INSTANT_NAG_SPECIAL)
     case 'self_dev':
       return pickRandom(INSTANT_NAG_SELF_DEV)
+    case 'subscription':
+      return pickRandom(INSTANT_NAG_SUBSCRIPTION)
     default:
       return pickRandom(INSTANT_NAG_IMPULSE)
   }

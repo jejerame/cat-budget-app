@@ -2080,6 +2080,16 @@ input[type='date']::-webkit-calendar-picker-indicator {
   border-color: rgba(46, 46, 52, 0.38);
 }
 
+.cat-btn:nth-child(8) {
+  background: #f5f8ff;
+  border-color: rgba(46, 46, 52, 0.38);
+}
+
+.cat-btn:nth-child(9) {
+  background: #f3f6fc;
+  border-color: rgba(46, 46, 52, 0.38);
+}
+
 .cat-btn.cat-btn-warning {
   background: #f7f7f8;
   color: #3e3e46;

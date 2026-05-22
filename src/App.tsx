@@ -100,6 +100,7 @@ import bookCatUrl from '../book.png'
 import tourCatUrl from '../tour.png'
 import dateCoupleCatUrl from '../date1.png'
 import dogCatUrl from '../dog.png'
+import gudokCatUrl from '../gudok.png'
 import {
   popupExpenseUrl,
   popupSavingBadUrl,
@@ -173,11 +174,12 @@ const expenseCategories = [
   'self_dev',
   'special',
   'pet',
+  'subscription',
 ]
 const incomeCategories = ['salary', 'allowance', 'carryover', 'other']
 const savingCategories = ['saving', 'other']
 const warningExpenseCategories = new Set(['red'])
-const coachingExpenseCategories = new Set(['living', 'couple', 'self_dev', 'special', 'pet'])
+const coachingExpenseCategories = new Set(['living', 'couple', 'self_dev', 'special', 'pet', 'subscription'])
 const infoExpenseCategories = new Set(['fixed', 'housing'])
 const essentialExpenseCategories = new Set(['living', 'fixed', 'housing'])
 
@@ -196,6 +198,7 @@ const CATEGORY_ICON_BY_KEY: Record<string, string> = {
   self_dev: bookCatUrl,
   special: tourCatUrl,
   pet: dogCatUrl,
+  subscription: gudokCatUrl,
   salary: cat7Url,
   allowance: cat4Url,
   carryover: cat3Url,
@@ -2219,6 +2222,10 @@ function getCategorySpecificBanMessage(
 
   if (category === 'pet') {
     return `반려동물 지출은 사랑의 표현이지만, ${period === '7days' ? '이번 주' : '이번 기간'} 예산 한도 안에서 집사 통장도 함께 지켜요.`
+  }
+
+  if (category === 'subscription') {
+    return `구독료는 작아 보여도 합치면 큽니다. ${period === '7days' ? '이번 주' : '이번 기간'} 예산 한도 안에서 정리해요.`
   }
 
   if (category === 'housing') {
