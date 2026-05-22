@@ -1,3 +1,5 @@
+/** 월세·대출·주거 cheer — 프로젝트 루트 `cheer1.png` `cheer2.png` `cheer3.png` 교체.
+ *  누끼(바깥 투명) PNG만 사용. 자동 여백/흰색 제거 스크립트는 말풍선 안쪽 흰색까지 깨뜨리므로 적용 금지. */
 import cheer1Url from '../../cheer1.png'
 import cheer2Url from '../../cheer2.png'
 import cheer3Url from '../../cheer3.png'
