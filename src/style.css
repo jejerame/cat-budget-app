@@ -3681,16 +3681,16 @@ input[type='date']::-webkit-calendar-picker-indicator {
 }
 
 .nag-bubble-card--long-text.nag-bubble-card--instant .nag-bubble-text-layer {
-  top: 5%;
+  top: 2%;
   right: 35%;
-  bottom: 40%;
+  bottom: 44%;
   left: 9%;
 }
 
 .nag-bubble-card--very-long-text.nag-bubble-card--instant .nag-bubble-text-layer {
-  top: 4%;
+  top: 1%;
   right: 33%;
-  bottom: 38%;
+  bottom: 42%;
   left: 8%;
 }
 
@@ -3766,18 +3766,30 @@ input[type='date']::-webkit-calendar-picker-indicator {
 }
 
 .nag-bubble-card--long-text .nag-bubble-text-layer {
-  padding: clamp(10px, 3.5%, 18px) clamp(12px, 5%, 24px);
+  padding: clamp(6px, 2%, 12px) clamp(12px, 5%, 24px) clamp(12px, 3.5%, 18px);
 }
 
 .nag-bubble-card--very-long-text .nag-bubble-text-layer {
-  padding: clamp(8px, 3%, 16px) clamp(10px, 4.5%, 20px);
+  padding: clamp(4px, 1.5%, 10px) clamp(10px, 4.5%, 20px) clamp(10px, 3%, 16px);
+}
+
+.nag-bubble-card--long-text.nag-bubble-card--instant .nag-bubble-text-layer,
+.nag-bubble-card--very-long-text.nag-bubble-card--instant .nag-bubble-text-layer {
+  justify-content: flex-start;
 }
 
 .nag-bubble-card--instant .nag-bubble-text-layer {
-  top: 8%;
+  top: 3%;
   right: 44%;
-  bottom: 52%;
+  bottom: 54%;
   left: 12%;
+  justify-content: flex-start;
+  padding-top: clamp(2px, 1%, 8px);
+  padding-bottom: clamp(10px, 3.5%, 18px);
+}
+
+.nag-bubble-card--instant .nag-bubble-text-inner {
+  justify-content: flex-start;
 }
 
 .nag-bubble-card--weekly .nag-bubble-text-layer {
