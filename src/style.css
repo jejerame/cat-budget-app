@@ -3096,13 +3096,17 @@ input[type='date']::-webkit-calendar-picker-indicator {
   line-height: 1.05;
 }
 
+/* 달력 고양이: jan2/red1 URL 각 1회만 디코드(CSS 배경 스프라이트 방식) */
 .calendar-day-cat-icon {
   position: absolute;
   right: 1px;
   bottom: 1px;
+  display: block;
   width: 17px;
   height: 17px;
-  object-fit: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
   pointer-events: none;
   opacity: 0.95;
   filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.35));
@@ -3469,13 +3473,20 @@ input[type='date']::-webkit-calendar-picker-indicator {
 }
 
 /* 지능형 말풍선 잔소리 (say1 즉시 / say2 주간) */
-.nag-bubble-preload {
+.nag-bubble-preload,
+.home-critical-preload {
   position: fixed;
   width: 0;
   height: 0;
   opacity: 0;
   pointer-events: none;
   overflow: hidden;
+}
+
+.home-critical-preload img {
+  position: absolute;
+  width: 1px;
+  height: 1px;
 }
 
 /* 잔소리 말풍선: 바깥 컨테이너는 완전 투명(그림자·테두리·배경 없음) */

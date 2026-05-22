@@ -1,8 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import {
-  POPUP_TOAST_IMAGE_URLS,
-  preloadPopupToastImages,
-} from '../utils/preloadPopupToastImages'
 import { ensureImageAssetReady } from '../utils/imageAssetLoader'
 
 export type CatToastVariant = 'expense' | 'saving'
@@ -17,19 +13,6 @@ type CatToastProps = {
 export function CatToast({ imageSrc, variant, open, onPaint }: CatToastProps) {
   const imgRef = useRef<HTMLImageElement>(null)
   const [paintReady, setPaintReady] = useState(false)
-
-  useEffect(() => {
-    void preloadPopupToastImages()
-    const onFirstInteraction = (): void => {
-      void preloadPopupToastImages()
-    }
-    document.addEventListener('pointerdown', onFirstInteraction, { once: true, passive: true })
-    document.addEventListener('touchstart', onFirstInteraction, { once: true, passive: true })
-    return () => {
-      document.removeEventListener('pointerdown', onFirstInteraction)
-      document.removeEventListener('touchstart', onFirstInteraction)
-    }
-  }, [])
 
   useEffect(() => {
     if (!open || !imageSrc) {
@@ -74,11 +57,6 @@ export function CatToast({ imageSrc, variant, open, onPaint }: CatToastProps) {
 
   return (
     <>
-      <div className="cat-toast-preload" aria-hidden="true">
-        {POPUP_TOAST_IMAGE_URLS.map((url) => (
-          <img key={url} src={url} alt="" decoding="async" fetchPriority="high" />
-        ))}
-      </div>
       <div
         className={`cat-toast cat-toast-transparent ${variant === 'saving' ? 'cat-toast-saving' : ''} ${open && imageSrc ? '' : 'hidden'} ${show ? 'show' : 'hide'}`}
         aria-live="polite"

@@ -4,7 +4,7 @@ import { SplashCatOverlay } from './components/SplashCatOverlay'
 import { CatToast, type CatToastVariant } from './components/CatToast'
 import { CatToastWarmup } from './components/CatToastWarmup'
 import { NagBubbleOverlay, type CalendarFrameRect } from './components/NagBubbleOverlay'
-import { NagBubbleWarmup } from './components/NagBubbleWarmup'
+import { HomeCriticalWarmup } from './components/HomeCriticalWarmup'
 import { MonthlySettlementOverlay } from './components/MonthlySettlementOverlay'
 import { WeeklySettlementOverlay } from './components/WeeklySettlementOverlay'
 import {
@@ -1283,7 +1283,7 @@ function App() {
 
   return (
     <>
-      <NagBubbleWarmup />
+      <HomeCriticalWarmup />
       <CatToastWarmup />
       <SplashCatOverlay silenced={nagsSilenced} nagIntensity={nagIntensity} />
       <LimitBreakOverlay
@@ -1356,7 +1356,14 @@ function App() {
                 <span className="home-title-chip__text">
                   잔소리 <span className="home-title-chip__accent">냥</span>가계부
                 </span>
-                <img src={janCatUrl} alt="" className="home-title-chip__cat" aria-hidden="true" />
+                <img
+                  src={janCatUrl}
+                  alt=""
+                  className="home-title-chip__cat"
+                  aria-hidden="true"
+                  decoding="async"
+                  fetchPriority="high"
+                />
               </h1>
               <button className="icon-btn dark" type="button" onClick={() => setChartOpen(true)}>📊</button>
             </header>
@@ -1438,6 +1445,8 @@ function App() {
                           isDeficitActual && budgetGaugeCatSrc === redCatUrl ? ' red-gauge-cat-face--tremble' : ''
                         }`}
                         aria-hidden
+                        decoding="async"
+                        fetchPriority="high"
                       />
                     </div>
                   </div>
@@ -1467,7 +1476,6 @@ function App() {
                   const expenseText = formatCalendarExpense(totalExpense)
                   const isHighExpenseCatDay =
                     totalExpense > CALENDAR_DAY_HIGH_EXPENSE_CAT_THRESHOLD
-                  const calendarDayCatSrc = isHighExpenseCatDay ? red1CatUrl : jan2CatUrl
                   const dayIncome = dailyIncomeByKey.get(cell.key) ?? 0
                   const daySaving = dailySavingByKey.get(cell.key) ?? 0
                   const hasDayTipData = dayIncome > 0 || daySaving > 0
@@ -1521,10 +1529,11 @@ function App() {
                         ) : null}
                       </div>
                       {hasExpense ? (
-                        <img
-                          src={calendarDayCatSrc}
-                          alt=""
+                        <span
                           className={`calendar-day-cat-icon${isHighExpenseCatDay ? ' calendar-day-cat-icon--red1' : ''}`}
+                          style={{
+                            backgroundImage: `url(${isHighExpenseCatDay ? red1CatUrl : jan2CatUrl})`,
+                          }}
                           aria-hidden="true"
                         />
                       ) : null}
