@@ -4108,6 +4108,69 @@ input[type='date']::-webkit-calendar-picker-indicator {
   gap: 0;
 }
 
+/* —— 저축 20만원+ 칭찬: popup2 단독 · 달력 중앙 50% —— */
+.saving-good-popup-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 209;
+  background: rgba(8, 6, 12, 0.52);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: nag-bubble-backdrop-in 0.32s ease forwards;
+  pointer-events: auto;
+}
+
+.saving-good-popup-stage {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-sizing: border-box;
+  padding: 4px 8px;
+  pointer-events: none;
+}
+
+.saving-good-popup-stage > * {
+  pointer-events: auto;
+}
+
+.saving-good-popup-stage--fallback {
+  top: 50%;
+  left: 50%;
+  width: min(360px, calc(100vw - 28px));
+  height: min(50vh, 400px);
+  transform: translate(-50%, -50%);
+}
+
+.saving-good-popup-visual {
+  width: 50%;
+  max-width: 50%;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.saving-good-popup-visual--ready {
+  opacity: 1;
+}
+
+.saving-good-popup-visual img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  pointer-events: none;
+  user-select: none;
+}
+
+.saving-good-popup-confirm {
+  flex-shrink: 0;
+}
+
 .weekly-settlement-confirm {
   flex-shrink: 0;
 }

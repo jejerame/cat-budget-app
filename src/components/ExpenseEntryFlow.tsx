@@ -313,7 +313,7 @@ export function ExpenseEntryFlow({
         <input type="date" value={entryDate} onChange={(e) => onEntryDateChange(e.target.value)} />
       </label>
 
-      <section aria-label="즐겨찾기">
+      <section className="entry-favorites-wrap" aria-label="즐겨찾기">
         <div className="entry-favorites-scroll">
           {favorites.map((fav) => (
             <FavoriteChip

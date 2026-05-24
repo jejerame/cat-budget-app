@@ -7,6 +7,7 @@ import { NagBubbleOverlay, type CalendarFrameRect } from './components/NagBubble
 import { HomeCriticalWarmup } from './components/HomeCriticalWarmup'
 import { MonthlySettlementOverlay } from './components/MonthlySettlementOverlay'
 import { WeeklySettlementOverlay } from './components/WeeklySettlementOverlay'
+import { SavingGoodPopupOverlay } from './components/SavingGoodPopupOverlay'
 import {
   buildMonthlySettlement,
   isLastDayOfMonth,
@@ -303,6 +304,7 @@ function App() {
   const [limitBreakGaugeFlash, setLimitBreakGaugeFlash] = useState(false)
   const [monthlySettlement, setMonthlySettlement] = useState<MonthlySettlementContent | null>(null)
   const [weeklySettlement, setWeeklySettlement] = useState<WeeklySettlementContent | null>(null)
+  const [savingGoodPopupOpen, setSavingGoodPopupOpen] = useState(false)
   const prevDeficitRef = useRef<boolean | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [colorModePreference, setColorModePreference] = useState<ColorModePreference>(() => loadColorModePreference())
@@ -1053,8 +1055,6 @@ function App() {
 
     const category = entrySavingCategory
     const isGoodSavingNag = amount >= SAVING_NAG_AMOUNT_THRESHOLD
-    const nagText = isGoodSavingNag ? '이 페이스 유지하세요' : '이래서 언제 집 사겠어요?'
-    const nagImageSrc = isGoodSavingNag ? smileListCatUrl : say1CatUrl
 
     if (editingTransactionId) {
       updateTransaction(editingTransactionId, {
@@ -1070,7 +1070,11 @@ function App() {
         flushSync(() => {
           setScreen('home')
           setDayDetailDateKey(returnDay)
-          setNagBubble({ text: nagText, imageSrc: nagImageSrc })
+          if (isGoodSavingNag) {
+            setSavingGoodPopupOpen(true)
+          } else {
+            setNagBubble({ text: '이래서 언제 집 사겠어요?', imageSrc: say1CatUrl })
+          }
         })
         return
       }
@@ -1090,7 +1094,11 @@ function App() {
     if (!nagsSilenced) {
       flushSync(() => {
         setScreen('home')
-        setNagBubble({ text: nagText, imageSrc: nagImageSrc })
+        if (isGoodSavingNag) {
+          setSavingGoodPopupOpen(true)
+        } else {
+          setNagBubble({ text: '이래서 언제 집 사겠어요?', imageSrc: say1CatUrl })
+        }
       })
       return
     }
@@ -1314,7 +1322,7 @@ function App() {
 
   const housingCheerOnHome = housingCheerNagActive && screen === 'home'
   const weeklySettlementOpen = weeklySettlement != null
-  const calendarFrameForOverlay = housingCheerOnHome || weeklySettlementOpen
+  const calendarFrameForOverlay = housingCheerOnHome || weeklySettlementOpen || savingGoodPopupOpen
 
   useEffect(() => {
     if (screen === 'entry') {
@@ -1390,6 +1398,11 @@ function App() {
         content={weeklySettlement}
         calendarFrameRect={weeklySettlementOpen ? calendarFrameRect : null}
         onClose={() => setWeeklySettlement(null)}
+      />
+      <SavingGoodPopupOverlay
+        open={savingGoodPopupOpen && !nagsSilenced}
+        calendarFrameRect={savingGoodPopupOpen ? calendarFrameRect : null}
+        onConfirm={() => setSavingGoodPopupOpen(false)}
       />
       <NagBubbleOverlay
         variant="instant"

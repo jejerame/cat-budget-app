@@ -1,10 +1,17 @@
 /* 수입·지출·저축 입력 공통 — 화이트/라이트 톤 (entry-screen 내부) */
 
+/* 즐겨찾기 가로 스크롤이 잘리지 않도록 */
+.screen.entry-screen.active {
+  overflow-x: visible;
+}
+
 .entry-flow {
   display: flex;
   flex-direction: column;
   gap: 14px;
   margin-top: 4px;
+  min-width: 0;
+  width: 100%;
 }
 
 .entry-field {
@@ -56,19 +63,31 @@
 }
 
 /* 즐겨찾기 */
-.entry-favorites-scroll {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 4px;
+.entry-favorites-wrap {
+  width: 100%;
   max-width: 360px;
   margin: 0 auto;
+  min-width: 0;
+}
+
+.entry-favorites-scroll {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  width: 100%;
+  padding-bottom: 6px;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  touch-action: pan-x;
   scrollbar-width: none;
 }
 
 .entry-favorites-scroll::-webkit-scrollbar {
   display: none;
+  width: 0;
+  height: 0;
 }
 
 .entry-fav-chip {
