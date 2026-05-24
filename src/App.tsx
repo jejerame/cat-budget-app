@@ -14,6 +14,7 @@ import {
   type MonthlySettlementContent,
 } from './data/monthlySettlement'
 import { LimitBreakOverlay } from './components/LimitBreakOverlay'
+import { ExpenseEntryFlow, type ExpenseSavePayload } from './components/ExpenseEntryFlow'
 import { getInstantNagMessageForExpense, getPetInstantNagMessage } from './data/instantNagBubbles'
 import {
   getHousingCheerAriaLabel,
@@ -149,37 +150,12 @@ const MONTHLY_SETTLEMENT_DELAY_MS = 1200
 /** 달력 연도 콤보: 거래가 없어도 선택 가능하도록 올해 기준 이전·이후 연도를 항상 포함 */
 const CALENDAR_YEAR_COMBO_PAST = 15
 const CALENDAR_YEAR_COMBO_FUTURE = 1
-const QUICK_MEMO_TAGS = [
-  '커피',
-  '택시',
-  '외식',
-  '배달',
-  '해외여행',
-  '이벤트',
-  '경조사',
-  '통신',
-  '월세',
-  '대출이자',
-  '사료',
-  '병원',
-]
 const INCOME_BUBBLE_MESSAGES = [
   '이번 달도 고생했어.',
   '오늘도 번 만큼 대단해.',
   '수입 기록 완료! 진짜 잘하고 있어.',
 ]
 
-const expenseCategories = [
-  'red',
-  'living',
-  'couple',
-  'fixed',
-  'housing',
-  'self_dev',
-  'special',
-  'pet',
-  'subscription',
-]
 const incomeCategories = ['salary', 'allowance', 'carryover', 'other']
 const savingCategories = ['saving', 'other']
 const warningExpenseCategories = new Set(['red'])
@@ -215,7 +191,7 @@ function isRedTransaction(item: TransactionRecord): boolean {
   const memo = (item.memo ?? '').toLowerCase()
   return ['커피', '아메리카노', '카페', '택시', '충동구매', '충동'].some((kw) => memo.includes(kw.toLowerCase()))
 }
-type Screen = 'home' | 'entry' | 'category'
+type Screen = 'home' | 'entry'
 type DashboardCardType = 'income' | 'expense' | 'saving' | 'balance'
 type AnalysisContent = {
   intro: string
@@ -289,7 +265,6 @@ function App() {
   const [entryDate, setEntryDate] = useState(() => toDateKey(new Date()))
   const [selectedCalendarYear, setSelectedCalendarYear] = useState(() => now.getFullYear())
   const [selectedCalendarMonth, setSelectedCalendarMonth] = useState(() => now.getMonth())
-  const [selectedQuickTag, setSelectedQuickTag] = useState('')
   const [selectedType, setSelectedType] = useState<TransactionType>('expense')
   const [analysisOpen, setAnalysisOpen] = useState(false)
   const [nagBubble, setNagBubble] = useState<null | {
@@ -406,7 +381,6 @@ function App() {
       expenseMonthTop3.reduce((acc, row, i) => acc + row.total * (i + 7) + row.category.length * 97, 0)
     return getPettyNagQuote(seed, nagIntensity)
   }, [selectedCalendarDate, expenseMonthTop3, nagIntensity])
-  const categories = selectedType === 'expense' ? expenseCategories : selectedType === 'income' ? incomeCategories : savingCategories
   const redBlinkTimeoutRef = useRef<number | null>(null)
   const toastTimeoutRef = useRef<number | null>(null)
   const toastShowTokenRef = useRef(0)
@@ -914,7 +888,6 @@ function App() {
     setEditingTransactionId(null)
     setAmountInput('')
     setMemoInput('')
-    setSelectedQuickTag('')
     setEntryDate(dateKey !== undefined ? dateKey : toDateKey(new Date()))
     setSelectedType('expense')
   }
@@ -941,7 +914,6 @@ function App() {
     setMemoInput(record.memo ?? '')
     setEntryDate(toDateKey(new Date(record.createdAt)))
     setSelectedType(record.type)
-    setSelectedQuickTag(deriveQuickTagFromMemo(record.memo ?? ''))
     setScreen('entry')
   }
 
@@ -950,10 +922,79 @@ function App() {
     setPendingDeleteId(editingTransactionId)
   }
 
-  function handleCategoryClick(category: string): void {
+  function commitExpenseSave(payload: ExpenseSavePayload): boolean {
+    const { category, amount, memo } = payload
+    const normalizedMemo = memo.trim() || undefined
+
+    if (editingTransactionId) {
+      updateTransaction(editingTransactionId, {
+        type: 'expense',
+        category,
+        amount,
+        memo: normalizedMemo,
+        createdAt: dateKeyToLocalDate(entryDate).toISOString(),
+      })
+      const returnDay = entryDate
+      resetEntryFormForNew()
+      setScreen('home')
+      setDayDetailDateKey(returnDay)
+      return true
+    }
+
+    const updated = [
+      ...transactions,
+      createTransaction('expense', category, amount, normalizedMemo, dateKeyToLocalDate(entryDate)),
+    ]
+    setTransactions(updated)
+    saveTransactions(updated)
+
+    if (!nagsSilenced && !limitBreakOpen) {
+      const expenseMonth = dateKeyToLocalDate(entryDate)
+      const nowMonth = new Date()
+      const isCurrentMonthEntry =
+        expenseMonth.getFullYear() === nowMonth.getFullYear() &&
+        expenseMonth.getMonth() === nowMonth.getMonth()
+      if (isCurrentMonthEntry) {
+        if (didMonthBudgetJustExceedWithAvailableBudget(transactions, updated, expenseMonth)) {
+          prevDeficitRef.current = true
+          pendingCompoundAfterInstantRef.current = null
+          resetEntryFormForNew()
+          setLimitBreakGaugeFlash(true)
+          setLimitBreakOpen(true)
+          return true
+        }
+
+        resetEntryFormForNew()
+        pendingCompoundAfterInstantRef.current =
+          amount >= HIGH_EXPENSE_COMPOUND_THRESHOLD
+            ? { amount, category, memo: normalizedMemo ?? '' }
+            : null
+        const housingKey = category === 'housing' ? resolveHousingCheerKey(normalizedMemo ?? '') : null
+        flushSync(() => {
+          setScreen('home')
+          if (housingKey) {
+            setNagBubble({
+              text: getHousingCheerAriaLabel(housingKey),
+              imageSrc: getHousingCheerImageUrl(housingKey),
+              imageOnly: true,
+            })
+          } else {
+            setNagBubble({
+              text: getInstantNagMessageForExpense(category, normalizedMemo ?? '', amount, nagIntensity),
+            })
+          }
+        })
+        return true
+      }
+    }
+
+    return false
+  }
+
+  function handleIncomeSavingCategoryClick(category: string): void {
     const amount = parseWonInput(amountInput)
     if (Number.isNaN(amount) || amount <= 0) {
-      alert('먼저 금액을 입력해 주세요.')
+      alert('금액을 입력해 주세요.')
       return
     }
 
@@ -974,69 +1015,29 @@ function App() {
       return
     }
 
-    const updated = [...transactions, createTransaction(selectedType, category, amount, normalizedMemo || undefined, dateKeyToLocalDate(entryDate))]
+    const updated = [
+      ...transactions,
+      createTransaction(
+        selectedType,
+        category,
+        amount,
+        normalizedMemo || undefined,
+        dateKeyToLocalDate(entryDate),
+      ),
+    ]
     setTransactions(updated)
     saveTransactions(updated)
     resetEntryFormForNew()
+    flushSync(() => setScreen('home'))
+  }
 
-    if (selectedType === 'expense' && !nagsSilenced && !limitBreakOpen) {
-      const expenseMonth = dateKeyToLocalDate(entryDate)
-      const nowMonth = new Date()
-      const isCurrentMonthEntry =
-        expenseMonth.getFullYear() === nowMonth.getFullYear() &&
-        expenseMonth.getMonth() === nowMonth.getMonth()
-      if (isCurrentMonthEntry) {
-        if (didMonthBudgetJustExceedWithAvailableBudget(transactions, updated, expenseMonth)) {
-          prevDeficitRef.current = true
-          pendingCompoundAfterInstantRef.current = null
-          setLimitBreakGaugeFlash(true)
-          setLimitBreakOpen(true)
-          return
-        }
-
-        pendingCompoundAfterInstantRef.current =
-          amount >= HIGH_EXPENSE_COMPOUND_THRESHOLD ? { amount, category, memo: normalizedMemo } : null
-        const housingKey = category === 'housing' ? resolveHousingCheerKey(normalizedMemo) : null
-        flushSync(() => {
-          setScreen('home')
-          if (housingKey) {
-            setNagBubble({
-              text: getHousingCheerAriaLabel(housingKey),
-              imageSrc: getHousingCheerImageUrl(housingKey),
-              imageOnly: true,
-            })
-          } else {
-            setNagBubble({
-              text: getInstantNagMessageForExpense(category, normalizedMemo, amount, nagIntensity),
-            })
-          }
-        })
-        return
-      }
-    }
-
+  function finishExpenseEntryFlow(): void {
+    resetEntryFormForNew()
     flushSync(() => setScreen('home'))
   }
 
   function openEntryForDate(dateKey: string): void {
     openNewEntryForDate(dateKey)
-  }
-
-  function toggleQuickTag(tag: string): void {
-    const currentMemo = memoInput.trim()
-    const memoWithoutTag = QUICK_MEMO_TAGS.reduce((text, quickTag) => {
-      const escapedTag = quickTag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-      return text.replace(new RegExp(`^${escapedTag}\\s*`), '')
-    }, currentMemo).trim()
-
-    if (selectedQuickTag === tag) {
-      setSelectedQuickTag('')
-      setMemoInput(memoWithoutTag)
-      return
-    }
-
-    setSelectedQuickTag(tag)
-    setMemoInput(`${tag}${memoWithoutTag ? ` ${memoWithoutTag}` : ''}`)
   }
 
   function setColorModePersist(next: ColorMode): void {
@@ -1250,10 +1251,10 @@ function App() {
   const calendarFrameForOverlay = housingCheerOnHome || weeklySettlementOpen
 
   useEffect(() => {
-    if (screen === 'entry' || screen === 'category') {
+    if (screen === 'entry') {
       void preloadPopupToastImages()
     }
-    if (screen === 'category' && selectedType === 'expense') {
+    if (screen === 'entry' && selectedType === 'expense') {
       preloadInstantNagForCategory()
     }
   }, [screen, selectedType])
@@ -1728,50 +1729,18 @@ function App() {
               ←
             </button>
             <h2>
-              <span>{editingTransactionId ? '내역 수정' : '금액 입력'}</span>
+              <span>
+                {editingTransactionId
+                  ? '내역 수정'
+                  : selectedType === 'expense'
+                    ? '지출 입력'
+                    : selectedType === 'income'
+                      ? '수입 입력'
+                      : '저축 입력'}
+              </span>
               <img src={entryCatUrl} alt="" className="entry-title-cat" aria-hidden="true" />
             </h2>
           </header>
-          <label className="entry-amount-label">
-            금액(원)
-            <span className="amount-korean-reading" aria-live="polite">
-              {amountKoreanReading || '\u00a0'}
-            </span>
-            <input
-              type="text"
-              inputMode="numeric"
-              autoComplete="off"
-              enterKeyHint="done"
-              placeholder="예: 6,500"
-              value={amountInput}
-              onChange={(e) => setAmountInput(formatWonInputValue(e.target.value))}
-            />
-          </label>
-          <label>날짜
-            <input type="date" value={entryDate} onChange={(e) => setEntryDate(e.target.value)} />
-          </label>
-          <label>메모
-            <input
-              type="text"
-              placeholder={selectedType === 'expense' ? '상세 내용(예: 아메리카노 2잔, 야근 택시)' : '메모(선택)'}
-              value={memoInput}
-              onChange={(e) => setMemoInput(e.target.value)}
-            />
-          </label>
-          {selectedType === 'expense' && (
-            <div className="quick-tag-row">
-              {QUICK_MEMO_TAGS.map((tag) => (
-                <button
-                  key={tag}
-                  type="button"
-                  className={`quick-tag-btn ${selectedQuickTag === tag ? 'active' : ''}`}
-                  onClick={() => toggleQuickTag(tag)}
-                >
-                  {tag}
-                </button>
-              ))}
-            </div>
-          )}
           <div className="type-group">
             <button
               className={`type-btn ${selectedType === 'income' ? 'active' : ''}`}
@@ -1798,48 +1767,87 @@ function App() {
               <img src={saveTypeUrl} alt="" className="type-btn-img" draggable={false} />
             </button>
           </div>
-          {editingTransactionId ? (
-            <button id="go-category" className="ghost entry-submit-next" type="button" onClick={() => setScreen('category')}>
-              다음: 카테고리 선택 후 완료
-            </button>
+          {selectedType === 'expense' ? (
+            <ExpenseEntryFlow
+              key={editingTransactionId ?? `new-${entryDate}`}
+              entryDate={entryDate}
+              onEntryDateChange={setEntryDate}
+              editingTransactionId={editingTransactionId}
+              initialCategory={editingRecord?.type === 'expense' ? editingRecord.category : undefined}
+              initialMemo={editingRecord?.type === 'expense' ? (editingRecord.memo ?? '') : ''}
+              initialAmountFormatted={
+                editingRecord?.type === 'expense' ? formatWonInputValue(String(editingRecord.amount)) : ''
+              }
+              categoryIconByKey={CATEGORY_ICON_BY_KEY}
+              defaultCategoryIcon={cat7Url}
+              warningCategories={warningExpenseCategories}
+              formatWonInputValue={formatWonInputValue}
+              parseWonInput={parseWonInput}
+              onDelete={editingTransactionId ? requestDeleteFromEntryEdit : undefined}
+              onSaveTransaction={commitExpenseSave}
+              onFinished={finishExpenseEntryFlow}
+            />
           ) : (
-            <button id="go-category" className="ghost" type="button" onClick={() => setScreen('category')}>
-              다음: 카테고리
-            </button>
-          )}
-          {editingTransactionId ? (
-            <button
-              type="button"
-              className="entry-delete-record-btn entry-delete-record-btn--img"
-              onClick={requestDeleteFromEntryEdit}
-            >
-              <img src={delBtnUrl} alt="이 내역 삭제하기" className="entry-delete-img" />
-            </button>
-          ) : null}
-        </section>
-
-        <section className={`screen ${screen === 'category' ? 'active' : ''}`}>
-          <header className="flow-header">
-            <button type="button" className="ghost" onClick={() => setScreen('entry')}>←</button>
-            <h2>{editingTransactionId ? '카테고리 · 수정 완료' : '카테고리 선택'}</h2>
-          </header>
-          <div className="category-grid">
-            {categories.map((item) => {
-              const isWarning = selectedType === 'expense' && warningExpenseCategories.has(item)
-              const isCurrentEdit = Boolean(editingRecord && editingRecord.category === item)
-              return (
+            <>
+              <label>날짜
+                <input type="date" value={entryDate} onChange={(e) => setEntryDate(e.target.value)} />
+              </label>
+              <label className="entry-amount-label">
+                금액(원)
+                <span className="amount-korean-reading" aria-live="polite">
+                  {amountKoreanReading || '\u00a0'}
+                </span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  enterKeyHint="done"
+                  placeholder="예: 6,500"
+                  value={amountInput}
+                  onChange={(e) => setAmountInput(formatWonInputValue(e.target.value))}
+                />
+              </label>
+              <label>메모
+                <input
+                  type="text"
+                  placeholder="메모(선택)"
+                  value={memoInput}
+                  onChange={(e) => setMemoInput(e.target.value)}
+                />
+              </label>
+              <p className="entry-income-saving-hint">카테고리를 탭하면 저장돼요.</p>
+              <div className="category-grid entry-income-saving-grid">
+                {(selectedType === 'income' ? incomeCategories : savingCategories).map((item) => {
+                  const isCurrentEdit = Boolean(editingRecord && editingRecord.category === item)
+                  return (
+                    <button
+                      key={item}
+                      className={`cat-btn ${isCurrentEdit ? 'cat-btn--current-edit' : ''}`}
+                      type="button"
+                      onClick={() => handleIncomeSavingCategoryClick(item)}
+                    >
+                      <img
+                        src={CATEGORY_ICON_BY_KEY[item] ?? cat7Url}
+                        alt=""
+                        className="cat-btn-icon"
+                        aria-hidden="true"
+                      />
+                      <span className="cat-btn-label">{getCategoryLabel(item)}</span>
+                    </button>
+                  )
+                })}
+              </div>
+              {editingTransactionId ? (
                 <button
-                  key={item}
-                  className={`cat-btn ${isWarning ? 'cat-btn-warning' : ''} ${isCurrentEdit ? 'cat-btn--current-edit' : ''}`}
                   type="button"
-                  onClick={() => handleCategoryClick(item)}
+                  className="entry-delete-record-btn entry-delete-record-btn--img"
+                  onClick={requestDeleteFromEntryEdit}
                 >
-                  <img src={CATEGORY_ICON_BY_KEY[item] ?? cat7Url} alt="" className="cat-btn-icon" aria-hidden="true" />
-                  <span className="cat-btn-label">{getCategoryLabel(item)}</span>
+                  <img src={delBtnUrl} alt="이 내역 삭제하기" className="entry-delete-img" />
                 </button>
-              )
-            })}
-          </div>
+              ) : null}
+            </>
+          )}
         </section>
       </main>
 
@@ -2334,14 +2342,6 @@ function getTransactionsForDateKey(records: TransactionRecord[], dateKey: string
   return records
     .filter((item) => toDateKey(new Date(item.createdAt)) === dateKey)
     .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-}
-
-function deriveQuickTagFromMemo(memo: string): string {
-  const t = memo.trim()
-  for (const tag of QUICK_MEMO_TAGS) {
-    if (t === tag || t.startsWith(`${tag} `)) return tag
-  }
-  return ''
 }
 
 function getTransactionTypeLabel(type: TransactionType): string {

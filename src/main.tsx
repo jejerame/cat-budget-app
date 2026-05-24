@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
 import './style.css'
+import './style-expense-entry.css'
 import './theme-light.css'
 
 const rootElement = document.getElementById('app')
@@ -17,7 +18,7 @@ createRoot(rootElement).render(
 )
 
 /** 배포 시 SW 로직을 바꾸면 숫자만 올려 주세요(브라우저가 sw.js 본문 캐시를 덜 묶게 함). */
-const SW_SCRIPT_QUERY = 'v=76'
+const SW_SCRIPT_QUERY = 'v=77'
 
 if (import.meta.env.DEV && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {

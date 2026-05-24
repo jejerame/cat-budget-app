@@ -1,0 +1,401 @@
+/* 지출 입력 단일 화면 */
+.expense-entry-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.expense-entry-date {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted, #a8a8b3);
+}
+
+.expense-entry-date input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  font-size: 15px;
+}
+
+.expense-entry-favorites-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.expense-entry-favorites-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.expense-fav-chip {
+  flex: 0 0 auto;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: #f2f2f5;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.expense-fav-chip--add {
+  border-style: dashed;
+  color: #9ecfff;
+}
+
+.expense-cat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.expense-cat-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 4px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: #eee;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.expense-cat-btn--warn {
+  border-color: rgba(255, 77, 141, 0.45);
+  box-shadow: 0 0 0 1px rgba(255, 77, 141, 0.15);
+}
+
+.expense-cat-btn-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.expense-cat-collapsed {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(120, 200, 255, 0.35);
+  background: rgba(78, 123, 255, 0.12);
+  color: #e8f0ff;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.expense-cat-collapsed-check {
+  color: #5dffb0;
+  font-weight: 900;
+}
+
+.expense-cat-collapsed-hint {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.65;
+}
+
+.expense-subcat-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.expense-subcat-btn {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  color: #ddd;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.expense-subcat-btn.active {
+  border-color: rgba(92, 255, 180, 0.5);
+  background: rgba(44, 211, 160, 0.18);
+  color: #fff;
+}
+
+.expense-subcat-other-input {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #a8a8b3;
+}
+
+.expense-subcat-other-input input {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+}
+
+.expense-entry-amount--locked {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.expense-entry-amount--active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.expense-quick-amounts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.expense-quick-amount-btn {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.07);
+  color: #eee;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.expense-quick-amount-btn:disabled {
+  cursor: not-allowed;
+}
+
+.expense-amount-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted, #a8a8b3);
+}
+
+.expense-amount-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.expense-fav-inline-add {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px dashed rgba(158, 207, 255, 0.6);
+  background: transparent;
+  color: #9ecfff;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.expense-fav-inline-add:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.expense-amount-label input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.expense-entry-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.expense-save-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #ff4d8d 0%, #e6367a 100%);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.expense-save-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.entry-delete-record-btn--text {
+  background: transparent;
+  border: none;
+  color: #ff7a9a;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px;
+  cursor: pointer;
+}
+
+.entry-income-saving-hint {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+  text-align: center;
+}
+
+.entry-income-saving-grid {
+  margin-top: 4px;
+}
+
+.expense-fav-menu-backdrop,
+.expense-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.62);
+}
+
+.expense-fav-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 160px;
+  padding: 8px;
+  border-radius: 14px;
+  background: #2a2a32;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.expense-fav-menu button {
+  padding: 12px 14px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: #f0f0f5;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.expense-fav-menu button:active {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.expense-modal {
+  width: min(100%, 320px);
+  padding: 20px;
+  border-radius: 16px;
+  background: #25252d;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.expense-modal--form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #b0b0b8;
+}
+
+.expense-modal--form input[type='text'] {
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+}
+
+.expense-modal-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.expense-modal-meta {
+  margin: 0;
+  font-size: 12px;
+  color: #a0a0a8;
+}
+
+.expense-modal-hint {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.expense-modal-check {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 8px !important;
+}
+
+.expense-modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.expense-modal-primary,
+.expense-modal-ghost {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.expense-modal-primary {
+  border: none;
+  background: linear-gradient(180deg, #4e7bff 0%, #3a62d8 100%);
+  color: #fff;
+}
+
+.expense-modal-ghost {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: #ccc;
+}
