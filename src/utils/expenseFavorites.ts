@@ -73,7 +73,7 @@ export function createExpenseFavorite(input: {
 
 export function updateExpenseFavorite(
   id: string,
-  patch: Partial<Pick<ExpenseFavorite, 'name' | 'fixedAmount'>>,
+  patch: Partial<Pick<ExpenseFavorite, 'name' | 'fixedAmount' | 'category' | 'subcategoryId'>>,
 ): void {
   const list = loadExpenseFavorites().map((f) =>
     f.id === id

@@ -10,7 +10,6 @@ import {
   resolveSubcategoryFromMemo,
   type ExpenseCategoryKey,
 } from '../data/expenseSubcategories'
-import { getCategoryLabel } from '../data/spendingCategories'
 import {
   createExpenseFavorite,
   deleteExpenseFavorite,
@@ -206,6 +205,10 @@ export function ExpenseEntryFlow({
 
   const [suggestFavoriteOpen, setSuggestFavoriteOpen] = useState(false)
   const [favoriteFormOpen, setFavoriteFormOpen] = useState(false)
+  const [favoriteModalStep, setFavoriteModalStep] = useState<'pick-category' | 'details'>('pick-category')
+  const [favoritePickerCategory, setFavoritePickerCategory] = useState<ExpenseCategoryKey | null>(null)
+  const [favoritePickerSubcategoryId, setFavoritePickerSubcategoryId] = useState<string | null>(null)
+  const [favoritePickerCustomText, setFavoritePickerCustomText] = useState('')
   const [favoriteForm, setFavoriteForm] = useState<FavoriteFormState | null>(null)
   const [favoriteContextMenu, setFavoriteContextMenu] = useState<ExpenseFavorite | null>(null)
   const [editingFavorite, setEditingFavorite] = useState<ExpenseFavorite | null>(null)
@@ -248,18 +251,88 @@ export function ExpenseEntryFlow({
     if (subId !== 'other') setCustomSubcategoryText('')
   }
 
-  const openManualFavoriteForm = (): void => {
-    if (!selectedCategory || !selectedSubcategoryId) return
+  const closeFavoriteModal = (): void => {
+    setFavoriteFormOpen(false)
+    setFavoriteForm(null)
+    setFavoritePickerCategory(null)
+    setFavoritePickerSubcategoryId(null)
+    setFavoritePickerCustomText('')
+    setEditingFavorite(null)
+    if (suggestFavoriteOpen) {
+      setSuggestFavoriteOpen(false)
+      setAwaitingFavoriteDismiss(false)
+      onFinished()
+    }
+  }
+
+  const beginFavoriteDetailsStep = (
+    category: ExpenseCategoryKey,
+    subcategoryId: string,
+    customText = '',
+  ): void => {
     const amount = parseWonInput(amountInput)
+    const defaultName =
+      subcategoryId === 'other' && customText.trim()
+        ? customText.trim()
+        : (getSubcategoryDef(category, subcategoryId)?.label ?? '')
+    setFavoritePickerCategory(category)
+    setFavoritePickerSubcategoryId(subcategoryId)
+    setFavoritePickerCustomText(customText)
     setFavoriteForm({
-      name: getSubcategoryDef(selectedCategory, selectedSubcategoryId)?.label ?? '',
-      category: selectedCategory,
-      subcategoryId: selectedSubcategoryId,
+      name: defaultName,
+      category,
+      subcategoryId,
       fixedAmountInput: !Number.isNaN(amount) && amount > 0 ? String(amount) : '',
       lockAmount: !Number.isNaN(amount) && amount > 0,
     })
-    setEditingFavorite(null)
+    setFavoriteModalStep('details')
     setFavoriteFormOpen(true)
+  }
+
+  const openFavoriteAddFlow = (): void => {
+    if (favorites.length >= EXPENSE_FAVORITES_MAX) {
+      alert(`즐겨찾기는 최대 ${EXPENSE_FAVORITES_MAX}개까지예요.`)
+      return
+    }
+    setEditingFavorite(null)
+    if (selectedCategory && selectedSubcategoryId) {
+      const isOther = selectedSubcategoryId === 'other'
+      if (isOther && !customSubcategoryText.trim()) {
+        setFavoritePickerCategory(selectedCategory)
+        setFavoritePickerSubcategoryId('other')
+        setFavoritePickerCustomText('')
+        setFavoriteForm(null)
+        setFavoriteModalStep('pick-category')
+        setFavoriteFormOpen(true)
+        return
+      }
+      beginFavoriteDetailsStep(selectedCategory, selectedSubcategoryId, customSubcategoryText)
+      return
+    }
+    setFavoritePickerCategory(null)
+    setFavoritePickerSubcategoryId(null)
+    setFavoritePickerCustomText('')
+    setFavoriteForm(null)
+    setFavoriteModalStep('pick-category')
+    setFavoriteFormOpen(true)
+  }
+
+  const favoritePickReady =
+    favoritePickerCategory != null &&
+    favoritePickerSubcategoryId != null &&
+    (favoritePickerSubcategoryId !== 'other' || favoritePickerCustomText.trim().length > 0)
+
+  const advanceFromFavoritePickStep = (): void => {
+    if (!favoritePickerCategory || !favoritePickerSubcategoryId) return
+    if (favoritePickerSubcategoryId === 'other' && !favoritePickerCustomText.trim()) {
+      alert('서브카테고리 내용을 입력해 주세요.')
+      return
+    }
+    beginFavoriteDetailsStep(
+      favoritePickerCategory,
+      favoritePickerSubcategoryId,
+      favoritePickerCustomText,
+    )
   }
 
   const finishSave = (payload: ExpenseSavePayload, checkSuggest: boolean): void => {
@@ -340,6 +413,8 @@ export function ExpenseEntryFlow({
     if (editingFavorite) {
       updateExpenseFavorite(editingFavorite.id, {
         name: favoriteForm.name,
+        category: favoriteForm.category,
+        subcategoryId: favoriteForm.subcategoryId,
         fixedAmount: favoriteForm.lockAmount ? fixedAmount : null,
       })
     } else {
@@ -355,19 +430,17 @@ export function ExpenseEntryFlow({
       }
     }
     refreshFavorites()
-    setFavoriteFormOpen(false)
-    setFavoriteForm(null)
-    setEditingFavorite(null)
-    if (suggestFavoriteOpen) {
-      setSuggestFavoriteOpen(false)
-      setAwaitingFavoriteDismiss(false)
-      onFinished()
-    }
+    closeFavoriteModal()
   }
 
   const startEditFavorite = (fav: ExpenseFavorite): void => {
     setFavoriteContextMenu(null)
     setEditingFavorite(fav)
+    const cat = isExpenseCategoryKey(fav.category) ? fav.category : null
+    if (!cat) return
+    setFavoritePickerCategory(cat)
+    setFavoritePickerSubcategoryId(fav.subcategoryId)
+    setFavoritePickerCustomText(fav.subcategoryId === 'other' ? fav.name : '')
     setFavoriteForm({
       name: fav.name,
       category: fav.category,
@@ -375,6 +448,7 @@ export function ExpenseEntryFlow({
       fixedAmountInput: fav.fixedAmount != null ? String(fav.fixedAmount) : '',
       lockAmount: fav.fixedAmount != null,
     })
+    setFavoriteModalStep('details')
     setFavoriteFormOpen(true)
   }
 
@@ -418,17 +492,7 @@ export function ExpenseEntryFlow({
             <button
               type="button"
               className="entry-fav-chip entry-fav-chip--add"
-              onClick={() => {
-                if (favorites.length >= EXPENSE_FAVORITES_MAX) {
-                  alert(`즐겨찾기는 최대 ${EXPENSE_FAVORITES_MAX}개까지예요.`)
-                  return
-                }
-                if (!selectedCategory || !selectedSubcategoryId) {
-                  alert('카테고리와 서브카테고리를 먼저 선택해 주세요.')
-                  return
-                }
-                openManualFavoriteForm()
-              }}
+              onClick={openFavoriteAddFlow}
             >
               + 추가
             </button>
@@ -547,7 +611,7 @@ export function ExpenseEntryFlow({
               type="button"
               className="entry-fav-star-inline"
               disabled={!amountSectionActive}
-              onClick={openManualFavoriteForm}
+              onClick={openFavoriteAddFlow}
               aria-label="즐겨찾기에 추가"
             >
               ⭐
@@ -648,16 +712,12 @@ export function ExpenseEntryFlow({
                 className="entry-modal-primary"
                 onClick={() => {
                   setSuggestFavoriteOpen(false)
-                  const amount = parseWonInput(amountInput)
-                  setFavoriteForm({
-                    name: getSubcategoryDef(selectedCategory, selectedSubcategoryId)?.label ?? '',
-                    category: selectedCategory,
-                    subcategoryId: selectedSubcategoryId,
-                    fixedAmountInput: !Number.isNaN(amount) && amount > 0 ? String(amount) : '',
-                    lockAmount: !Number.isNaN(amount) && amount > 0,
-                  })
                   setEditingFavorite(null)
-                  setFavoriteFormOpen(true)
+                  beginFavoriteDetailsStep(
+                    selectedCategory,
+                    selectedSubcategoryId,
+                    customSubcategoryText,
+                  )
                 }}
               >
                 추가하기
@@ -678,21 +738,128 @@ export function ExpenseEntryFlow({
         </div>
       ) : null}
 
-      {favoriteFormOpen && favoriteForm ? (
+      {favoriteFormOpen && favoriteModalStep === 'pick-category' ? (
+        <div className="entry-modal-backdrop">
+          <div
+            className="entry-modal entry-modal--pick"
+            role="dialog"
+            aria-modal="true"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="entry-modal-title">카테고리 선택</p>
+            <p className="entry-modal-hint entry-modal-hint--top">
+              즐겨찾기에 넣을 카테고리와 서브카테고리를 골라 주세요.
+            </p>
+            <div className="entry-modal-cat-grid">
+              {EXPENSE_CATEGORY_KEYS.map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  className={`entry-cat-btn entry-modal-cat-btn ${favoritePickerCategory === cat ? 'entry-cat-btn--selected' : ''} ${warningCategories.has(cat) ? 'entry-cat-btn--warn' : ''}`}
+                  onClick={() => {
+                    setFavoritePickerCategory(cat)
+                    setFavoritePickerSubcategoryId(null)
+                    setFavoritePickerCustomText('')
+                  }}
+                >
+                  <img
+                    src={categoryIconByKey[cat] ?? defaultCategoryIcon}
+                    alt=""
+                    className="entry-cat-btn-icon"
+                    aria-hidden
+                  />
+                  <span>{EXPENSE_CATEGORY_SHORT_LABELS[cat]}</span>
+                </button>
+              ))}
+            </div>
+            {favoritePickerCategory ? (
+              <>
+                <div className="entry-subcat-grid entry-modal-subcat-grid">
+                  {EXPENSE_SUBCATEGORIES[favoritePickerCategory].map((sub) => (
+                    <button
+                      key={sub.id}
+                      type="button"
+                      className={`entry-subcat-btn ${favoritePickerSubcategoryId === sub.id ? 'active' : ''}`}
+                      onClick={() => {
+                        setFavoritePickerSubcategoryId(sub.id)
+                        if (sub.id !== 'other') setFavoritePickerCustomText('')
+                      }}
+                    >
+                      {sub.label}
+                    </button>
+                  ))}
+                </div>
+                {favoritePickerSubcategoryId === 'other' ? (
+                  <label className="entry-field">
+                    직접 입력
+                    <input
+                      type="text"
+                      value={favoritePickerCustomText}
+                      placeholder="내용 입력"
+                      onChange={(e) => setFavoritePickerCustomText(e.target.value)}
+                    />
+                  </label>
+                ) : null}
+              </>
+            ) : null}
+            <div className="entry-modal-actions">
+              <button
+                type="button"
+                className="entry-modal-primary"
+                disabled={!favoritePickReady}
+                onClick={advanceFromFavoritePickStep}
+              >
+                다음
+              </button>
+              <button type="button" className="entry-modal-ghost" onClick={closeFavoriteModal}>
+                괜찮아요
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {favoriteFormOpen && favoriteModalStep === 'details' && favoriteForm ? (
         <div className="entry-modal-backdrop">
           <div className="entry-modal entry-modal--form" role="dialog" aria-modal="true">
             <p className="entry-modal-title">{editingFavorite ? '즐겨찾기 수정' : '즐겨찾기 추가'}</p>
+            <div className="entry-fav-summary">
+              <p className="entry-fav-summary-text">
+                {isExpenseCategoryKey(favoriteForm.category)
+                  ? EXPENSE_CATEGORY_SHORT_LABELS[favoriteForm.category]
+                  : favoriteForm.category}
+                {' · '}
+                {favoriteForm.subcategoryId === 'other'
+                  ? favoritePickerCustomText.trim() || '기타'
+                  : (getSubcategoryDef(
+                      favoriteForm.category as ExpenseCategoryKey,
+                      favoriteForm.subcategoryId,
+                    )?.label ?? favoriteForm.subcategoryId)}
+              </p>
+              <button
+                type="button"
+                className="entry-fav-summary-change"
+                onClick={() => {
+                  if (isExpenseCategoryKey(favoriteForm.category)) {
+                    setFavoritePickerCategory(favoriteForm.category)
+                  }
+                  setFavoritePickerSubcategoryId(favoriteForm.subcategoryId)
+                  setFavoritePickerCustomText(favoritePickerCustomText)
+                  setFavoriteModalStep('pick-category')
+                }}
+              >
+                변경
+              </button>
+            </div>
             <label className="entry-field">
-              이름
+              칩에 보일 이름 (선택)
               <input
                 type="text"
                 value={favoriteForm.name}
+                placeholder="비우면 서브카테고리 이름 사용"
                 onChange={(e) => setFavoriteForm({ ...favoriteForm, name: e.target.value })}
               />
             </label>
-            <p className="entry-modal-meta">
-              카테고리: {getCategoryLabel(favoriteForm.category as ExpenseCategoryKey)}
-            </p>
             <label className="entry-modal-check">
               <input
                 type="checkbox"
@@ -715,25 +882,13 @@ export function ExpenseEntryFlow({
               </label>
             ) : null}
             <p className="entry-modal-hint">
-              금액을 고정하면 탭 한 번으로 바로 저장돼요. 비워두면 탭할 때 금액만 입력하면 돼요.
+              금액을 고정하면 탭 한 번으로 바로 저장돼요. 비우면 탭할 때 금액만 입력하면 돼요.
             </p>
             <div className="entry-modal-actions">
               <button type="button" className="entry-modal-primary" onClick={confirmFavoriteForm}>
-                추가하기
+                {editingFavorite ? '저장' : '추가하기'}
               </button>
-              <button
-                type="button"
-                className="entry-modal-ghost"
-                onClick={() => {
-                  setFavoriteFormOpen(false)
-                  setFavoriteForm(null)
-                  if (suggestFavoriteOpen) {
-                    setSuggestFavoriteOpen(false)
-                    setAwaitingFavoriteDismiss(false)
-                    onFinished()
-                  }
-                }}
-              >
+              <button type="button" className="entry-modal-ghost" onClick={closeFavoriteModal}>
                 괜찮아요
               </button>
             </div>
