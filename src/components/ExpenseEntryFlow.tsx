@@ -161,6 +161,7 @@ export function ExpenseEntryFlow({
   const [favoriteForm, setFavoriteForm] = useState<FavoriteFormState | null>(null)
   const [favoriteContextMenu, setFavoriteContextMenu] = useState<ExpenseFavorite | null>(null)
   const [editingFavorite, setEditingFavorite] = useState<ExpenseFavorite | null>(null)
+  const [favoritesHelpOpen, setFavoritesHelpOpen] = useState(false)
   const [awaitingFavoriteDismiss, setAwaitingFavoriteDismiss] = useState(false)
 
   const subcategoryReady = Boolean(selectedCategory && selectedSubcategoryId)
@@ -335,6 +336,22 @@ export function ExpenseEntryFlow({
       </label>
 
       <section className="entry-favorites-wrap" aria-label="즐겨찾기">
+        {favorites.length > 0 ? (
+          <div className="entry-favorites-head">
+            <span className="entry-favorites-label" id="entry-favorites-label">
+              즐겨찾기
+            </span>
+            <button
+              type="button"
+              className="entry-favorites-help-btn"
+              aria-label="즐겨찾기 수정·삭제 방법"
+              aria-describedby="entry-favorites-label"
+              onClick={() => setFavoritesHelpOpen(true)}
+            >
+              ⓘ
+            </button>
+          </div>
+        ) : null}
         <div className="entry-favorites-scroll">
           <div className="entry-favorites-track">
             {favorites.map((fav) => (
@@ -502,6 +519,43 @@ export function ExpenseEntryFlow({
           </button>
         ) : null}
       </div>
+
+      {favoritesHelpOpen ? (
+        <div
+          className="entry-modal-backdrop"
+          role="presentation"
+          onClick={() => setFavoritesHelpOpen(false)}
+        >
+          <div
+            className="entry-modal entry-modal--help"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="entry-favorites-help-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p id="entry-favorites-help-title" className="entry-modal-title">
+              즐겨찾기 수정·삭제
+            </p>
+            <div className="entry-favorites-help-body">
+              <p className="entry-favorites-help-row">
+                <strong>스마트폰</strong>
+                <span>즐겨찾기를 길게 누르면 수정·삭제할 수 있어요.</span>
+              </p>
+              <p className="entry-favorites-help-row">
+                <strong>PC</strong>
+                <span>즐겨찾기를 우클릭하면 수정·삭제 메뉴가 열려요.</span>
+              </p>
+            </div>
+            <button
+              type="button"
+              className="entry-modal-primary entry-favorites-help-confirm"
+              onClick={() => setFavoritesHelpOpen(false)}
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {favoriteContextMenu ? (
         <div

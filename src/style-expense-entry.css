@@ -82,6 +82,71 @@
   min-width: 0;
 }
 
+.entry-favorites-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.entry-favorites-label {
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: #4c4c54;
+}
+
+.entry-favorites-help-btn {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+  border: 1px solid #d0d0d6;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #5a5a64;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.entry-favorites-help-btn:hover {
+  background: #f4f7ff;
+  border-color: #4e7bff;
+  color: #3a62d8;
+}
+
+.entry-favorites-help-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.entry-favorites-help-row {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #4c4c54;
+}
+
+.entry-favorites-help-row strong {
+  font-size: 12px;
+  font-weight: 800;
+  color: #2a2a32;
+}
+
+.entry-favorites-help-confirm {
+  width: 100%;
+  margin-top: 4px;
+}
+
 .entry-favorites-scroll {
   display: block;
   overflow-x: scroll;
@@ -566,6 +631,11 @@
 .entry-screen .entry-flow .entry-fav-star-inline {
   background: transparent;
   border: none;
+}
+
+.entry-screen .entry-flow .entry-favorites-help-btn {
+  height: 28px;
+  min-height: 28px;
 }
 
 .entry-screen .entry-flow .entry-field {
