@@ -110,6 +110,10 @@ import {
   preloadPopupToastImages,
 } from './utils/preloadPopupToastImages'
 import { preloadInstantNagForCategory } from './utils/preloadDeferredNag'
+import {
+  ensureMonthlySettlementCatReady,
+  preloadMonthlySettlementImages,
+} from './utils/preloadMonthlySettlementImages'
 import delBtnUrl from '../del.png'
 import canBtnUrl from '../can.png'
 import checkCatUrl from '../check.png'
@@ -670,6 +674,8 @@ function App() {
       return undefined
     }
 
+    void preloadMonthlySettlementImages()
+
     const id = window.setTimeout(() => {
       if (nagBubbleRef.current != null) return
       try {
@@ -684,7 +690,9 @@ function App() {
       } catch {
         /* ignore */
       }
-      setMonthlySettlement(content)
+      void ensureMonthlySettlementCatReady(content.catImageUrl).then(() => {
+        setMonthlySettlement(content)
+      })
     }, MONTHLY_SETTLEMENT_DELAY_MS)
 
     return () => window.clearTimeout(id)
@@ -1715,8 +1723,13 @@ function App() {
                   setWeeklySettlement(null)
                   setNagBubble(null)
                   const preview = buildMonthlySettlementPreview(transactions)
-                  if (preview) setMonthlySettlement(preview)
-                  else alert('이번 달 지출 내역이 있어야 월말 결산 미리보기가 가능해요.')
+                  if (!preview) {
+                    alert('이번 달 지출 내역이 있어야 월말 결산 미리보기가 가능해요.')
+                    return
+                  }
+                  void preloadMonthlySettlementImages().then(() => {
+                    setMonthlySettlement(preview)
+                  })
                 }}
               >
                 월말결산 테스트

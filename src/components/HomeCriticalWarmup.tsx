@@ -5,6 +5,7 @@ import {
   preloadHomeCriticalImages,
 } from '../utils/preloadHomeCritical'
 import { preloadDeferredNagAssets, preloadInstantNagSay1 } from '../utils/preloadDeferredNag'
+import { preloadMonthlySettlementImages } from '../utils/preloadMonthlySettlementImages'
 
 /** 홈 필수 고양이 우선 디코드 · 말풍선/팝업은 유휴 시 */
 export function HomeCriticalWarmup() {
@@ -24,6 +25,7 @@ export function HomeCriticalWarmup() {
 
     const idleId = idle(() => {
       void preloadDeferredNagAssets()
+      void preloadMonthlySettlementImages()
     })
 
     return () => {

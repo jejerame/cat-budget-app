@@ -3981,6 +3981,16 @@ input[type='date']::-webkit-calendar-picker-indicator {
   border: 1px solid rgba(40, 40, 46, 0.12);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
   box-sizing: border-box;
+  min-height: 72px;
+}
+
+.monthly-settlement-message:not(.monthly-settlement-message--ready) {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.monthly-settlement-message--ready {
+  animation: nag-bubble-pop-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .monthly-settlement-cat {
