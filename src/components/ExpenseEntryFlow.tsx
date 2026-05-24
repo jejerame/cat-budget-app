@@ -35,6 +35,14 @@ function FavoriteChip({
   onLongPress: () => void
 }) {
   const timerRef = useRef<number | null>(null)
+  const touchRef = useRef<{ x: number; y: number } | null>(null)
+
+  const clearLongPressTimer = (): void => {
+    if (timerRef.current) {
+      window.clearTimeout(timerRef.current)
+      timerRef.current = null
+    }
+  }
 
   return (
     <button
@@ -45,14 +53,27 @@ function FavoriteChip({
         e.preventDefault()
         onLongPress()
       }}
-      onTouchStart={() => {
+      onTouchStart={(e) => {
+        const t = e.touches[0]
+        touchRef.current = { x: t.clientX, y: t.clientY }
+        clearLongPressTimer()
         timerRef.current = window.setTimeout(onLongPress, 520)
       }}
+      onTouchMove={(e) => {
+        const start = touchRef.current
+        const t = e.touches[0]
+        if (!start || !t) return
+        if (Math.abs(t.clientX - start.x) > 6 || Math.abs(t.clientY - start.y) > 6) {
+          clearLongPressTimer()
+        }
+      }}
       onTouchEnd={() => {
-        if (timerRef.current) window.clearTimeout(timerRef.current)
+        clearLongPressTimer()
+        touchRef.current = null
       }}
       onTouchCancel={() => {
-        if (timerRef.current) window.clearTimeout(timerRef.current)
+        clearLongPressTimer()
+        touchRef.current = null
       }}
     >
       {label}
@@ -315,32 +336,34 @@ export function ExpenseEntryFlow({
 
       <section className="entry-favorites-wrap" aria-label="즐겨찾기">
         <div className="entry-favorites-scroll">
-          {favorites.map((fav) => (
-            <FavoriteChip
-              key={fav.id}
-              fav={fav}
-              label={formatFavoriteButtonLabel(fav)}
-              onTap={() => handleFavoriteTap(fav)}
-              onLongPress={() => setFavoriteContextMenu(fav)}
-            />
-          ))}
-          <button
-            type="button"
-            className="entry-fav-chip entry-fav-chip--add"
-            onClick={() => {
-              if (favorites.length >= EXPENSE_FAVORITES_MAX) {
-                alert(`즐겨찾기는 최대 ${EXPENSE_FAVORITES_MAX}개까지예요.`)
-                return
-              }
-              if (!selectedCategory || !selectedSubcategoryId) {
-                alert('카테고리와 서브카테고리를 먼저 선택해 주세요.')
-                return
-              }
-              openManualFavoriteForm()
-            }}
-          >
-            + 추가
-          </button>
+          <div className="entry-favorites-track">
+            {favorites.map((fav) => (
+              <FavoriteChip
+                key={fav.id}
+                fav={fav}
+                label={formatFavoriteButtonLabel(fav)}
+                onTap={() => handleFavoriteTap(fav)}
+                onLongPress={() => setFavoriteContextMenu(fav)}
+              />
+            ))}
+            <button
+              type="button"
+              className="entry-fav-chip entry-fav-chip--add"
+              onClick={() => {
+                if (favorites.length >= EXPENSE_FAVORITES_MAX) {
+                  alert(`즐겨찾기는 최대 ${EXPENSE_FAVORITES_MAX}개까지예요.`)
+                  return
+                }
+                if (!selectedCategory || !selectedSubcategoryId) {
+                  alert('카테고리와 서브카테고리를 먼저 선택해 주세요.')
+                  return
+                }
+                openManualFavoriteForm()
+              }}
+            >
+              + 추가
+            </button>
+          </div>
         </div>
       </section>
 
@@ -573,7 +596,7 @@ export function ExpenseEntryFlow({
               금액 고정
             </label>
             {favoriteForm.lockAmount ? (
-              <label>
+              <label className="entry-field">
                 고정 금액(원)
                 <input
                   type="text"

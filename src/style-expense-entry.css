@@ -1,8 +1,13 @@
 /* 수입·지출·저축 입력 공통 — 화이트/라이트 톤 (entry-screen 내부) */
 
-/* 즐겨찾기 가로 스크롤이 잘리지 않도록 */
-.screen.entry-screen.active {
-  overflow-x: visible;
+/* 입력 화면 가로 넘침 방지 (날짜·금액 박스가 화면 밖으로 나가지 않도록) */
+.screen.active.entry-screen {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.screen.active.entry-screen .entry-favorites-wrap {
+  touch-action: pan-x;
 }
 
 .entry-flow {
@@ -12,6 +17,11 @@
   margin-top: 4px;
   min-width: 0;
   width: 100%;
+  max-width: 360px;
+  margin-left: auto;
+  margin-right: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .entry-field {
@@ -29,6 +39,8 @@
 
 .entry-field input {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   box-sizing: border-box;
   height: 46px;
   padding: 0 14px;
@@ -62,7 +74,7 @@
   text-align: center;
 }
 
-/* 즐겨찾기 */
+/* 즐겨찾기 — 모바일: 스와이프 / PC: 얇은 스크롤바 */
 .entry-favorites-wrap {
   width: 100%;
   max-width: 360px;
@@ -71,17 +83,16 @@
 }
 
 .entry-favorites-scroll {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 8px;
-  overflow-x: auto;
+  display: block;
+  overflow-x: scroll;
   overflow-y: hidden;
   width: 100%;
-  padding-bottom: 6px;
+  max-width: 100%;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-x: contain;
   touch-action: pan-x;
   scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .entry-favorites-scroll::-webkit-scrollbar {
@@ -90,23 +101,70 @@
   height: 0;
 }
 
+/* PC(마우스): 즐겨찾기 아래 얇은 가로 스크롤바 */
+@media (hover: hover) and (pointer: fine) {
+  .entry-favorites-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #a8a8b4 #f0f0f2;
+    padding-bottom: 2px;
+  }
+
+  .entry-favorites-scroll::-webkit-scrollbar {
+    display: block;
+    height: 6px;
+  }
+
+  .entry-favorites-scroll::-webkit-scrollbar-track {
+    background: #f0f0f2;
+    border-radius: 4px;
+  }
+
+  .entry-favorites-scroll::-webkit-scrollbar-thumb {
+    background: #a8a8b4;
+    border-radius: 4px;
+  }
+
+  .entry-favorites-scroll::-webkit-scrollbar-thumb:hover {
+    background: #888894;
+  }
+}
+
+.entry-favorites-track {
+  display: inline-flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+  width: max-content;
+  min-width: 100%;
+  padding: 2px 16px 8px;
+  box-sizing: border-box;
+}
+
 .entry-fav-chip {
-  flex: 0 0 auto;
+  flex: none;
+  flex-shrink: 0;
+  height: auto;
+  min-height: 36px;
   padding: 8px 14px;
   border-radius: 999px;
-  border: 1px solid #c8c8d0;
-  background: #f6f6f7;
+  border: 1px solid #ffe9a0;
+  background: #fffbe8;
   color: #2a2a32;
   font-size: 12px;
   font-weight: 700;
   white-space: nowrap;
   cursor: pointer;
+  touch-action: manipulation;
+  box-shadow: 0 1px 4px rgba(255, 200, 80, 0.18);
 }
 
 .entry-fav-chip--add {
   border-style: dashed;
-  border-color: #8a8a96;
-  color: #4a4a54;
+  border-color: #f0d878;
+  background: #fffdf3;
+  color: #5a4a20;
+  box-shadow: none;
 }
 
 /* 카테고리 그리드 (지출·수입·저축 동일) */
@@ -400,7 +458,8 @@
 }
 
 .entry-modal {
-  width: min(100%, 320px);
+  width: min(calc(100vw - 40px), 320px);
+  max-width: 320px;
   padding: 20px;
   border-radius: 16px;
   background: #ffffff;
@@ -409,11 +468,20 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .entry-modal--form .entry-field {
   margin: 0;
-  max-width: none;
+  max-width: 100%;
+  width: 100%;
+}
+
+.entry-modal--form .entry-field input {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .entry-modal-title {
@@ -474,7 +542,18 @@
 }
 
 /* entry-screen 안에서 전역 다크 input/button 스타일 덮어쓰기 */
-.entry-screen .entry-flow .entry-fav-chip,
+.entry-screen .entry-flow .entry-fav-chip {
+  background: #fffbe8;
+  border-color: #ffe9a0;
+  color: #2a2a32;
+}
+
+.entry-screen .entry-flow .entry-fav-chip--add {
+  background: #fffdf3;
+  border-color: #f0d878;
+  color: #5a4a20;
+}
+
 .entry-screen .entry-flow .entry-quick-amount-btn,
 .entry-screen .entry-flow .entry-cat-btn,
 .entry-screen .entry-flow .entry-subcat-btn,
@@ -489,13 +568,36 @@
   border: none;
 }
 
+.entry-screen .entry-flow .entry-field {
+  width: 100%;
+  max-width: 360px;
+  box-sizing: border-box;
+}
+
 .entry-screen .entry-flow .entry-field input {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   background: #ffffff;
   color: #3a3a42;
   border: 2px solid #56565e;
 }
 
+.entry-screen .entry-flow .entry-amount-input-wrap {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
 .entry-screen .entry-flow .entry-field--amount input {
   font-size: 18px;
   font-weight: 600;
+}
+
+.entry-screen .entry-flow .entry-quick-amounts,
+.entry-screen .entry-flow .entry-actions,
+.entry-screen .entry-flow .entry-primary-btn {
+  max-width: 360px;
+  width: 100%;
+  box-sizing: border-box;
 }
