@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { wonAmountToKorean } from '../utils/finance'
 import {
   buildExpenseMemo,
@@ -286,7 +286,9 @@ export function ExpenseEntryFlow({
       lockAmount: !Number.isNaN(amount) && amount > 0,
     })
     setFavoriteModalStep('details')
-    setFavoriteFormOpen(true)
+    startTransition(() => {
+      setFavoriteFormOpen(true)
+    })
   }
 
   const openFavoriteAddFlow = (): void => {
@@ -303,10 +305,14 @@ export function ExpenseEntryFlow({
         setFavoritePickerCustomText('')
         setFavoriteForm(null)
         setFavoriteModalStep('pick-category')
-        setFavoriteFormOpen(true)
+        startTransition(() => {
+          setFavoriteFormOpen(true)
+        })
         return
       }
-      beginFavoriteDetailsStep(selectedCategory, selectedSubcategoryId, customSubcategoryText)
+      startTransition(() => {
+        beginFavoriteDetailsStep(selectedCategory, selectedSubcategoryId, customSubcategoryText)
+      })
       return
     }
     setFavoritePickerCategory(null)
@@ -314,7 +320,9 @@ export function ExpenseEntryFlow({
     setFavoritePickerCustomText('')
     setFavoriteForm(null)
     setFavoriteModalStep('pick-category')
-    setFavoriteFormOpen(true)
+    startTransition(() => {
+      setFavoriteFormOpen(true)
+    })
   }
 
   const favoritePickReady =
@@ -390,9 +398,8 @@ export function ExpenseEntryFlow({
 
     if (fav.fixedAmount != null && fav.fixedAmount > 0) {
       const memo = buildExpenseMemo(fav.category, fav.subcategoryId)
-      void ensureInstantNagForExpenseSave(fav.category, memo).then(() => {
-        finishSave({ category: fav.category, memo, amount: fav.fixedAmount! }, false)
-      })
+      void ensureInstantNagForExpenseSave(fav.category, memo)
+      finishSave({ category: fav.category, memo, amount: fav.fixedAmount }, false)
       return
     }
 
@@ -449,7 +456,9 @@ export function ExpenseEntryFlow({
       lockAmount: fav.fixedAmount != null,
     })
     setFavoriteModalStep('details')
-    setFavoriteFormOpen(true)
+    startTransition(() => {
+      setFavoriteFormOpen(true)
+    })
   }
 
   return (
@@ -514,6 +523,8 @@ export function ExpenseEntryFlow({
                   src={categoryIconByKey[cat] ?? defaultCategoryIcon}
                   alt=""
                   className="entry-cat-btn-icon"
+                  decoding="async"
+                  loading="lazy"
                   aria-hidden
                 />
                 <span>{EXPENSE_CATEGORY_SHORT_LABELS[cat]}</span>
@@ -755,20 +766,14 @@ export function ExpenseEntryFlow({
                 <button
                   key={cat}
                   type="button"
-                  className={`entry-cat-btn entry-modal-cat-btn ${favoritePickerCategory === cat ? 'entry-cat-btn--selected' : ''} ${warningCategories.has(cat) ? 'entry-cat-btn--warn' : ''}`}
+                  className={`entry-modal-cat-text-btn ${favoritePickerCategory === cat ? 'entry-modal-cat-text-btn--selected' : ''} ${warningCategories.has(cat) ? 'entry-modal-cat-text-btn--warn' : ''}`}
                   onClick={() => {
                     setFavoritePickerCategory(cat)
                     setFavoritePickerSubcategoryId(null)
                     setFavoritePickerCustomText('')
                   }}
                 >
-                  <img
-                    src={categoryIconByKey[cat] ?? defaultCategoryIcon}
-                    alt=""
-                    className="entry-cat-btn-icon"
-                    aria-hidden
-                  />
-                  <span>{EXPENSE_CATEGORY_SHORT_LABELS[cat]}</span>
+                  {EXPENSE_CATEGORY_SHORT_LABELS[cat]}
                 </button>
               ))}
             </div>

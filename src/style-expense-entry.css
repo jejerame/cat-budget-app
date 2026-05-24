@@ -40,23 +40,52 @@
 
 .entry-field--date {
   min-width: 0;
+  max-width: 100%;
 }
 
-.entry-date-wrap {
-  display: block;
+/* iOS: 테두리는 wrap, input은 클립 — 가로 넘침·세로 치우침 동시 완화 */
+.entry-field--date .entry-date-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
   width: 100%;
   max-width: 100%;
   min-width: 0;
+  height: 46px;
   overflow: hidden;
   box-sizing: border-box;
+  border-radius: 18px;
+  border: 2px solid #56565e;
+  background: #ffffff;
+  contain: layout style;
 }
 
-.entry-date-wrap input[type='date'] {
-  display: block;
+.entry-field--date .entry-date-wrap input[type='date'] {
+  flex: 1 1 auto;
   width: 100%;
-  max-width: 100%;
   min-width: 0;
+  max-width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0 12px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
   box-sizing: border-box;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.25;
+  color: #3a3a42;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.entry-field--date .entry-date-wrap input[type='date']::-webkit-date-and-time-value {
+  display: block;
+  min-height: 1.15em;
+  margin: 0;
+  padding: 0;
+  text-align: left;
 }
 
 .entry-field input {
@@ -583,14 +612,29 @@
   width: 100%;
 }
 
-.entry-modal-cat-btn {
-  min-height: 64px;
-  padding: 8px 4px;
+.entry-modal-cat-text-btn {
+  min-height: 40px;
+  padding: 10px 6px;
+  border-radius: 10px;
+  border: 1px solid #d8d8de;
+  background: #ffffff;
+  color: #2a2a32;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+  cursor: pointer;
+  word-break: keep-all;
 }
 
-.entry-modal-cat-btn .entry-cat-btn-icon {
-  width: 28px;
-  height: 28px;
+.entry-modal-cat-text-btn--selected {
+  border-color: #4e7bff;
+  background: #f4f7ff;
+  box-shadow: 0 0 0 2px rgba(78, 123, 255, 0.28);
+}
+
+.entry-modal-cat-text-btn--warn {
+  border-color: rgba(255, 77, 141, 0.55);
 }
 
 .entry-modal-subcat-grid {
@@ -748,6 +792,19 @@
   background: #ffffff;
   color: #3a3a42;
   border: 2px solid #56565e;
+}
+
+.entry-screen .entry-flow .entry-field--date .entry-date-wrap {
+  border: 2px solid #56565e;
+  background: #ffffff;
+}
+
+.entry-screen .entry-flow .entry-field--date .entry-date-wrap input {
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
 }
 
 .entry-screen .entry-flow .entry-amount-input-wrap {

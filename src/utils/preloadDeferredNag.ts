@@ -21,10 +21,9 @@ export function preloadInstantNagSay1(): void {
   void loadImageAsset(say1Url)
 }
 
-/** 카테고리 화면에서 지출 잔소리 PNG 미리 디코드 (모바일 선행 텍스트 방지) */
+/** 지출 입력 진입 시 say1만 선로드 (cheer·카테고리 아이콘과 디코드 경합 방지) */
 export function preloadInstantNagForCategory(): void {
   void loadImageAsset(say1Url)
-  void Promise.all(HOUSING_CHEER_IMAGE_URLS.map((url) => loadImageAsset(url)))
 }
 
 /** 즐겨찾기·즉시 저장 직전 — 잔소리 PNG 디코드 완료까지 대기 */
