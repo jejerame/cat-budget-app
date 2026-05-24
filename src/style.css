@@ -3912,7 +3912,9 @@ input[type='date']::-webkit-calendar-picker-indicator {
   justify-content: center;
   padding: max(16px, var(--safe-top)) 14px calc(24px + var(--safe-bottom));
   box-sizing: border-box;
-  background: transparent;
+  background: rgba(8, 6, 12, 0.52);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   animation: nag-bubble-backdrop-in 0.32s ease forwards;
 }
 
