@@ -9,6 +9,7 @@ import { MonthlySettlementOverlay } from './components/MonthlySettlementOverlay'
 import { WeeklySettlementOverlay } from './components/WeeklySettlementOverlay'
 import {
   buildMonthlySettlement,
+  buildMonthlySettlementPreview,
   isLastDayOfMonth,
   monthlySettlementStorageKey,
   type MonthlySettlementContent,
@@ -55,11 +56,7 @@ import {
   getRandomNagByAmount,
   getRedReflectionComment,
 } from './data/nagMessages'
-import {
-  buildWeeklySettlement,
-  buildWeeklySettlementPreview,
-  type WeeklySettlementContent,
-} from './data/weeklySettlement'
+import { buildWeeklySettlement, type WeeklySettlementContent } from './data/weeklySettlement'
 import { getCategoryLabel } from './data/spendingCategories'
 import {
   calculateTenYearCompoundValue,
@@ -144,8 +141,8 @@ const CALENDAR_DAY_HIGH_EXPENSE_CAT_THRESHOLD = 200_000
 /** 단일 지출이 이 금액 이상이면 말풍선(say1) 종료 후 「잔소리의 복리 효과」만 표시 */
 const HIGH_EXPENSE_COMPOUND_THRESHOLD = 200_000
 const INSTANT_NAG_BUBBLE_MS = 2_000
-/** 삭제: 주간 결산 UI 확인용 테스트 버튼 (false 또는 블록 제거) */
-const ENABLE_WEEKLY_SETTLEMENT_TEST_BUTTON = true
+/** 삭제: 월말 결산 UI 확인용 테스트 버튼 (false 또는 블록 제거) */
+const ENABLE_MONTHLY_SETTLEMENT_TEST_BUTTON = true
 const WEEKLY_SETTLEMENT_BUBBLE_STORAGE_PREFIX = 'weekly-settlement-bubble:v1:'
 const MONTHLY_SETTLEMENT_DELAY_MS = 1200
 /** 달력 연도 콤보: 거래가 없어도 선택 가능하도록 올해 기준 이전·이후 연도를 항상 포함 */
@@ -1709,16 +1706,20 @@ function App() {
             </span>
           </footer>
           <div className="floating-actions">
-            {ENABLE_WEEKLY_SETTLEMENT_TEST_BUTTON ? (
+            {ENABLE_MONTHLY_SETTLEMENT_TEST_BUTTON ? (
               <button
                 type="button"
-                className="weekly-settlement-test-btn"
+                className="monthly-settlement-test-btn"
                 onClick={() => {
                   setScreen('home')
-                  setWeeklySettlement(buildWeeklySettlementPreview(transactions, nagIntensity))
+                  setWeeklySettlement(null)
+                  setNagBubble(null)
+                  const preview = buildMonthlySettlementPreview(transactions)
+                  if (preview) setMonthlySettlement(preview)
+                  else alert('이번 달 지출 내역이 있어야 월말 결산 미리보기가 가능해요.')
                 }}
               >
-                주간결산 테스트
+                월말결산 테스트
               </button>
             ) : null}
             <button type="button" onClick={() => openEntryForDate(toDateKey(new Date()))}>+ 입력</button>

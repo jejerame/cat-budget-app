@@ -67,3 +67,28 @@ export function buildMonthlySettlement(
     catImageUrl: over ? hwaCatUrl : ddCatUrl,
   }
 }
+
+/** UI 확인용 — 말일·localStorage 무시 (테스트 버튼 전용, 삭제 가능) */
+export function buildMonthlySettlementPreview(
+  records: TransactionRecord[],
+  today: Date = new Date(),
+): MonthlySettlementContent | null {
+  const monthDate = new Date(today.getFullYear(), today.getMonth(), 1)
+  const summary = getMonthSummary(records, monthDate)
+  if (summary.expense <= 0) return null
+
+  const top = getTopExpenseCategoriesByMonth(records, monthDate, 1)[0]
+  if (!top) return null
+
+  const over = isTangjinTone(records, monthDate)
+  const monthLabel = `${today.getFullYear()}년 ${today.getMonth() + 1}월`
+
+  return {
+    monthLabel,
+    topCategoryLabel: getCategoryLabel(top.category),
+    topCategoryAmount: top.total,
+    tone: over ? 'over' : 'good',
+    message: over ? OVER_MESSAGE : GOOD_MESSAGE,
+    catImageUrl: over ? hwaCatUrl : ddCatUrl,
+  }
+}
