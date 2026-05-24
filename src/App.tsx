@@ -1868,9 +1868,11 @@ function App() {
             />
           ) : (
             <div className="entry-flow">
-              <label className="entry-field">
+              <label className="entry-field entry-field--date">
                 날짜
-                <input type="date" value={entryDate} onChange={(e) => setEntryDate(e.target.value)} />
+                <span className="entry-date-wrap">
+                  <input type="date" value={entryDate} onChange={(e) => setEntryDate(e.target.value)} />
+                </span>
               </label>
               <div className="entry-cat-grid">
                 {(selectedType === 'income' ? incomeCategories : savingCategories).map((item) => {

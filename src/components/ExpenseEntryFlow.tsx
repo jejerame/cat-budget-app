@@ -21,8 +21,12 @@ import {
   updateExpenseFavorite,
   type ExpenseFavorite,
 } from '../utils/expenseFavorites'
+import { ensureInstantNagForExpenseSave } from '../utils/preloadDeferredNag'
 
 const QUICK_AMOUNTS = [4_000, 5_000, 10_000, 20_000, 50_000] as const
+
+const FAVORITE_LONG_PRESS_MS = 500
+const FAVORITE_TAP_MAX_MS = 450
 
 function FavoriteChip({
   label,
@@ -35,7 +39,11 @@ function FavoriteChip({
   onLongPress: () => void
 }) {
   const timerRef = useRef<number | null>(null)
-  const touchRef = useRef<{ x: number; y: number } | null>(null)
+  const startPosRef = useRef<{ x: number; y: number } | null>(null)
+  const pointerDownAtRef = useRef(0)
+  const longPressFiredRef = useRef(false)
+  const suppressClickRef = useRef(false)
+  const lastPointerTypeRef = useRef('')
 
   const clearLongPressTimer = (): void => {
     if (timerRef.current) {
@@ -44,36 +52,76 @@ function FavoriteChip({
     }
   }
 
+  const handlePointerDown = (e: React.PointerEvent<HTMLButtonElement>): void => {
+    if (e.button !== 0) return
+    lastPointerTypeRef.current = e.pointerType
+    longPressFiredRef.current = false
+    suppressClickRef.current = false
+    pointerDownAtRef.current = e.timeStamp
+    startPosRef.current = { x: e.clientX, y: e.clientY }
+    clearLongPressTimer()
+    if (e.pointerType === 'touch') {
+      timerRef.current = window.setTimeout(() => {
+        longPressFiredRef.current = true
+        suppressClickRef.current = true
+        onLongPress()
+      }, FAVORITE_LONG_PRESS_MS)
+    }
+  }
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLButtonElement>): void => {
+    const start = startPosRef.current
+    if (!start) return
+    if (Math.abs(e.clientX - start.x) > 8 || Math.abs(e.clientY - start.y) > 8) {
+      clearLongPressTimer()
+    }
+  }
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLButtonElement>): void => {
+    clearLongPressTimer()
+    const start = startPosRef.current
+    startPosRef.current = null
+    if (longPressFiredRef.current) {
+      suppressClickRef.current = true
+      return
+    }
+    if (e.pointerType !== 'touch' || !start) return
+    const elapsed = e.timeStamp - pointerDownAtRef.current
+    if (elapsed <= FAVORITE_TAP_MAX_MS) {
+      suppressClickRef.current = true
+      onTap()
+    }
+  }
+
+  const handlePointerCancel = (): void => {
+    clearLongPressTimer()
+    startPosRef.current = null
+  }
+
   return (
     <button
       type="button"
       className="entry-fav-chip"
-      onClick={onTap}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
+      onClick={(e) => {
+        if (suppressClickRef.current || longPressFiredRef.current) {
+          e.preventDefault()
+          suppressClickRef.current = false
+          longPressFiredRef.current = false
+          return
+        }
+        if (lastPointerTypeRef.current === 'touch') {
+          e.preventDefault()
+          return
+        }
+        onTap()
+      }}
       onContextMenu={(e) => {
         e.preventDefault()
         onLongPress()
-      }}
-      onTouchStart={(e) => {
-        const t = e.touches[0]
-        touchRef.current = { x: t.clientX, y: t.clientY }
-        clearLongPressTimer()
-        timerRef.current = window.setTimeout(onLongPress, 520)
-      }}
-      onTouchMove={(e) => {
-        const start = touchRef.current
-        const t = e.touches[0]
-        if (!start || !t) return
-        if (Math.abs(t.clientX - start.x) > 6 || Math.abs(t.clientY - start.y) > 6) {
-          clearLongPressTimer()
-        }
-      }}
-      onTouchEnd={() => {
-        clearLongPressTimer()
-        touchRef.current = null
-      }}
-      onTouchCancel={() => {
-        clearLongPressTimer()
-        touchRef.current = null
       }}
     >
       {label}
@@ -269,7 +317,9 @@ export function ExpenseEntryFlow({
 
     if (fav.fixedAmount != null && fav.fixedAmount > 0) {
       const memo = buildExpenseMemo(fav.category, fav.subcategoryId)
-      finishSave({ category: fav.category, memo, amount: fav.fixedAmount }, false)
+      void ensureInstantNagForExpenseSave(fav.category, memo).then(() => {
+        finishSave({ category: fav.category, memo, amount: fav.fixedAmount! }, false)
+      })
       return
     }
 
@@ -330,9 +380,11 @@ export function ExpenseEntryFlow({
 
   return (
     <div className="entry-flow">
-      <label className="entry-field">
+      <label className="entry-field entry-field--date">
         날짜
-        <input type="date" value={entryDate} onChange={(e) => onEntryDateChange(e.target.value)} />
+        <span className="entry-date-wrap">
+          <input type="date" value={entryDate} onChange={(e) => onEntryDateChange(e.target.value)} />
+        </span>
       </label>
 
       <section className="entry-favorites-wrap" aria-label="즐겨찾기">
