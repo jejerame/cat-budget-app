@@ -1,6 +1,6 @@
 import type { TransactionRecord } from '../utils/transactions'
 import type { NagIntensity } from './nagIntensity'
-import { getWeeklySettlementNagText } from './nagMessages'
+import { getWeeklySettlementMessageFromSums, getWeeklySettlementNagText } from './nagMessages'
 
 export type WeeklyComparisonDirection = 'more' | 'less' | 'equal'
 
@@ -80,5 +80,18 @@ export function buildWeeklySettlement(
   return {
     ...comparisonFromSums(lastSum, prevSum),
     message,
+  }
+}
+
+/** UI 확인용 — 요일·localStorage 무시 (테스트 버튼 전용, 삭제 가능) */
+export function buildWeeklySettlementPreview(
+  transactions: TransactionRecord[],
+  selected: NagIntensity,
+): WeeklySettlementContent {
+  const today = new Date()
+  const { lastSum, prevSum } = getWeeklyExpenseSums(transactions, today)
+  return {
+    ...comparisonFromSums(lastSum, prevSum),
+    message: getWeeklySettlementMessageFromSums(lastSum, prevSum, selected),
   }
 }

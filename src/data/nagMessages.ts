@@ -188,6 +188,17 @@ function sumExpenseBetween(transactions: TransactionRecord[], from: Date, toExcl
     .reduce((s, r) => s + r.amount, 0)
 }
 
+export function getWeeklySettlementMessageFromSums(
+  lastSum: number,
+  prevSum: number,
+  selected: NagIntensity,
+): string {
+  const tier = resolveContentIntensity(selected)
+  const lines = WEEKLY_SETTLEMENT[tier].worse ? WEEKLY_SETTLEMENT[tier] : WEEKLY_SETTLEMENT['spartian-lite']
+  if (lastSum > prevSum) return lines.worse
+  return lines.better
+}
+
 /** 일요일: 직전 7일 vs 그 이전 7일 지출 합계 비교 문구 (비교할 지출이 없으면 null) */
 export function getWeeklySettlementNagText(
   transactions: TransactionRecord[],
@@ -203,10 +214,5 @@ export function getWeeklySettlementNagText(
   const lastSum = sumExpenseBetween(transactions, lastStart, end)
   const prevSum = sumExpenseBetween(transactions, prevStart, lastStart)
   if (lastSum === 0 && prevSum === 0) return null
-  const tier = resolveContentIntensity(selected)
-  const lines = WEEKLY_SETTLEMENT[tier].worse
-    ? WEEKLY_SETTLEMENT[tier]
-    : WEEKLY_SETTLEMENT['spartian-lite']
-  if (lastSum > prevSum) return lines.worse
-  return lines.better
+  return getWeeklySettlementMessageFromSums(lastSum, prevSum, selected)
 }

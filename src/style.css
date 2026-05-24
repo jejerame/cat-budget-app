@@ -1849,6 +1849,10 @@ input[type='date']::-webkit-calendar-picker-indicator {
   right: 16px;
   bottom: calc(var(--safe-bottom) + 72px);
   z-index: 95;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
 }
 
 .floating-actions button {
@@ -1858,6 +1862,18 @@ input[type='date']::-webkit-calendar-picker-indicator {
   font-size: 12px;
   border-radius: 999px;
   box-shadow: 0 4px 12px rgba(18, 18, 22, 0.28);
+}
+
+/* 삭제: 주간 결산 UI 확인용 */
+.weekly-settlement-test-btn {
+  height: 30px;
+  min-height: 30px;
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: 700;
+  opacity: 0.92;
+  border-color: rgba(180, 80, 60, 0.55);
+  color: #6a2820;
 }
 
 #go-category {
@@ -4013,14 +4029,48 @@ input[type='date']::-webkit-calendar-picker-indicator {
   transform: translateY(1px);
 }
 
-/* —— 주간 결산 (월말 결산 카드와 통일) —— */
+/* —— 주간 결산: 달력 중앙 · say2 60% · 딤 배경 —— */
 .weekly-settlement-overlay {
+  position: fixed;
+  inset: 0;
   z-index: 209;
+  background: rgba(8, 6, 12, 0.52);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: nag-bubble-backdrop-in 0.32s ease forwards;
+  pointer-events: auto;
 }
 
-.weekly-settlement-card {
-  max-height: min(92vh, 720px);
-  overflow-y: auto;
+.weekly-settlement-stage {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-sizing: border-box;
+  padding: 4px 8px;
+  pointer-events: none;
+}
+
+.weekly-settlement-stage > * {
+  pointer-events: auto;
+}
+
+.weekly-settlement-stage--viewport-fallback {
+  top: 50%;
+  left: 50%;
+  width: min(360px, calc(100vw - 28px));
+  height: min(58vh, 480px);
+  transform: translate(-50%, -50%);
+}
+
+.weekly-settlement-pills {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(300px, 88%);
+  flex-shrink: 0;
 }
 
 .weekly-settlement-compare {
@@ -4042,10 +4092,24 @@ input[type='date']::-webkit-calendar-picker-indicator {
   color: #101018;
 }
 
+/* say2 말풍선만 기존 대비 60% (transform 없이 너비로 — 아래 처짐 방지) */
 .weekly-settlement-bubble-wrap {
-  width: 100%;
+  width: 180px;
+  max-width: 60%;
+  flex-shrink: 0;
   display: flex;
   justify-content: center;
+  align-items: center;
+}
+
+.weekly-settlement-bubble-wrap .nag-bubble-card--embedded {
+  width: 100%;
+  max-width: 180px;
+  gap: 0;
+}
+
+.weekly-settlement-confirm {
+  flex-shrink: 0;
 }
 
 .nag-bubble-card--embedded {
