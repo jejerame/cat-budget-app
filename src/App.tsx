@@ -123,6 +123,7 @@ import incomeTypeUrl from '../income.png'
 import saveTypeUrl from '../save.png'
 import angryListCatUrl from '../angl.png'
 import smileListCatUrl from '../smal.png'
+import say1CatUrl from '../say1.png'
 
 const DEFAULT_ANNUAL_RETURN_RATE = 0.07
 const NAG_INTENSITY_STORAGE_KEY = 'compound-nag-intensity'
@@ -403,6 +404,7 @@ function App() {
   const expenseSelectStreakRef = useRef(0)
   const importFileInputRef = useRef<HTMLInputElement | null>(null)
   const incomeSavingAmountInputRef = useRef<HTMLInputElement | null>(null)
+  const [entryIncomeCategory, setEntryIncomeCategory] = useState<string | null>(null)
   const [entrySavingCategory, setEntrySavingCategory] = useState<string | null>(null)
   const monthRecordsByType = useMemo(() => {
     const now = new Date()
@@ -893,6 +895,7 @@ function App() {
     setMemoInput('')
     setEntryDate(dateKey !== undefined ? dateKey : toDateKey(new Date()))
     setSelectedType('expense')
+    setEntryIncomeCategory(null)
     setEntrySavingCategory(null)
   }
 
@@ -918,6 +921,7 @@ function App() {
     setMemoInput(record.memo ?? '')
     setEntryDate(toDateKey(new Date(record.createdAt)))
     setSelectedType(record.type)
+    setEntryIncomeCategory(record.type === 'income' ? record.category : null)
     setEntrySavingCategory(record.type === 'saving' ? record.category : null)
     setScreen('entry')
   }
@@ -996,21 +1000,26 @@ function App() {
     return false
   }
 
-  function handleIncomeCategoryClick(category: string): void {
+  function commitIncomeEntry(): void {
+    if (!entryIncomeCategory) {
+      alert('카테고리를 선택해 주세요.')
+      return
+    }
+
     const amount = parseWonInput(amountInput)
     if (Number.isNaN(amount) || amount <= 0) {
       alert('금액을 입력해 주세요.')
       return
     }
 
-    const normalizedMemo = memoInput.trim()
+    const category = entryIncomeCategory
 
     if (editingTransactionId) {
       updateTransaction(editingTransactionId, {
         type: 'income',
         category,
         amount,
-        memo: normalizedMemo || undefined,
+        memo: editingRecord?.memo,
         createdAt: dateKeyToLocalDate(entryDate).toISOString(),
       })
       const returnDay = entryDate
@@ -1022,7 +1031,7 @@ function App() {
 
     const updated = [
       ...transactions,
-      createTransaction('income', category, amount, normalizedMemo || undefined, dateKeyToLocalDate(entryDate)),
+      createTransaction('income', category, amount, undefined, dateKeyToLocalDate(entryDate)),
     ]
     setTransactions(updated)
     saveTransactions(updated)
@@ -1043,16 +1052,16 @@ function App() {
     }
 
     const category = entrySavingCategory
-    const normalizedMemo = memoInput.trim()
-    const nagText =
-      amount >= SAVING_NAG_AMOUNT_THRESHOLD ? '이 페이스 유지하세요' : '이래서 언제 집 사겠어요?'
+    const isGoodSavingNag = amount >= SAVING_NAG_AMOUNT_THRESHOLD
+    const nagText = isGoodSavingNag ? '이 페이스 유지하세요' : '이래서 언제 집 사겠어요?'
+    const nagImageSrc = isGoodSavingNag ? smileListCatUrl : say1CatUrl
 
     if (editingTransactionId) {
       updateTransaction(editingTransactionId, {
         type: 'saving',
         category,
         amount,
-        memo: normalizedMemo || undefined,
+        memo: editingRecord?.memo,
         createdAt: dateKeyToLocalDate(entryDate).toISOString(),
       })
       const returnDay = entryDate
@@ -1061,7 +1070,7 @@ function App() {
         flushSync(() => {
           setScreen('home')
           setDayDetailDateKey(returnDay)
-          setNagBubble({ text: nagText })
+          setNagBubble({ text: nagText, imageSrc: nagImageSrc })
         })
         return
       }
@@ -1072,7 +1081,7 @@ function App() {
 
     const updated = [
       ...transactions,
-      createTransaction('saving', category, amount, normalizedMemo || undefined, dateKeyToLocalDate(entryDate)),
+      createTransaction('saving', category, amount, undefined, dateKeyToLocalDate(entryDate)),
     ]
     setTransactions(updated)
     saveTransactions(updated)
@@ -1081,7 +1090,7 @@ function App() {
     if (!nagsSilenced) {
       flushSync(() => {
         setScreen('home')
-        setNagBubble({ text: nagText })
+        setNagBubble({ text: nagText, imageSrc: nagImageSrc })
       })
       return
     }
@@ -1206,6 +1215,7 @@ function App() {
   function handleSelectType(type: TransactionType): void {
     if (type === 'income') {
       expenseSelectStreakRef.current = 0
+      setEntryIncomeCategory(null)
       setSelectedType(type)
       return
     }
@@ -1849,6 +1859,37 @@ function App() {
                 날짜
                 <input type="date" value={entryDate} onChange={(e) => setEntryDate(e.target.value)} />
               </label>
+              <div className="entry-cat-grid">
+                {(selectedType === 'income' ? incomeCategories : savingCategories).map((item) => {
+                  const isSelected =
+                    selectedType === 'income'
+                      ? entryIncomeCategory === item
+                      : entrySavingCategory === item
+                  const isCurrentEdit = Boolean(editingRecord && editingRecord.category === item)
+                  return (
+                    <button
+                      key={item}
+                      type="button"
+                      className={`entry-cat-btn ${isSelected || isCurrentEdit ? 'entry-cat-btn--selected' : ''}`}
+                      onClick={() => {
+                        if (selectedType === 'income') {
+                          setEntryIncomeCategory(item)
+                        } else {
+                          setEntrySavingCategory(item)
+                        }
+                      }}
+                    >
+                      <img
+                        src={CATEGORY_ICON_BY_KEY[item] ?? cat7Url}
+                        alt=""
+                        className="entry-cat-btn-icon"
+                        aria-hidden
+                      />
+                      <span>{getCategoryLabel(item)}</span>
+                    </button>
+                  )
+                })}
+              </div>
               <div className="entry-quick-amounts" aria-label="빠른 금액">
                 {(selectedType === 'income' ? INCOME_QUICK_AMOUNT_OPTIONS : SAVING_QUICK_AMOUNT_OPTIONS).map(
                   (opt) => (
@@ -1886,58 +1927,14 @@ function App() {
                   onChange={(e) => setAmountInput(formatWonInputValue(e.target.value))}
                 />
               </label>
-              <label className="entry-field">
-                메모
-                <input
-                  type="text"
-                  placeholder="메모(선택)"
-                  value={memoInput}
-                  onChange={(e) => setMemoInput(e.target.value)}
-                />
-              </label>
-              <p className="entry-hint">
-                {selectedType === 'income'
-                  ? '카테고리를 탭하면 저장돼요.'
-                  : '카테고리를 선택한 뒤 저장해 주세요.'}
-              </p>
-              <div className="entry-cat-grid">
-                {(selectedType === 'income' ? incomeCategories : savingCategories).map((item) => {
-                  const isSelected = selectedType === 'saving' && entrySavingCategory === item
-                  const isCurrentEdit = Boolean(editingRecord && editingRecord.category === item)
-                  return (
-                    <button
-                      key={item}
-                      type="button"
-                      className={`entry-cat-btn ${isSelected ? 'entry-cat-btn--selected' : ''} ${isCurrentEdit ? 'entry-cat-btn--selected' : ''}`}
-                      onClick={() => {
-                        if (selectedType === 'income') {
-                          handleIncomeCategoryClick(item)
-                        } else {
-                          setEntrySavingCategory(item)
-                        }
-                      }}
-                    >
-                      <img
-                        src={CATEGORY_ICON_BY_KEY[item] ?? cat7Url}
-                        alt=""
-                        className="entry-cat-btn-icon"
-                        aria-hidden
-                      />
-                      <span>{getCategoryLabel(item)}</span>
-                    </button>
-                  )
-                })}
-              </div>
-              {selectedType === 'saving' ? (
-                <button
-                  type="button"
-                  className="entry-primary-btn"
-                  disabled={!entrySavingCategory}
-                  onClick={commitSavingEntry}
-                >
-                  {editingTransactionId ? '수정 저장' : '저장'}
-                </button>
-              ) : null}
+              <button
+                type="button"
+                className="entry-primary-btn"
+                disabled={selectedType === 'income' ? !entryIncomeCategory : !entrySavingCategory}
+                onClick={selectedType === 'income' ? commitIncomeEntry : commitSavingEntry}
+              >
+                {editingTransactionId ? '수정 저장' : '저장'}
+              </button>
               {editingTransactionId ? (
                 <button
                   type="button"

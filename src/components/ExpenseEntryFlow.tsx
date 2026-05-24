@@ -435,32 +435,32 @@ export function ExpenseEntryFlow({
           ))}
         </div>
         <label className="entry-field entry-field--amount">
-          <span className="entry-amount-label-row">
-            <span>금액(원)</span>
+          <span>금액(원)</span>
+          <span className="amount-korean-reading" aria-live="polite">
+            {amountKoreanReading || '\u00a0'}
+          </span>
+          <div className="entry-amount-input-wrap">
+            <input
+              ref={amountInputRef}
+              type="text"
+              inputMode="numeric"
+              autoComplete="off"
+              enterKeyHint="done"
+              placeholder="금액 입력"
+              value={amountInput}
+              disabled={!amountSectionActive}
+              onChange={(e) => setAmountInput(formatWonInputValue(e.target.value))}
+            />
             <button
               type="button"
-              className="entry-fav-star-btn"
+              className="entry-fav-star-inline"
               disabled={!amountSectionActive}
               onClick={openManualFavoriteForm}
               aria-label="즐겨찾기에 추가"
             >
               ⭐
             </button>
-          </span>
-          <span className="amount-korean-reading" aria-live="polite">
-            {amountKoreanReading || '\u00a0'}
-          </span>
-          <input
-            ref={amountInputRef}
-            type="text"
-            inputMode="numeric"
-            autoComplete="off"
-            enterKeyHint="done"
-            placeholder="금액 입력"
-            value={amountInput}
-            disabled={!amountSectionActive}
-            onChange={(e) => setAmountInput(formatWonInputValue(e.target.value))}
-          />
+          </div>
         </label>
       </section>
 

@@ -242,28 +242,40 @@
   cursor: not-allowed;
 }
 
-/* 금액 + 즐겨찾기 별 */
-.entry-amount-label-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+/* 금액 입력 + 즐겨찾기 별(입력 박스 내부 우측) */
+.entry-amount-input-wrap {
+  position: relative;
+  width: 100%;
 }
 
-.entry-fav-star-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 1px solid #d0d0d6;
-  background: #ffffff;
+.entry-amount-input-wrap input {
+  width: 100%;
+  box-sizing: border-box;
+  padding-right: 42px;
+}
+
+.entry-fav-star-inline {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  margin: 0;
+  padding: 0;
+  width: auto;
+  min-width: 0;
+  height: auto;
+  min-height: 0;
+  border: none;
+  background: transparent;
   color: #2e2e32;
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1;
   cursor: pointer;
-  flex-shrink: 0;
+  box-shadow: none;
 }
 
-.entry-fav-star-btn:disabled {
-  opacity: 0.4;
+.entry-fav-star-inline:disabled {
+  opacity: 0.35;
   cursor: not-allowed;
 }
 
@@ -448,9 +460,14 @@
 .entry-screen .entry-flow .entry-cat-btn,
 .entry-screen .entry-flow .entry-subcat-btn,
 .entry-screen .entry-flow .entry-cat-collapsed,
-.entry-screen .entry-flow .entry-fav-star-btn,
+.entry-screen .entry-flow .entry-fav-star-inline,
 .entry-screen .entry-flow .entry-primary-btn {
   height: auto;
+}
+
+.entry-screen .entry-flow .entry-fav-star-inline {
+  background: transparent;
+  border: none;
 }
 
 .entry-screen .entry-flow .entry-field input {
