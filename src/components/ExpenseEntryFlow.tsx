@@ -39,7 +39,7 @@ function FavoriteChip({
   return (
     <button
       type="button"
-      className="expense-fav-chip"
+      className="entry-fav-chip"
       onClick={onTap}
       onContextMenu={(e) => {
         e.preventDefault()
@@ -307,14 +307,14 @@ export function ExpenseEntryFlow({
   }
 
   return (
-    <div className="expense-entry-flow">
-      <label className="expense-entry-date">
+    <div className="entry-flow">
+      <label className="entry-field">
         날짜
         <input type="date" value={entryDate} onChange={(e) => onEntryDateChange(e.target.value)} />
       </label>
 
-      <section className="expense-entry-favorites" aria-label="즐겨찾기">
-        <div className="expense-entry-favorites-scroll">
+      <section aria-label="즐겨찾기">
+        <div className="entry-favorites-scroll">
           {favorites.map((fav) => (
             <FavoriteChip
               key={fav.id}
@@ -326,7 +326,7 @@ export function ExpenseEntryFlow({
           ))}
           <button
             type="button"
-            className="expense-fav-chip expense-fav-chip--add"
+            className="entry-fav-chip entry-fav-chip--add"
             onClick={() => {
               if (favorites.length >= EXPENSE_FAVORITES_MAX) {
                 alert(`즐겨찾기는 최대 ${EXPENSE_FAVORITES_MAX}개까지예요.`)
@@ -344,20 +344,20 @@ export function ExpenseEntryFlow({
         </div>
       </section>
 
-      <section className="expense-entry-categories" aria-label="카테고리">
+      <section aria-label="카테고리">
         {expandedCategory === null ? (
-          <div className="expense-cat-grid">
+          <div className="entry-cat-grid">
             {EXPENSE_CATEGORY_KEYS.map((cat) => (
               <button
                 key={cat}
                 type="button"
-                className={`expense-cat-btn ${warningCategories.has(cat) ? 'expense-cat-btn--warn' : ''}`}
+                className={`entry-cat-btn ${warningCategories.has(cat) ? 'entry-cat-btn--warn' : ''}`}
                 onClick={() => applyCategory(cat)}
               >
                 <img
                   src={categoryIconByKey[cat] ?? defaultCategoryIcon}
                   alt=""
-                  className="expense-cat-btn-icon"
+                  className="entry-cat-btn-icon"
                   aria-hidden
                 />
                 <span>{EXPENSE_CATEGORY_SHORT_LABELS[cat]}</span>
@@ -367,7 +367,7 @@ export function ExpenseEntryFlow({
         ) : (
           <button
             type="button"
-            className="expense-cat-collapsed"
+            className="entry-cat-collapsed"
             onClick={() => {
               setExpandedCategory(null)
               setSelectedCategory(null)
@@ -375,27 +375,27 @@ export function ExpenseEntryFlow({
               setCustomSubcategoryText('')
             }}
           >
-            <span className="expense-cat-collapsed-check" aria-hidden>
+            <span className="entry-cat-collapsed-check" aria-hidden>
               ✓
             </span>
             <img
               src={categoryIconByKey[expandedCategory] ?? defaultCategoryIcon}
               alt=""
-              className="expense-cat-btn-icon"
+              className="entry-cat-btn-icon"
               aria-hidden
             />
             <span>{EXPENSE_CATEGORY_SHORT_LABELS[expandedCategory]}</span>
-            <span className="expense-cat-collapsed-hint">탭하여 변경</span>
+            <span className="entry-cat-collapsed-hint">탭하여 변경</span>
           </button>
         )}
 
         {expandedCategory ? (
-          <div className="expense-subcat-grid">
+          <div className="entry-subcat-grid">
             {EXPENSE_SUBCATEGORIES[expandedCategory].map((sub) => (
               <button
                 key={sub.id}
                 type="button"
-                className={`expense-subcat-btn ${selectedSubcategoryId === sub.id ? 'active' : ''}`}
+                className={`entry-subcat-btn ${selectedSubcategoryId === sub.id ? 'active' : ''}`}
                 onClick={() => applySubcategory(sub.id)}
               >
                 {sub.label}
@@ -405,7 +405,7 @@ export function ExpenseEntryFlow({
         ) : null}
 
         {isOtherSub ? (
-          <label className="expense-subcat-other-input">
+          <label className="entry-field">
             직접 입력
             <input
               type="text"
@@ -418,15 +418,15 @@ export function ExpenseEntryFlow({
       </section>
 
       <section
-        className={`expense-entry-amount ${amountSectionActive ? 'expense-entry-amount--active' : 'expense-entry-amount--locked'}`}
+        className={`entry-amount-section ${amountSectionActive ? 'entry-amount-section--active' : 'entry-amount-section--locked'}`}
         aria-label="금액"
       >
-        <div className="expense-quick-amounts">
+        <div className="entry-quick-amounts">
           {QUICK_AMOUNTS.map((n) => (
             <button
               key={n}
               type="button"
-              className="expense-quick-amount-btn"
+              className="entry-quick-amount-btn"
               disabled={!amountSectionActive}
               onClick={() => setAmountInput(formatWonInputValue(String(n)))}
             >
@@ -434,17 +434,17 @@ export function ExpenseEntryFlow({
             </button>
           ))}
         </div>
-        <label className="expense-amount-label">
-          <span className="expense-amount-label-row">
+        <label className="entry-field entry-field--amount">
+          <span className="entry-amount-label-row">
             <span>금액(원)</span>
             <button
               type="button"
-              className="expense-fav-inline-add"
+              className="entry-fav-star-btn"
               disabled={!amountSectionActive}
               onClick={openManualFavoriteForm}
               aria-label="즐겨찾기에 추가"
             >
-              +
+              ⭐
             </button>
           </span>
           <span className="amount-korean-reading" aria-live="polite">
@@ -464,17 +464,17 @@ export function ExpenseEntryFlow({
         </label>
       </section>
 
-      <div className="expense-entry-actions">
+      <div className="entry-actions">
         <button
           type="button"
-          className="expense-save-btn"
+          className="entry-primary-btn"
           disabled={!amountSectionActive}
           onClick={handleSave}
         >
           {editingTransactionId ? '수정 저장' : '저장'}
         </button>
         {editingTransactionId && onDelete ? (
-          <button type="button" className="entry-delete-record-btn entry-delete-record-btn--text" onClick={onDelete}>
+          <button type="button" className="entry-delete-text-btn" onClick={onDelete}>
             이 내역 삭제
           </button>
         ) : null}
@@ -482,12 +482,12 @@ export function ExpenseEntryFlow({
 
       {favoriteContextMenu ? (
         <div
-          className="expense-fav-menu-backdrop"
+          className="entry-menu-backdrop"
           role="presentation"
           onClick={() => setFavoriteContextMenu(null)}
         >
           <div
-            className="expense-fav-menu"
+            className="entry-fav-menu"
             role="menu"
             onClick={(e) => e.stopPropagation()}
           >
@@ -510,13 +510,13 @@ export function ExpenseEntryFlow({
       ) : null}
 
       {suggestFavoriteOpen && selectedCategory && selectedSubcategoryId ? (
-        <div className="expense-modal-backdrop">
-          <div className="expense-modal" role="dialog" aria-modal="true">
-            <p className="expense-modal-title">즐겨찾기에 추가할까요?</p>
-            <div className="expense-modal-actions">
+        <div className="entry-modal-backdrop">
+          <div className="entry-modal" role="dialog" aria-modal="true">
+            <p className="entry-modal-title">즐겨찾기에 추가할까요?</p>
+            <div className="entry-modal-actions">
               <button
                 type="button"
-                className="expense-modal-primary"
+                className="entry-modal-primary"
                 onClick={() => {
                   setSuggestFavoriteOpen(false)
                   const amount = parseWonInput(amountInput)
@@ -535,7 +535,7 @@ export function ExpenseEntryFlow({
               </button>
               <button
                 type="button"
-                className="expense-modal-ghost"
+                className="entry-modal-ghost"
                 onClick={() => {
                   setSuggestFavoriteOpen(false)
                   setAwaitingFavoriteDismiss(false)
@@ -550,10 +550,10 @@ export function ExpenseEntryFlow({
       ) : null}
 
       {favoriteFormOpen && favoriteForm ? (
-        <div className="expense-modal-backdrop">
-          <div className="expense-modal expense-modal--form" role="dialog" aria-modal="true">
-            <p className="expense-modal-title">{editingFavorite ? '즐겨찾기 수정' : '즐겨찾기 추가'}</p>
-            <label>
+        <div className="entry-modal-backdrop">
+          <div className="entry-modal entry-modal--form" role="dialog" aria-modal="true">
+            <p className="entry-modal-title">{editingFavorite ? '즐겨찾기 수정' : '즐겨찾기 추가'}</p>
+            <label className="entry-field">
               이름
               <input
                 type="text"
@@ -561,10 +561,10 @@ export function ExpenseEntryFlow({
                 onChange={(e) => setFavoriteForm({ ...favoriteForm, name: e.target.value })}
               />
             </label>
-            <p className="expense-modal-meta">
+            <p className="entry-modal-meta">
               카테고리: {getCategoryLabel(favoriteForm.category as ExpenseCategoryKey)}
             </p>
-            <label className="expense-modal-check">
+            <label className="entry-modal-check">
               <input
                 type="checkbox"
                 checked={favoriteForm.lockAmount}
@@ -585,16 +585,16 @@ export function ExpenseEntryFlow({
                 />
               </label>
             ) : null}
-            <p className="expense-modal-hint">
+            <p className="entry-modal-hint">
               금액을 고정하면 탭 한 번으로 바로 저장돼요. 비워두면 탭할 때 금액만 입력하면 돼요.
             </p>
-            <div className="expense-modal-actions">
-              <button type="button" className="expense-modal-primary" onClick={confirmFavoriteForm}>
+            <div className="entry-modal-actions">
+              <button type="button" className="entry-modal-primary" onClick={confirmFavoriteForm}>
                 추가하기
               </button>
               <button
                 type="button"
-                className="expense-modal-ghost"
+                className="entry-modal-ghost"
                 onClick={() => {
                   setFavoriteFormOpen(false)
                   setFavoriteForm(null)

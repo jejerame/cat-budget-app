@@ -27,7 +27,7 @@ export const EXPENSE_CATEGORY_SHORT_LABELS: Record<ExpenseCategoryKey, string> =
   housing: '주거',
   self_dev: '자기개발',
   special: '특별',
-  pet: '내새끼',
+  pet: '반려동물',
   subscription: '구독',
 }
 

@@ -1844,8 +1844,9 @@ function App() {
               onFinished={finishExpenseEntryFlow}
             />
           ) : (
-            <>
-              <label>날짜
+            <div className="entry-flow">
+              <label className="entry-field">
+                날짜
                 <input type="date" value={entryDate} onChange={(e) => setEntryDate(e.target.value)} />
               </label>
               <div className="entry-quick-amounts" aria-label="빠른 금액">
@@ -1869,7 +1870,7 @@ function App() {
                   직접입력
                 </button>
               </div>
-              <label className="entry-amount-label">
+              <label className="entry-field entry-field--amount">
                 금액(원)
                 <span className="amount-korean-reading" aria-live="polite">
                   {amountKoreanReading || '\u00a0'}
@@ -1885,7 +1886,8 @@ function App() {
                   onChange={(e) => setAmountInput(formatWonInputValue(e.target.value))}
                 />
               </label>
-              <label>메모
+              <label className="entry-field">
+                메모
                 <input
                   type="text"
                   placeholder="메모(선택)"
@@ -1893,66 +1895,49 @@ function App() {
                   onChange={(e) => setMemoInput(e.target.value)}
                 />
               </label>
-              {selectedType === 'income' ? (
-                <>
-                  <p className="entry-income-saving-hint">카테고리를 탭하면 저장돼요.</p>
-                  <div className="category-grid entry-income-saving-grid">
-                    {incomeCategories.map((item) => {
-                      const isCurrentEdit = Boolean(editingRecord && editingRecord.category === item)
-                      return (
-                        <button
-                          key={item}
-                          className={`cat-btn ${isCurrentEdit ? 'cat-btn--current-edit' : ''}`}
-                          type="button"
-                          onClick={() => handleIncomeCategoryClick(item)}
-                        >
-                          <img
-                            src={CATEGORY_ICON_BY_KEY[item] ?? cat7Url}
-                            alt=""
-                            className="cat-btn-icon"
-                            aria-hidden="true"
-                          />
-                          <span className="cat-btn-label">{getCategoryLabel(item)}</span>
-                        </button>
-                      )
-                    })}
-                  </div>
-                </>
-              ) : (
-                <>
-                  <p className="entry-income-saving-hint">카테고리를 선택한 뒤 저장해 주세요.</p>
-                  <div className="category-grid entry-income-saving-grid">
-                    {savingCategories.map((item) => {
-                      const isSelected = entrySavingCategory === item
-                      const isCurrentEdit = Boolean(editingRecord && editingRecord.category === item)
-                      return (
-                        <button
-                          key={item}
-                          className={`cat-btn ${isSelected ? 'cat-btn--entry-selected' : ''} ${isCurrentEdit ? 'cat-btn--current-edit' : ''}`}
-                          type="button"
-                          onClick={() => setEntrySavingCategory(item)}
-                        >
-                          <img
-                            src={CATEGORY_ICON_BY_KEY[item] ?? cat7Url}
-                            alt=""
-                            className="cat-btn-icon"
-                            aria-hidden="true"
-                          />
-                          <span className="cat-btn-label">{getCategoryLabel(item)}</span>
-                        </button>
-                      )
-                    })}
-                  </div>
-                  <button
-                    type="button"
-                    className="entry-saving-save-btn"
-                    disabled={!entrySavingCategory}
-                    onClick={commitSavingEntry}
-                  >
-                    {editingTransactionId ? '수정 저장' : '저장'}
-                  </button>
-                </>
-              )}
+              <p className="entry-hint">
+                {selectedType === 'income'
+                  ? '카테고리를 탭하면 저장돼요.'
+                  : '카테고리를 선택한 뒤 저장해 주세요.'}
+              </p>
+              <div className="entry-cat-grid">
+                {(selectedType === 'income' ? incomeCategories : savingCategories).map((item) => {
+                  const isSelected = selectedType === 'saving' && entrySavingCategory === item
+                  const isCurrentEdit = Boolean(editingRecord && editingRecord.category === item)
+                  return (
+                    <button
+                      key={item}
+                      type="button"
+                      className={`entry-cat-btn ${isSelected ? 'entry-cat-btn--selected' : ''} ${isCurrentEdit ? 'entry-cat-btn--selected' : ''}`}
+                      onClick={() => {
+                        if (selectedType === 'income') {
+                          handleIncomeCategoryClick(item)
+                        } else {
+                          setEntrySavingCategory(item)
+                        }
+                      }}
+                    >
+                      <img
+                        src={CATEGORY_ICON_BY_KEY[item] ?? cat7Url}
+                        alt=""
+                        className="entry-cat-btn-icon"
+                        aria-hidden
+                      />
+                      <span>{getCategoryLabel(item)}</span>
+                    </button>
+                  )
+                })}
+              </div>
+              {selectedType === 'saving' ? (
+                <button
+                  type="button"
+                  className="entry-primary-btn"
+                  disabled={!entrySavingCategory}
+                  onClick={commitSavingEntry}
+                >
+                  {editingTransactionId ? '수정 저장' : '저장'}
+                </button>
+              ) : null}
               {editingTransactionId ? (
                 <button
                   type="button"
@@ -1962,7 +1947,7 @@ function App() {
                   <img src={delBtnUrl} alt="이 내역 삭제하기" className="entry-delete-img" />
                 </button>
               ) : null}
-            </>
+            </div>
           )}
         </section>
       </main>
