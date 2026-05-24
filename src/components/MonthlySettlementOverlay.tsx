@@ -27,14 +27,16 @@ export function MonthlySettlementOverlay({ content, onClose }: MonthlySettlement
         <div
           className={`monthly-settlement-message-box monthly-settlement-message-box--${content.tone}`}
         >
-          <img
-            src={content.catImageUrl}
-            alt=""
-            className="monthly-settlement-cat"
-            draggable={false}
-            decoding="async"
-          />
-          <p className="monthly-settlement-message">{content.message}</p>
+          <div className="monthly-settlement-message">
+            <img
+              src={content.catImageUrl}
+              alt=""
+              className="monthly-settlement-cat"
+              draggable={false}
+              decoding="async"
+            />
+            <p className="monthly-settlement-message-text">{content.message}</p>
+          </div>
         </div>
         <button type="button" className="monthly-settlement-confirm" onClick={onClose}>
           확인
