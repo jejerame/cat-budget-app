@@ -18,7 +18,7 @@ createRoot(rootElement).render(
 )
 
 /** 배포 시 SW 로직을 바꾸면 숫자만 올려 주세요(브라우저가 sw.js 본문 캐시를 덜 묶게 함). */
-const SW_SCRIPT_QUERY = 'v=77'
+const SW_SCRIPT_QUERY = 'v=78'
 
 if (import.meta.env.DEV && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {

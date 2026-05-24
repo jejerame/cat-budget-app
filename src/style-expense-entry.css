@@ -42,18 +42,19 @@
   flex: 0 0 auto;
   padding: 8px 14px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.08);
-  color: #f2f2f5;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.1);
+  color: #f8f8fa;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 800;
   white-space: nowrap;
   cursor: pointer;
 }
 
 .expense-fav-chip--add {
   border-style: dashed;
-  color: #9ecfff;
+  color: #d4e6ff;
+  font-weight: 800;
 }
 
 .expense-cat-grid {
@@ -71,10 +72,14 @@
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.06);
-  color: #eee;
+  color: #f5f5f7;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
+}
+
+.expense-cat-btn span {
+  color: #f5f5f7;
 }
 
 .expense-cat-btn--warn {
@@ -127,9 +132,9 @@
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   background: rgba(255, 255, 255, 0.05);
-  color: #ddd;
+  color: #ececf0;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
 }
 
@@ -267,12 +272,99 @@
   cursor: pointer;
 }
 
+/* 흰색 entry 카드 안 지출 영역 — 다크 패널 + 밝은 라벨 */
+.entry-screen .expense-entry-flow {
+  padding: 12px 10px;
+  border-radius: 14px;
+  background: #1a1a22;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.entry-screen .expense-entry-date {
+  color: #e8e8ec;
+}
+
+.entry-screen .expense-fav-chip {
+  color: #f8f8fa;
+}
+
+.entry-screen .expense-fav-chip--add {
+  color: #d4e6ff;
+}
+
+.entry-screen .expense-cat-btn,
+.entry-screen .expense-cat-btn span,
+.entry-screen .expense-cat-collapsed {
+  color: #f5f5f7;
+}
+
+.entry-screen .expense-subcat-btn {
+  color: #ececf0;
+}
+
+.entry-screen .expense-subcat-btn.active {
+  color: #ffffff;
+}
+
+.entry-screen .expense-amount-label {
+  color: #e8e8ec;
+}
+
 .entry-income-saving-hint {
   margin: 0;
   font-size: 12px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.55);
+  color: #6a6a74;
   text-align: center;
+}
+
+.entry-quick-amounts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: 360px;
+  margin: 0 auto 10px;
+}
+
+.entry-quick-amount-btn {
+  flex: 1 1 calc(20% - 8px);
+  min-width: 56px;
+  padding: 8px 6px;
+  border-radius: 10px;
+  border: 1px solid #56565e;
+  background: #f6f6f7;
+  color: #2e2e32;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.entry-quick-amount-btn--manual {
+  flex: 1 1 100%;
+  max-width: none;
+}
+
+.entry-saving-save-btn {
+  display: block;
+  width: min(360px, 100%);
+  margin: 12px auto 0;
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #4e7bff 0%, #3a62d8 100%);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.entry-saving-save-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.cat-btn--entry-selected {
+  box-shadow: 0 0 0 2px #4e7bff;
 }
 
 .entry-income-saving-grid {

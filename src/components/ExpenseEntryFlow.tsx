@@ -590,7 +590,7 @@ export function ExpenseEntryFlow({
             </p>
             <div className="expense-modal-actions">
               <button type="button" className="expense-modal-primary" onClick={confirmFavoriteForm}>
-                확인
+                추가하기
               </button>
               <button
                 type="button"
@@ -605,7 +605,7 @@ export function ExpenseEntryFlow({
                   }
                 }}
               >
-                취소
+                괜찮아요
               </button>
             </div>
           </div>
