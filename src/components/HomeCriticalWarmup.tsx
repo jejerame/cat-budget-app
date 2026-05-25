@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import {
+  CATEGORY_ICON_URLS,
   HOME_CRITICAL_PRELOAD_URLS,
   HOME_GAUGE_CAT_URLS,
   preloadCategoryIcons,
@@ -8,10 +9,12 @@ import {
 import { preloadDeferredNagAssets, preloadInstantNagSay1 } from '../utils/preloadDeferredNag'
 import { preloadMonthlySettlementImages } from '../utils/preloadMonthlySettlementImages'
 
-/** 홈 필수 고양이 우선 디코드 · 말풍선/팝업은 유휴 시 */
+/** 홈 필수 고양이 우선 디코드 · 카테고리 아이콘은 즉시 · 말풍선/팝업은 유휴 시 */
 export function HomeCriticalWarmup() {
   useEffect(() => {
-    void preloadHomeCriticalImages()
+    void preloadHomeCriticalImages().then(() => {
+      preloadCategoryIcons()
+    })
 
     const onFirstInteraction = (): void => {
       preloadInstantNagSay1()
@@ -25,7 +28,6 @@ export function HomeCriticalWarmup() {
         : (cb: () => void) => window.setTimeout(cb, 2000)
 
     const idleId = idle(() => {
-      preloadCategoryIcons()
       void preloadDeferredNagAssets()
       void preloadMonthlySettlementImages()
     })
@@ -47,6 +49,9 @@ export function HomeCriticalWarmup() {
         <img key={url} src={url} alt="" decoding="async" fetchPriority="high" />
       ))}
       {HOME_GAUGE_CAT_URLS.map((url) => (
+        <img key={url} src={url} alt="" decoding="async" />
+      ))}
+      {CATEGORY_ICON_URLS.map((url) => (
         <img key={url} src={url} alt="" decoding="async" />
       ))}
     </div>

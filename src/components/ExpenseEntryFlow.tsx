@@ -25,7 +25,7 @@ import { ensureInstantNagForExpenseSave } from '../utils/preloadDeferredNag'
 const QUICK_AMOUNTS = [4_000, 5_000, 10_000, 20_000, 50_000] as const
 
 const FAVORITE_LONG_PRESS_MS = 500
-const FAVORITE_TAP_MAX_MS = 450
+const SWIPE_THRESHOLD_PX = 6
 
 function FavoriteChip({
   label,
@@ -37,82 +37,66 @@ function FavoriteChip({
   onTap: () => void
   onLongPress: () => void
 }) {
-  const timerRef = useRef<number | null>(null)
-  const startPosRef = useRef<{ x: number; y: number } | null>(null)
-  const pointerDownAtRef = useRef(0)
+  const longPressTimerRef = useRef<number | null>(null)
+  const touchStartRef = useRef<{ x: number; y: number; t: number } | null>(null)
+  const movedRef = useRef(false)
   const longPressFiredRef = useRef(false)
-  const suppressClickRef = useRef(false)
-  const lastPointerTypeRef = useRef('')
 
-  const clearLongPressTimer = (): void => {
-    if (timerRef.current) {
-      window.clearTimeout(timerRef.current)
-      timerRef.current = null
+  const clearTimer = (): void => {
+    if (longPressTimerRef.current) {
+      window.clearTimeout(longPressTimerRef.current)
+      longPressTimerRef.current = null
     }
-  }
-
-  const handlePointerDown = (e: React.PointerEvent<HTMLButtonElement>): void => {
-    if (e.button !== 0) return
-    lastPointerTypeRef.current = e.pointerType
-    longPressFiredRef.current = false
-    suppressClickRef.current = false
-    pointerDownAtRef.current = e.timeStamp
-    startPosRef.current = { x: e.clientX, y: e.clientY }
-    clearLongPressTimer()
-    if (e.pointerType === 'touch') {
-      timerRef.current = window.setTimeout(() => {
-        longPressFiredRef.current = true
-        suppressClickRef.current = true
-        onLongPress()
-      }, FAVORITE_LONG_PRESS_MS)
-    }
-  }
-
-  const handlePointerMove = (e: React.PointerEvent<HTMLButtonElement>): void => {
-    const start = startPosRef.current
-    if (!start) return
-    if (Math.abs(e.clientX - start.x) > 8 || Math.abs(e.clientY - start.y) > 8) {
-      clearLongPressTimer()
-    }
-  }
-
-  const handlePointerUp = (e: React.PointerEvent<HTMLButtonElement>): void => {
-    clearLongPressTimer()
-    const start = startPosRef.current
-    startPosRef.current = null
-    if (longPressFiredRef.current) {
-      suppressClickRef.current = true
-      return
-    }
-    if (e.pointerType !== 'touch' || !start) return
-    const elapsed = e.timeStamp - pointerDownAtRef.current
-    if (elapsed <= FAVORITE_TAP_MAX_MS) {
-      suppressClickRef.current = true
-      onTap()
-    }
-  }
-
-  const handlePointerCancel = (): void => {
-    clearLongPressTimer()
-    startPosRef.current = null
   }
 
   return (
     <button
       type="button"
       className="entry-fav-chip"
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerCancel}
-      onClick={(e) => {
-        if (suppressClickRef.current || longPressFiredRef.current) {
+      onTouchStart={(e) => {
+        const t = e.touches[0]
+        if (!t) return
+        touchStartRef.current = { x: t.clientX, y: t.clientY, t: e.timeStamp }
+        movedRef.current = false
+        longPressFiredRef.current = false
+        clearTimer()
+        longPressTimerRef.current = window.setTimeout(() => {
+          if (!movedRef.current) {
+            longPressFiredRef.current = true
+            onLongPress()
+          }
+        }, FAVORITE_LONG_PRESS_MS)
+      }}
+      onTouchMove={(e) => {
+        const start = touchStartRef.current
+        if (!start) return
+        const t = e.touches[0]
+        if (!t) return
+        const dx = Math.abs(t.clientX - start.x)
+        const dy = Math.abs(t.clientY - start.y)
+        if (dx > SWIPE_THRESHOLD_PX || dy > SWIPE_THRESHOLD_PX) {
+          movedRef.current = true
+          clearTimer()
+        }
+      }}
+      onTouchEnd={(e) => {
+        clearTimer()
+        const start = touchStartRef.current
+        touchStartRef.current = null
+        if (longPressFiredRef.current || movedRef.current || !start) {
           e.preventDefault()
-          suppressClickRef.current = false
-          longPressFiredRef.current = false
           return
         }
-        if (lastPointerTypeRef.current === 'touch') {
+        e.preventDefault()
+        onTap()
+      }}
+      onTouchCancel={() => {
+        clearTimer()
+        touchStartRef.current = null
+        movedRef.current = false
+      }}
+      onClick={(e) => {
+        if ('ontouchstart' in window) {
           e.preventDefault()
           return
         }

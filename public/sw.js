@@ -1,4 +1,4 @@
-const CACHE_NAME = 'janso-cat-cache-v113'
+const CACHE_NAME = 'janso-cat-cache-v114'
 const CORE_ASSETS = ['/manifest.webmanifest', '/favicon.svg']
 
 self.addEventListener('install', (event) => {
@@ -32,6 +32,23 @@ self.addEventListener('fetch', (event) => {
     || url.pathname === '/manifest.webmanifest'
   ) {
     event.respondWith(fetch(request, { cache: 'no-store' }))
+    return
+  }
+
+  // 이미지는 캐시 우선 → 네트워크 폴백 (첫 진입 속도 개선)
+  if (request.destination === 'image') {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        if (cached) return cached
+        return fetch(request).then((response) => {
+          if (response.ok) {
+            const cloned = response.clone()
+            void caches.open(CACHE_NAME).then((cache) => cache.put(request, cloned))
+          }
+          return response
+        }).catch(() => new Response('', { status: 404 }))
+      }),
+    )
     return
   }
 
