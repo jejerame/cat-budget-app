@@ -650,6 +650,7 @@ export function ExpenseEntryFlow({
           className="entry-modal-backdrop"
           role="presentation"
           onClick={() => setFavoritesHelpOpen(false)}
+          onTouchMove={(e) => e.preventDefault()}
         >
           <div
             className="entry-modal entry-modal--help"
@@ -657,6 +658,7 @@ export function ExpenseEntryFlow({
             aria-modal="true"
             aria-labelledby="entry-favorites-help-title"
             onClick={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
           >
             <p id="entry-favorites-help-title" className="entry-modal-title">
               즐겨찾기 수정·삭제
@@ -712,8 +714,8 @@ export function ExpenseEntryFlow({
       ) : null}
 
       {suggestFavoriteOpen && selectedCategory && selectedSubcategoryId ? (
-        <div className="entry-modal-backdrop">
-          <div className="entry-modal" role="dialog" aria-modal="true">
+        <div className="entry-modal-backdrop" onTouchMove={(e) => e.preventDefault()}>
+          <div className="entry-modal" role="dialog" aria-modal="true" onTouchMove={(e) => e.stopPropagation()}>
             <p className="entry-modal-title">즐겨찾기에 추가할까요?</p>
             <div className="entry-modal-actions">
               <button
@@ -748,12 +750,13 @@ export function ExpenseEntryFlow({
       ) : null}
 
       {favoriteFormOpen && favoriteModalStep === 'pick-category' ? (
-        <div className="entry-modal-backdrop">
+        <div className="entry-modal-backdrop" onTouchMove={(e) => e.preventDefault()}>
           <div
             className="entry-modal entry-modal--pick"
             role="dialog"
             aria-modal="true"
             onClick={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
           >
             <p className="entry-modal-title">카테고리 선택</p>
             <p className="entry-modal-hint entry-modal-hint--top">
@@ -823,8 +826,8 @@ export function ExpenseEntryFlow({
       ) : null}
 
       {favoriteFormOpen && favoriteModalStep === 'details' && favoriteForm ? (
-        <div className="entry-modal-backdrop">
-          <div className="entry-modal entry-modal--form" role="dialog" aria-modal="true">
+        <div className="entry-modal-backdrop" onTouchMove={(e) => e.preventDefault()}>
+          <div className="entry-modal entry-modal--form" role="dialog" aria-modal="true" onTouchMove={(e) => e.stopPropagation()}>
             <p className="entry-modal-title">{editingFavorite ? '즐겨찾기 수정' : '즐겨찾기 추가'}</p>
             <div className="entry-fav-summary">
               <p className="entry-fav-summary-text">
