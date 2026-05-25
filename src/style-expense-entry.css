@@ -4,10 +4,7 @@
 .screen.active.entry-screen {
   overflow-x: hidden;
   overflow-y: auto;
-}
-
-.screen.active.entry-screen .entry-favorites-wrap {
-  touch-action: pan-x;
+  -webkit-overflow-scrolling: touch;
 }
 
 .entry-flow {
@@ -57,7 +54,6 @@
   border-radius: 18px;
   border: 2px solid #56565e;
   background: #ffffff;
-  contain: layout style;
 }
 
 .entry-field--date .entry-date-wrap input[type='date'] {
@@ -132,7 +128,6 @@
   margin: 0 auto;
   min-width: 0;
   overflow: hidden;
-  contain: layout;
 }
 
 .entry-favorites-head {
@@ -207,10 +202,8 @@
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  contain: inline-size;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-x: contain;
-  touch-action: pan-x;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -539,8 +532,7 @@
 }
 
 /* 모달 · 컨텍스트 메뉴 */
-.entry-menu-backdrop,
-.entry-modal-backdrop {
+.entry-menu-backdrop {
   position: fixed;
   inset: 0;
   z-index: 1200;
@@ -549,6 +541,30 @@
   justify-content: center;
   padding: 20px;
   background: rgba(0, 0, 0, 0.45);
+}
+
+.entry-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 20px 40px;
+  background: rgba(0, 0, 0, 0.45);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.entry-modal-backdrop::before {
+  content: '';
+  flex: 1 0 0px;
+}
+
+.entry-modal-backdrop::after {
+  content: '';
+  flex: 1 0 0px;
 }
 
 .entry-fav-menu {
@@ -591,16 +607,13 @@
   flex-direction: column;
   gap: 12px;
   box-sizing: border-box;
-  overflow-x: hidden;
-  overflow-y: auto;
-  max-height: min(90vh, 680px);
+  overflow: visible;
+  flex-shrink: 0;
 }
 
 .entry-modal--pick {
   width: min(calc(100vw - 32px), 360px);
   max-width: 360px;
-  max-height: min(88vh, 640px);
-  overflow-y: auto;
 }
 
 .entry-modal-hint--top {
