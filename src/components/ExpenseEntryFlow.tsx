@@ -523,8 +523,6 @@ export function ExpenseEntryFlow({
                   src={categoryIconByKey[cat] ?? defaultCategoryIcon}
                   alt=""
                   className="entry-cat-btn-icon"
-                  decoding="async"
-                  loading="lazy"
                   aria-hidden
                 />
                 <span>{EXPENSE_CATEGORY_SHORT_LABELS[cat]}</span>

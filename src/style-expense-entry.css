@@ -591,7 +591,9 @@
   flex-direction: column;
   gap: 12px;
   box-sizing: border-box;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: min(90vh, 680px);
 }
 
 .entry-modal--pick {

@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import {
   HOME_CRITICAL_PRELOAD_URLS,
   HOME_GAUGE_CAT_URLS,
+  preloadCategoryIcons,
   preloadHomeCriticalImages,
 } from '../utils/preloadHomeCritical'
 import { preloadDeferredNagAssets, preloadInstantNagSay1 } from '../utils/preloadDeferredNag'
@@ -24,6 +25,7 @@ export function HomeCriticalWarmup() {
         : (cb: () => void) => window.setTimeout(cb, 2000)
 
     const idleId = idle(() => {
+      preloadCategoryIcons()
       void preloadDeferredNagAssets()
       void preloadMonthlySettlementImages()
     })

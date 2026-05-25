@@ -111,6 +111,7 @@ import {
   preloadPopupToastImages,
 } from './utils/preloadPopupToastImages'
 import { preloadInstantNagForCategory } from './utils/preloadDeferredNag'
+import { preloadCategoryIcons } from './utils/preloadHomeCritical'
 import {
   ensureMonthlySettlementCatReady,
   preloadMonthlySettlementImages,
@@ -1327,6 +1328,7 @@ function App() {
   useEffect(() => {
     if (screen === 'entry') {
       void preloadPopupToastImages()
+      preloadCategoryIcons()
     }
     if (screen === 'entry' && selectedType === 'expense') {
       preloadInstantNagForCategory()

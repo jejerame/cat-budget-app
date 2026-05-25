@@ -6,6 +6,14 @@ import janCatUrl from '../../jan1.png'
 import red1CatUrl from '../../red1.png'
 import redCatUrl from '../../red.png'
 import supGaugeUrl from '../../sup.png'
+import martCatUrl from '../../mart.png'
+import houseCatUrl from '../../house.png'
+import beghouseCatUrl from '../../beghouse.png'
+import bookCatUrl from '../../book.png'
+import tourCatUrl from '../../tour.png'
+import dateCoupleCatUrl from '../../date1.png'
+import dogCatUrl from '../../dog.png'
+import gudokCatUrl from '../../gudok.png'
 import { loadImageAsset } from './imageAssetLoader'
 
 /** 홈 첫 화면에 보이는 아이콘 (타이틀·게이지·달력 고양이) */
@@ -25,6 +33,18 @@ export const HOME_CRITICAL_PRELOAD_URLS = [
   red1CatUrl,
   happyGaugeUrl,
   supGaugeUrl,
+] as const
+
+export const CATEGORY_ICON_URLS = [
+  redCatUrl,
+  martCatUrl,
+  dateCoupleCatUrl,
+  houseCatUrl,
+  beghouseCatUrl,
+  bookCatUrl,
+  tourCatUrl,
+  dogCatUrl,
+  gudokCatUrl,
 ] as const
 
 function runWhenIdle(task: () => void, timeoutMs = 4000): void {
@@ -49,4 +69,9 @@ export function preloadHomeCriticalImages(): Promise<void> {
         )
       })
     })
+}
+
+/** 지출 카테고리 아이콘 — 홈 유휴 or 입력 진입 시 미리 디코드 */
+export function preloadCategoryIcons(): void {
+  void Promise.all(CATEGORY_ICON_URLS.map((url) => loadImageAsset(url)))
 }
